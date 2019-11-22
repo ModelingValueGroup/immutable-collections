@@ -6,6 +6,7 @@ mkdir -p log
 . build/01-getTools.sh        | tee log/01-getTools.log
 . build/02-makePoms.sh        | tee log/02-makePoms.log
 . build/03-getDependencies.sh | tee log/03-getDependencies.log
+exit
 . build/04-build.sh           | tee log/04-build.log
 . build/05-test.sh            | tee log/05-test.log
 . build/06-javadoc.sh         | tee log/06-javadoc.log

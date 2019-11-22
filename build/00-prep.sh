@@ -8,12 +8,10 @@ export  MAVEN_OPTS="-Dmaven.repo.local=m2 -DoutputDirectory=out/dependency"
 export  OUR_DOMAIN="org.modelingvalue"
 export OUR_PRODUCT="dclare"
 export OUR_VERSION="$(head -1 releases.md | sed 's/#* *//')"
-export  OUR_BRANCH="$(sed 's|^refs/heads/||' <<<"$GITHUB_REF")"
+export  OUR_BRANCH="$(sed 's|^refs/heads/||' <<<"${GITHUB_REF:-LOCAL-$USER}")"
 ################################################################
 export units=(
     collections
-    transactions
-    jdclare
 )
 ################################################################
 varNames=(
@@ -26,5 +24,5 @@ varNames=(
     OUR_BRANCH
     units
 )
-mkdir -p build/tmp
-declare -p "${varNames[@]}" > build/tmp/prep.sh
+mkdir -p out
+declare -p "${varNames[@]}" > out/prep.sh

@@ -24,3 +24,5 @@ hs_err_pid*
 
 /immutable-collections.properties
 /lib
+/out
+/tools
