@@ -1,0 +1,26 @@
+name: build
+
+on: [push]
+
+jobs:
+  build-and-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout...
+        uses: actions/checkout@v1
+
+      - name: setup JDK...
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: prepare...
+        run:  build/00-prep.sh ${{ secrets.GITHUB_TOKEN }}
+
+      - name: get tools
+        run:  build/01-getTools.sh
+
+      - name: make poms
+        run:  build/02-makePoms.sh
