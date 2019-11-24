@@ -8,27 +8,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: checkout...
+      - name: "checkout"
         uses: actions/checkout@v1
 
-      - name: get buildTools...
+      - name: "get buildTools"
         uses: ModelingValueGroup/buildTools@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: setup JDK...
+      - name: "setup JDK"
         uses: actions/setup-java@v1
         with:
           java-version: 11
 
-      - name: forced stop...
+      - name: "get dependencies (as in pom)"
+        run:  mvn dependency:copy-dependencies -DoutputDirectory=lib
+
+      - name: "..."
+        run:  ls -la . lib
+
+      - name: "generate sources"
+        run:  ant compile.module.build
+
+      - name: "forced stop"
         run:  exit 99
-
-      - name: prepare...
-        run:  build/00-prep.sh ${{ secrets.GITHUB_TOKEN }}
-
-      - name: get tools
-        run:  build/01-getTools.sh
-
-      - name: make poms
-        run:  build/02-makePoms.sh
