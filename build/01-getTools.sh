@@ -2,7 +2,10 @@
 set -ue
 . out/prep.sh
 ################################################################
-echo "...get our tools"
+echo "...get our buildTools"
+
+
+
 rm -rf tools
 git clone 'https://github.com/ModelingValueGroup/buildTools.git'
 ( echo ". tools/tools.sh"

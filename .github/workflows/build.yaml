@@ -11,10 +11,16 @@ jobs:
       - name: checkout...
         uses: actions/checkout@v1
 
+      - name: get buildTools...
+        uses: ModelingValueGroup/buildTools@master
+
       - name: setup JDK...
         uses: actions/setup-java@v1
         with:
           java-version: 11
+
+      - name: forced stop...
+        run:  exit 99
 
       - name: prepare...
         run:  build/00-prep.sh ${{ secrets.GITHUB_TOKEN }}
