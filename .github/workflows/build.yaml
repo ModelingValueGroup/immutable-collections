@@ -13,6 +13,8 @@ jobs:
 
       - name: get buildTools...
         uses: ModelingValueGroup/buildTools@master
+        with:
+          - token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: setup JDK...
         uses: actions/setup-java@v1
