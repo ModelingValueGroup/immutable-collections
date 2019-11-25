@@ -25,7 +25,12 @@ jobs:
           java-version: 11
 
       - name: "get dependencies (as in pom)"
-        run:  . buildTools.sh && mvn_ dependency:copy-dependencies -DoutputDirectory=lib
+        run:  |
+          . buildTools.sh
+          mkdir -p lib
+          mvn dependency:copy-dependencies -DoutputDirectory=lib
+          mvn_ dependency:copy-dependencies -DoutputDirectory=lib
+          ls -l lib
 
       - name: "..."
         run:  ls -la . lib
