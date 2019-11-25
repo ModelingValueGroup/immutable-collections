@@ -16,13 +16,13 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: "install packages for building"
-        run: sudo apt-get install xmlstarlet jq maven
-
       - name: "setup JDK"
         uses: actions/setup-java@v1
         with:
           java-version: 11
+
+      - name: "install packages for building"
+        run: sudo apt-get install xmlstarlet jq maven
 
       - name: "get dependencies (as in pom)"
         run:  |
@@ -30,9 +30,17 @@ jobs:
           mkdir -p lib
           mvn_ ${{ secrets.GITHUB_TOKEN }} dependency:copy-dependencies -DoutputDirectory=lib
 
+      - name: "prepare ant"
+        run:  |
+          cat <<EOF >build.properties
+          jdk.home.11=$JAVA_HOME"
+          path.variable.maven_repository=~/.m2/repository
+          EOF
+
       - name: "(re)generate sources"
         run:  |
-          ant -Djdk.home.11=$JAVA_HOME compile.module.build
+          build/postProcessAnFiles.sh
+          ant compile.module.build
           java -cp out/production/build EolCorrector
           java -cp out/production/build HeaderGenerator
           java -cp out/production/build StructGenerator
@@ -41,7 +49,11 @@ jobs:
         run:  |
           git status
           if [[ -f changes-detected ]]; then
-            git status # TODO: change this to commit&push
+            git config user.email "automation@modelingvalue.com"
+            git config user.name "github automation user"
+            git add .
+            git commit -m "push back regenerated files @$(date)"
+            git push
           fi
 
       - name: "forced stop"
