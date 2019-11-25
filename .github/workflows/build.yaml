@@ -41,13 +41,14 @@ jobs:
 
       - name: "push changes back"
         run:  |
-          git status
+          set -x
           if [[ -f changes-detected ]]; then
             git config user.email "automation@modelingvalue.com"
             git config user.name "github automation user"
             git add .
             git commit -m "push back regenerated files @$(date)"
-            git push
+            git status
+            # git push
           fi
 
       - name: "get dependencies (as in pom)"
