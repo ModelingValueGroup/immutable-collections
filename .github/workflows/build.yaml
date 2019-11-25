@@ -24,16 +24,10 @@ jobs:
       - name: "install packages for building"
         run: sudo apt-get install xmlstarlet jq maven
 
-      - name: "get dependencies (as in pom)"
-        run:  |
-          . buildTools.sh
-          mkdir -p lib
-          mvn_ ${{ secrets.GITHUB_TOKEN }} dependency:copy-dependencies -DoutputDirectory=lib
-
       - name: "prepare ant"
         run:  |
           cat <<EOF >build.properties
-          jdk.home.11=$JAVA_HOME"
+          jdk.home.11=$JAVA_HOME
           path.variable.maven_repository=~/.m2/repository
           EOF
 
@@ -55,6 +49,12 @@ jobs:
             git commit -m "push back regenerated files @$(date)"
             git push
           fi
+
+      - name: "get dependencies (as in pom)"
+        run:  |
+          . buildTools.sh
+          mkdir -p lib
+          mvn_ ${{ secrets.GITHUB_TOKEN }} dependency:copy-dependencies -DoutputDirectory=lib
 
       - name: "forced stop"
         run:  exit 99
