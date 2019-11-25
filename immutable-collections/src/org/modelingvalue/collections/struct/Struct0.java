@@ -17,3 +17,4 @@ package org.modelingvalue.collections.struct;
 
 public interface Struct0 extends Struct {
 }
+//remove me
