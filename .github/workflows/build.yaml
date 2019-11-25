@@ -30,12 +30,19 @@ jobs:
           mkdir -p lib
           mvn_ ${{ secrets.GITHUB_TOKEN }} dependency:copy-dependencies -DoutputDirectory=lib
 
-      - name: "generate sources"
+      - name: "(re)generate sources"
         run:  |
           ant -Djdk.home.11=$JAVA_HOME compile.module.build
           java -cp out/production/build EolCorrector
           java -cp out/production/build HeaderGenerator
           java -cp out/production/build StructGenerator
+
+      - name: "push changes back"
+        run:  |
+          git status
+          if [[ -f changes-detected ]]; then
+            git status # TODO: change this to commit&push
+          fi
 
       - name: "forced stop"
         run:  exit 99
