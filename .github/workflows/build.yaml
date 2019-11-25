@@ -28,8 +28,7 @@ jobs:
         run:  |
           . buildTools.sh
           mkdir -p lib
-          mvn dependency:copy-dependencies -DoutputDirectory=lib
-          mvn_ dependency:copy-dependencies -DoutputDirectory=lib
+          mvn_ ${{ secrets.GITHUB_TOKEN }} dependency:copy-dependencies -DoutputDirectory=lib
           ls -l lib
 
       - name: "..."
