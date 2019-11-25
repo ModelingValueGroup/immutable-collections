@@ -33,13 +33,16 @@ public abstract class ScavangerBase {
             BASE_DIR.resolve("lib")
     ));
 
-    protected int          changed;
+    protected int          numChanges;
     private   List<String> header;
     private   List<Path>   previouslyGenerated = new ArrayList<>();
 
     void generate() throws IOException {
         removeLeftOvers();
-        System.err.println("CHANGED=" + changed);
+        System.err.println("#changes=" + numChanges);
+        if (numChanges !=0) {
+            Files.write(BASE_DIR.resolve("changes-detected"),"changes-detected".getBytes());
+        }
     }
 
     void prepare() throws IOException {
@@ -62,13 +65,13 @@ public abstract class ScavangerBase {
         if (forced || !Files.isRegularFile(file)) {
             System.err.println("+ generated  : " + file);
             Files.write(file, lines);
-            changed++;
+            numChanges++;
         } else {
             List<String> old = Files.readAllLines(file);
             if (!lines.equals(old)) {
                 System.err.println("+ regenerated: " + file);
                 Files.write(file, lines);
-                changed++;
+                numChanges++;
             } else {
                 System.err.println("+ already ok : " + file);
             }
@@ -84,7 +87,7 @@ public abstract class ScavangerBase {
         for (Path f : previouslyGenerated) {
             System.err.println("- deleted      : " + f);
             Files.delete(f);
-            changed++;
+            numChanges++;
         }
     }
 

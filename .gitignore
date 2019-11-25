@@ -25,4 +25,5 @@ hs_err_pid*
 /build.properties
 /lib
 /out
-/tools
+/buildTools.sh
+/changes-detected
