@@ -33,8 +33,13 @@ jobs:
 
       - name: "(re)generate sources"
         run:  |
+          set -x
           . buildTools.sh
+          old="$(md5sum pom.xml)"
           generateAllPoms
+          if [[ "$old" != "$(md5sum pom.xml)" ]]; then
+            touch changes-made
+          fi
           build/postProcessAntFiles.sh
           ant compile.module.build
           java -cp out/production/build EolCorrector
@@ -43,6 +48,7 @@ jobs:
 
       - name: "push changes back"
         run:  |
+          set -x
           if [[ -f changes-made ]]; then
             git config user.email "automation@modelingvalue.com"
             git config user.name "$GITHUB_ACTOR"
