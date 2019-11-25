@@ -4,7 +4,6 @@
   <groupId>com.modelingvalue</groupId>
   <artifactId>immutable-collections</artifactId>
   <version>1.0.0</version>
-  <packaging/>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
