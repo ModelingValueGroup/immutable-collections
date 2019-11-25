@@ -33,6 +33,8 @@ jobs:
 
       - name: "(re)generate sources"
         run:  |
+          . buildTools.sh
+          generateAllPoms
           build/postProcessAntFiles.sh
           ant compile.module.build
           java -cp out/production/build EolCorrector
@@ -54,6 +56,10 @@ jobs:
           . buildTools.sh
           mkdir -p lib
           mvn_ ${{ secrets.GITHUB_TOKEN }} dependency:copy-dependencies -DoutputDirectory=lib
+
+      - name: "build"
+        run:  |
+          ant
 
       - name: "forced stop"
         run:  exit 99
