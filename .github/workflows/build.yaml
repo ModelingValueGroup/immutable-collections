@@ -28,7 +28,7 @@ jobs:
         run:  |
           cat <<EOF >build.properties
           jdk.home.11=$JAVA_HOME
-          path.variable.maven_repository=~/.m2/repository
+          path.variable.maven_repository=$HOME/.m2/repository
           EOF
 
       - name: "(re)generate sources"
@@ -62,6 +62,9 @@ jobs:
           . buildTools.sh
           mkdir -p lib
           mvn_ ${{ secrets.GITHUB_TOKEN }} dependency:copy-dependencies -DoutputDirectory=lib
+          ls -l $HOME/.m2/repository
+          find $HOME -name junit\*.jar
+          find . -name junit\*.jar
 
       - name: "build"
         run:  |
