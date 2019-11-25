@@ -15,6 +15,7 @@
 
 package org.modelingvalue.collections.struct;
 
+// will be removed
 public interface Struct1<T0> extends Struct0 {
     T0 get0 ();
 }
