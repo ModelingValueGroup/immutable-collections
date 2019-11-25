@@ -16,6 +16,9 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: "install packages for tests"
+        run: sudo apt-get install xmlstarlet jq maven
+
       - name: "setup JDK"
         uses: actions/setup-java@v1
         with:
