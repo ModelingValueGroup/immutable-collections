@@ -41,7 +41,7 @@ public abstract class ScavangerBase {
         removeLeftOvers();
         System.err.println("#changes=" + numChanges);
         if (numChanges !=0) {
-            Files.write(BASE_DIR.resolve("changes-detected"),"changes-detected".getBytes());
+            Files.write(BASE_DIR.resolve("changes-made"),"marker-file".getBytes());
         }
     }
 

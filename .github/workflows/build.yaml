@@ -41,12 +41,11 @@ jobs:
 
       - name: "push changes back"
         run:  |
-          set -x
-          if [[ -f changes-detected ]]; then
+          if [[ -f changes-made ]]; then
             git config user.email "automation@modelingvalue.com"
             git config user.name "$GITHUB_ACTOR"
             git add .
-            git commit -m "push back regenerated files @$(date)"
+            git commit -m "adjusted files [by github actions]"
             git push "https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" "HEAD:${GITHUB_REF#refs/heads/}"
           fi
 
