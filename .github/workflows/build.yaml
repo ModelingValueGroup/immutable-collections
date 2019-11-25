@@ -39,7 +39,7 @@ jobs:
 
       - name: "(re)generate sources"
         run:  |
-          build/postProcessAnFiles.sh
+          build/postProcessAntFiles.sh
           ant compile.module.build
           java -cp out/production/build EolCorrector
           java -cp out/production/build HeaderGenerator
