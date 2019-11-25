@@ -22,13 +22,17 @@ jobs:
           java-version: 11
 
       - name: "get dependencies (as in pom)"
-        run:  mvn dependency:copy-dependencies -DoutputDirectory=lib
+        run:  . buildTools.sh && mvn_ dependency:copy-dependencies -DoutputDirectory=lib
 
       - name: "..."
         run:  ls -la . lib
 
       - name: "generate sources"
-        run:  ant compile.module.build
+        run:  |
+          ant compile.module.build
+          java -cp out/production/build EolCorrector
+          java -cp out/production/build HeaderGenerator
+          java -cp out/production/build StructGenerator
 
       - name: "forced stop"
         run:  exit 99

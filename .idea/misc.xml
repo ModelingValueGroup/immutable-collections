@@ -16,15 +16,20 @@
     <property name="tooltip-delay" value="500" />
     <property name="stamp-format" value="'Line read:' yyyy-MM-dd HH:mm:ss" />
   </component>
+  <component name="IvyIDEA.ProjectSettings">
+    <option name="artifactTypeSettings">
+      <ArtifactTypeSettings>
+        <option name="classesTypes" value="jar, mar, sar, war, ear, ejb, bundle, test-jar" />
+        <option name="javadocTypes" value="javadoc, doc, docs, apidoc, apidocs, documentation, documents" />
+        <option name="sourcesTypes" value="source, src, sources, srcs" />
+      </ArtifactTypeSettings>
+    </option>
+    <option name="ivyLogLevelThreshold" value="Info" />
+    <option name="useCustomIvySettings" value="false" />
+    <option name="validateIvyFiles" value="true" />
+  </component>
   <component name="JavadocGenerationManager">
     <option name="OTHER_OPTIONS" value="" />
-  </component>
-  <component name="MavenProjectsManager">
-    <option name="originalFiles">
-      <list>
-        <option value="$PROJECT_DIR$/pom.xml" />
-      </list>
-    </option>
   </component>
   <component name="ModuleEditorState">
     <option name="LAST_EDITED_MODULE_NAME" />
