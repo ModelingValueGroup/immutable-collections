@@ -47,7 +47,7 @@ jobs:
             git config user.name "github automation user"
             git add .
             git commit -m "push back regenerated files @$(date)"
-            git push "HEAD:$GITHUB_REF"
+            git push "HEAD:${GITHUB_REF#refs/heads/}"
           fi
 
       - name: "get dependencies (as in pom)"
