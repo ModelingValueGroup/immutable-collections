@@ -19,6 +19,7 @@ import java.util.*;
 import java.util.stream.*;
 
 import static java.lang.Integer.*;
+import static java.nio.file.StandardOpenOption.*;
 
 @SuppressWarnings({"WeakerAccess"})
 public abstract class ScavangerBase {
@@ -48,7 +49,7 @@ public abstract class ScavangerBase {
             Path markerFile = BASE_DIR.resolve(markerName);
             changedFiles.forEach(f-> {
                 try {
-                    Files.write(markerFile, "marker-file".getBytes(), StandardOpenOption.APPEND);
+                    Files.write(markerFile, f.toString().getBytes(), APPEND, CREATE);
                 } catch (IOException e) {
                     System.err.println("ERROR: could not write markerfile: "+ markerFile);
                     e.printStackTrace();
