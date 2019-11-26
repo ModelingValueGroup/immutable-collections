@@ -31,15 +31,35 @@ jobs:
           path.variable.maven_repository=$HOME/.m2/repository
           EOF
 
-      - name: "(re)generate sources"
+      - name: "(re)generate some files"
         run:  |
           . buildTools.sh
           updateAllPomsFromIntellijDependencies
+          generateAntTestFilesFromIntellij
+          generateAntJavadocFilesFromIntellij
           cleanupIntellijAntFiles
           ant compile.module.build
           java -cp out/production/build EolCorrector
           java -cp out/production/build HeaderGenerator
           java -cp out/production/build StructGenerator
+
+      - name: "DEBUG"
+        run:  |
+          echo "::group::build.xml"
+          cat build.xml || :
+          echo "::endgroup::"
+
+          echo "::group::immutable-collections/test.xml"
+          cat immutable-collections/test.xml || :
+          echo "::endgroup::"
+
+          echo "::group::immutable-collections/javadoc.xml"
+          cat immutable-collections/javadoc.xml || :
+          echo "::endgroup::"
+
+          echo "::group::list"
+          find . -type f || :
+          echo "::endgroup::"
 
       - name: "download dependencies (as mentioned in pom)"
         run:  |
@@ -50,40 +70,11 @@ jobs:
       - name: "build"
         run:  ant
 
-      - name: "augment ant files"
-        run:  |
-          . buildTools.sh
-          set -x
-          generateAntTestFilesFromIntellij
-          generateAntJavadocFilesFromIntellij
-
-          echo "::group::build.xml"
-          cat build.xml || :
-          echo "::endgroup::"
-
-          echo "::group::test.xml"
-          cat test.xml || :
-          echo "::endgroup::"
-
-          echo "::group::immutable-collections/javadoc.xml"
-          cat immutable-collections/javadoc.xml || :
-          echo "::endgroup::"
-
-          echo "::group::javadoc.xml"
-          cat javadoc.xml || :
-          echo "::endgroup::"
-
-          echo "::group::list"
-          find . -type f || :
-          echo "::endgroup::"
-
       - name: "test"
-        run:  |
-          ant -v TEST-results.jar
+        run:  ant -v TEST-results.jar
 
       - name: "javadoc"
-        run:  |
-          ant -v javadoc.module.immutable-collections
+        run:  ant -v javadoc.module.immutable-collections
 
       - name: "upload immutable-collections.jar"
         uses: actions/upload-artifact@v1
