@@ -207,4 +207,4 @@
   </target>
   
   <target name="all" depends="build.modules, build.all.artifacts" description="build all"/>
-<import file="${basedir}/immutable-collections/test.xml"/><import file="${basedir}/build/javadoc.xml"/><import file="${basedir}/immutable-collections/javadoc.xml"/></project>
+<import file="${basedir}/immutable-collections/test.xml"/><import file="${basedir}/build/javadoc.xml"/><import file="${basedir}/immutable-collections/javadoc.xml"/><import file="${basedir}/immutable-collections/test.xml"/><import file="${basedir}/build/javadoc.xml"/><import file="${basedir}/immutable-collections/javadoc.xml"/></project>
