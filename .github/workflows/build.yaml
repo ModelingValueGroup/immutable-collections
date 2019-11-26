@@ -11,6 +11,9 @@ jobs:
       - name: "checkout"
         uses: actions/checkout@v1
 
+      - name: "attach head"
+        run: git checkout "${GITHUB_REF#refs/heads/}"
+
       - name: "get buildTools"
         uses: ModelingValueGroup/buildTools@master
         with:
@@ -87,10 +90,12 @@ jobs:
           . buildTools.sh
           if [[ -f $CHANGES_MADE_MARKER ]]; then
             echo "changes need to be pushed back to github"
+
             echo "::group::what has changed"
               cat $CHANGES_MADE_MARKER
               rm $CHANGES_MADE_MARKER
             echo "::endgroup::"
+
             echo "::group::git commit and push"
               git config user.email "automation@modelingvalue.com"
               git config user.name "$GITHUB_ACTOR"
@@ -98,6 +103,7 @@ jobs:
               git commit -m "adjusted files [by github actions]"
               git push "https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" "HEAD:${GITHUB_REF#refs/heads/}"
             echo "::endgroup::"
+
           else
             echo "no changes need to be pushed back to github"
           fi
