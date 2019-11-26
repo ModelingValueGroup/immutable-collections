@@ -49,7 +49,8 @@ public abstract class ScavangerBase {
             Path markerFile = BASE_DIR.resolve(markerName);
             changedFiles.forEach(f-> {
                 try {
-                    Files.write(markerFile, f.toString().getBytes(), APPEND, CREATE);
+                    String line = f + "\n";
+                    Files.write(markerFile, line.getBytes(), APPEND, CREATE);
                 } catch (IOException e) {
                     System.err.println("ERROR: could not write markerfile: "+ markerFile);
                     e.printStackTrace();

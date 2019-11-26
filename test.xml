@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="test" default="all">
+<project name="test" default="test">
   <property file="build.properties"/>
   <path id="cp">
     <path>
@@ -13,7 +13,7 @@
       <include name="*"/>
     </dirset>
   </path>
-  <target name="all">
+  <target name="test">
     <junit haltonfailure="on" logfailedtests="on" fork="on" forkmode="once">
       <!-- fork="on" forkmode="perTest" threads="8" -->
       <classpath refid="cp"/>

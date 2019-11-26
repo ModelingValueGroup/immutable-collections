@@ -60,6 +60,40 @@ jobs:
           echo "::endgroup::"
           ant -v -f test.xml
 
+      - name: "javadoc"
+        run:  |
+          . buildTools.sh
+          generateAntJavadocFilesFromIntellij
+          echo "::group::test.xml"
+          cat test.xml || :
+          ls -l out/production out/test || :
+          echo "::endgroup::"
+          ant -v -f test.xml
+
+      - name: "upload immutable-collections.jar"
+        uses: actions/upload-artifact@v1
+        with:
+          name: jdclare.jar
+          path: out/artifacts/immutable_collections_jar/immutable-collections.jar
+
+      - name: "upload immutable-collections-sources.jar"
+        uses: actions/upload-artifact@v1
+        with:
+          name: immutable-collections-sources.jar
+          path: out/artifacts/immutable_collections_sources_jar/immutable-collections-sources.jar
+
+      - name: "upload immutable-collections-javadoc.jar"
+        uses: actions/upload-artifact@v1
+        with:
+          name: immutable-collections-javadoc.jar
+          path: out/artifacts/immutable_collections_javadoc_jar/immutable-collections-javadoc.jar
+
+      - name: "upload TEST-results.jar"
+        uses: actions/upload-artifact@v1
+        with:
+          name: TEST-results.jar
+          path: out/artifacts/TEST_results_jar/TEST-results.jar
+
       - name: "push changes back to github"
         run:  |
           . buildTools.sh
@@ -79,6 +113,3 @@ jobs:
           else
             echo "no changes need to be pushed back to github"
           fi
-
-      - name: "forced stop"
-        run:  exit 99

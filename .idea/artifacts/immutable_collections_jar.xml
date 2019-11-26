@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="immutable-collections:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/immutable_collections_jar</output-path>
+    <root id="archive" name="immutable-collections.jar">
+      <element id="module-output" name="immutable-collections" />
+    </root>
+  </artifact>
+</component>
