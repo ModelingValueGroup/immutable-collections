@@ -47,11 +47,6 @@ jobs:
           mkdir -p lib
           mvn_ ${{ secrets.GITHUB_TOKEN }} dependency:copy-dependencies -DoutputDirectory=lib
 
-          ls -l $HOME/.m2/repository/junit/junit/4.12/junit-4.12.jar || :
-          ls -l $HOME/.m2/repository/org.hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar || :
-          find $HOME -name junit\*.jar
-          find $HOME -name hamcrest\*.jar
-
       - name: "build"
         run:  ant
 
@@ -59,11 +54,6 @@ jobs:
         run:  |
           . buildTools.sh
           generateAntTestFileFromIntellij
-          # sed -i 's|-->|--><classpath location="lib/junit-4.12.jar"/>|' test.xml
-          # sed -i 's|-->|--><classpath location="lib/hamcrest-core-1.3.jar"/>|' test.xml
-          sed -i 's|-->|--><classpath location="${path.variable.maven_repository}/junit/junit/4.12/junit-4.12.jar"/>|' test.xml
-          sed -i 's|-->|--><classpath location="${path.variable.maven_repository}/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"/>|' test.xml
-          #sed -i '4d;7d' test.xml
           echo "::group::test.xml"
           cat test.xml || :
           ls -l out/production out/test || :
