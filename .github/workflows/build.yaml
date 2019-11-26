@@ -35,22 +35,14 @@ jobs:
         run:  |
           . buildTools.sh
 
-          echo "AAAAAAA1"
           updateAllPomsFromIntellijDependencies
-          echo "AAAAAAA2"
           cleanupIntellijAntFiles
-          echo "AAAAAAA3"
           generateAntTestFileFromIntellij
-          echo "AAAAAAA4"
 
           ant compile.module.build
-          echo "AAAAAAA5"
           java -cp out/production/build EolCorrector
-          echo "AAAAAAA6"
           java -cp out/production/build HeaderGenerator
-          echo "AAAAAAA7"
           java -cp out/production/build StructGenerator
-          echo "AAAAAAA8"
 
       - name: "push changes back to github"
         run:  |
