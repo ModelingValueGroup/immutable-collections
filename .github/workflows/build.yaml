@@ -54,7 +54,7 @@ jobs:
         run:  |
           . buildTools.sh
           set -x
-          generateAntTestFileFromIntellij
+          generateAntTestFilesFromIntellij
           generateAntJavadocFilesFromIntellij
 
           echo "::group::build.xml"
