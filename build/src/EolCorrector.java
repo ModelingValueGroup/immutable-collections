@@ -29,6 +29,7 @@ public class EolCorrector extends ScavangerBase{
     ));
     private static final Set<String> TEXT_EXTENSIONS    = new HashSet<>(Arrays.asList(
             "java",
+            "properties",
             "md",
             "yaml",
             "yml",

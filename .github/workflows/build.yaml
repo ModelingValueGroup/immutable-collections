@@ -50,24 +50,38 @@ jobs:
       - name: "build"
         run:  ant
 
-      - name: "test"
+      - name: "augment ant files"
         run:  |
           . buildTools.sh
           generateAntTestFileFromIntellij
+          generateAntJavadocFilesFromIntellij
+
+          echo "::group::build.xml"
+          cat build.xml || :
+          echo "::endgroup::"
+
           echo "::group::test.xml"
           cat test.xml || :
-          ls -l out/production out/test || :
           echo "::endgroup::"
+
+          echo "::group::immutable-collections/javadoc.xml"
+          cat immutable-collections/javadoc.xml || :
+          echo "::endgroup::"
+
+          echo "::group::javadoc.xml"
+          cat javadoc.xml || :
+          echo "::endgroup::"
+
+          echo "::group::list"
+          find . -type f || :
+          echo "::endgroup::"
+
+      - name: "test"
+        run:  |
           ant -v TEST-results.jar
 
       - name: "javadoc"
         run:  |
-          . buildTools.sh
-          generateAntJavadocFilesFromIntellij
-          echo "::group::immutable-collections/javadoc.xml"
-          cat immutable-collections/javadoc.xml || :
-          ls -l out/production out/test || :
-          echo "::endgroup::"
           ant -v javadoc.module.immutable-collections
 
       - name: "upload immutable-collections.jar"
