@@ -53,6 +53,7 @@ jobs:
       - name: "augment ant files"
         run:  |
           . buildTools.sh
+          set -x
           generateAntTestFileFromIntellij
           generateAntJavadocFilesFromIntellij
 
