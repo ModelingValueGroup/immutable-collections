@@ -51,6 +51,7 @@ public abstract class ScavangerBase {
                     Files.write(markerFile, "marker-file".getBytes(), StandardOpenOption.APPEND);
                 } catch (IOException e) {
                     System.err.println("ERROR: could not write markerfile: "+ markerFile);
+                    e.printStackTrace();
                     System.exit(34);
                 }
             });
