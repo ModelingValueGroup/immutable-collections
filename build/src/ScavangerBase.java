@@ -33,15 +33,27 @@ public abstract class ScavangerBase {
             BASE_DIR.resolve("lib")
     ));
 
-    protected int          numChanges;
+    protected List<Path>   changedFiles        = new ArrayList<>();
     private   List<String> header;
     private   List<Path>   previouslyGenerated = new ArrayList<>();
 
     void generate() throws IOException {
         removeLeftOvers();
-        System.err.println("#changes=" + numChanges);
-        if (numChanges !=0) {
-            Files.write(BASE_DIR.resolve("changes-made"),"marker-file".getBytes());
+        System.err.println("#changes=" + changedFiles.size());
+        if (!changedFiles.isEmpty()) {
+            String markerName = System.getenv("CHANGES_MADE_MARKER");
+            if (markerName == null) {
+                markerName = "changes-made";
+            }
+            Path markerFile = BASE_DIR.resolve(markerName);
+            changedFiles.forEach(f-> {
+                try {
+                    Files.write(markerFile, "marker-file".getBytes(), StandardOpenOption.APPEND);
+                } catch (IOException e) {
+                    System.err.println("ERROR: could not write markerfile: "+ markerFile);
+                    System.exit(34);
+                }
+            });
         }
     }
 
@@ -65,13 +77,13 @@ public abstract class ScavangerBase {
         if (forced || !Files.isRegularFile(file)) {
             System.err.println("+ generated  : " + file);
             Files.write(file, lines);
-            numChanges++;
+            changedFiles.add(file);
         } else {
             List<String> old = Files.readAllLines(file);
             if (!lines.equals(old)) {
                 System.err.println("+ regenerated: " + file);
                 Files.write(file, lines);
-                numChanges++;
+                changedFiles.add(file);
             } else {
                 System.err.println("+ already ok : " + file);
             }
@@ -84,10 +96,10 @@ public abstract class ScavangerBase {
     }
 
     private void removeLeftOvers() throws IOException {
-        for (Path f : previouslyGenerated) {
-            System.err.println("- deleted      : " + f);
-            Files.delete(f);
-            numChanges++;
+        for (Path file : previouslyGenerated) {
+            System.err.println("- deleted      : " + file);
+            Files.delete(file);
+            changedFiles.add(file);
         }
     }
 
