@@ -58,17 +58,17 @@ jobs:
           cat test.xml || :
           ls -l out/production out/test || :
           echo "::endgroup::"
-          ant -v -f test.xml
+          ant -v TEST-results.jar
 
       - name: "javadoc"
         run:  |
           . buildTools.sh
           generateAntJavadocFilesFromIntellij
-          echo "::group::test.xml"
-          cat test.xml || :
+          echo "::group::immutable-collections/javadoc.xml"
+          cat immutable-collections/javadoc.xml || :
           ls -l out/production out/test || :
           echo "::endgroup::"
-          ant -v -f test.xml
+          ant -v javadoc.module.immutable-collections
 
       - name: "upload immutable-collections.jar"
         uses: actions/upload-artifact@v1
@@ -92,7 +92,7 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: TEST-results.jar
-          path: out/artifacts/TEST_results_jar/TEST-results.jar
+          path: out/artifacts/TEST-results.jar
 
       - name: "push changes back to github"
         run:  |
