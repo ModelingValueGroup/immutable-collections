@@ -89,25 +89,25 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: jdclare.jar
-          path: out/artifacts/immutable_collections_jar/immutable-collections.jar
+          path: out/artifacts/immutable-collections.jar
 
       - name: "upload immutable-collections-sources.jar"
         uses: actions/upload-artifact@v1
         with:
           name: immutable-collections-sources.jar
-          path: out/artifacts/immutable_collections_sources_jar/immutable-collections-sources.jar
+          path: out/artifacts/immutable-collections-sources.jar
 
       - name: "upload immutable-collections-javadoc.jar"
         uses: actions/upload-artifact@v1
         with:
           name: immutable-collections-javadoc.jar
-          path: out/artifacts/immutable_collections_javadoc_jar/immutable-collections-javadoc.jar
+          path: out/artifacts/immutable-collections-javadoc.jar
 
       - name: "upload TEST-results.jar"
         uses: actions/upload-artifact@v1
         with:
-          name: TEST-results.jar
-          path: out/artifacts/TEST-results.jar
+          name: immutable-collections-testresults.jar
+          path: out/artifacts/immutable-collections-testresults.jar
 
       - name: "push changes back to github"
         run:  |
