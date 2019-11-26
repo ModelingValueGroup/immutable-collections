@@ -2,7 +2,7 @@
   <artifact type="jar" name="immutable-collections-sources:jar">
     <output-path>$PROJECT_DIR$/out/artifacts/immutable_collections_sources_jar</output-path>
     <root id="archive" name="immutable-collections-sources.jar">
-      <element id="module-source" name="immutable-collections" />
+      <element id="dir-copy" path="$PROJECT_DIR$/immutable-collections/src" />
     </root>
   </artifact>
 </component>

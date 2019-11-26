@@ -167,29 +167,20 @@
   
   <target name="init.artifacts">
     <property name="artifacts.temp.dir" value="${basedir}/__artifacts_temp"/>
-    <property name="artifact.output.immutable-collections-javadoc:jar" value="${basedir}/out/artifacts/immutable_collections_javadoc_jar"/>
     <property name="artifact.output.immutable-collections-sources:jar" value="${basedir}/out/artifacts/immutable_collections_sources_jar"/>
     <property name="artifact.output.immutable-collections:jar" value="${basedir}/out/artifacts/immutable_collections_jar"/>
     <property name="artifact.output.test-results:jar" value="${basedir}/out/artifacts/TEST_results_jar"/>
     <mkdir dir="${artifacts.temp.dir}"/>
-    <property name="temp.jar.path.immutable-collections-javadoc.jar" value="${artifacts.temp.dir}/immutable-collections-javadoc.jar"/>
     <property name="temp.jar.path.immutable-collections-sources.jar" value="${artifacts.temp.dir}/immutable-collections-sources.jar"/>
     <property name="temp.jar.path.immutable-collections.jar" value="${artifacts.temp.dir}/immutable-collections.jar"/>
     <property name="temp.jar.path.TEST-results.jar" value="${artifacts.temp.dir}/TEST-results.jar"/>
-  </target>
-  
-  <target name="artifact.immutable-collections-javadoc:jar" depends="init.artifacts" description="Build &#39;immutable-collections-javadoc:jar&#39; artifact">
-    <property name="artifact.temp.output.immutable-collections-javadoc:jar" value="${artifacts.temp.dir}/immutable_collections_javadoc_jar"/>
-    <mkdir dir="${artifact.temp.output.immutable-collections-javadoc:jar}"/>
-    <jar destfile="${temp.jar.path.immutable-collections-javadoc.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain"/>
-    <copy file="${temp.jar.path.immutable-collections-javadoc.jar}" tofile="${artifact.temp.output.immutable-collections-javadoc:jar}/immutable-collections-javadoc.jar"/>
   </target>
   
   <target name="artifact.immutable-collections-sources:jar" depends="init.artifacts" description="Build &#39;immutable-collections-sources:jar&#39; artifact">
     <property name="artifact.temp.output.immutable-collections-sources:jar" value="${artifacts.temp.dir}/immutable_collections_sources_jar"/>
     <mkdir dir="${artifact.temp.output.immutable-collections-sources:jar}"/>
     <jar destfile="${temp.jar.path.immutable-collections-sources.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
-      <zipfileset dir="/Users/tom/projects/immutable-collections/immutable-collections/src"/>
+      <zipfileset dir="${basedir}/immutable-collections/src"/>
     </jar>
     <copy file="${temp.jar.path.immutable-collections-sources.jar}" tofile="${artifact.temp.output.immutable-collections-sources:jar}/immutable-collections-sources.jar"/>
   </target>
@@ -212,11 +203,7 @@
     <copy file="${temp.jar.path.TEST-results.jar}" tofile="${artifact.temp.output.test-results:jar}/TEST-results.jar"/>
   </target>
   
-  <target name="build.all.artifacts" depends="artifact.immutable-collections-javadoc:jar, artifact.immutable-collections-sources:jar, artifact.immutable-collections:jar, artifact.test-results:jar" description="Build all artifacts">
-    <mkdir dir="${artifact.output.immutable-collections-javadoc:jar}"/>
-    <copy todir="${artifact.output.immutable-collections-javadoc:jar}">
-      <fileset dir="${artifact.temp.output.immutable-collections-javadoc:jar}"/>
-    </copy>
+  <target name="build.all.artifacts" depends="artifact.immutable-collections-sources:jar, artifact.immutable-collections:jar, artifact.test-results:jar" description="Build all artifacts">
     <mkdir dir="${artifact.output.immutable-collections-sources:jar}"/>
     <copy todir="${artifact.output.immutable-collections-sources:jar}">
       <fileset dir="${artifact.temp.output.immutable-collections-sources:jar}"/>
