@@ -101,7 +101,8 @@ jobs:
               git config user.name "$GITHUB_ACTOR"
               git add .
               git commit -m "adjusted files [by github actions]"
-              git push "https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" "HEAD:${GITHUB_REF#refs/heads/}"
+              git push
+              #git push "https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" "HEAD:${GITHUB_REF#refs/heads/}"
             echo "::endgroup::"
 
           else
@@ -114,3 +115,4 @@ jobs:
         with:
           file: "out/artifacts/immutable-collections.jar"
           token: "${{ secrets.GITHUB_TOKEN }}"
+          trace: true
