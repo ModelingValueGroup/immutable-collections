@@ -59,6 +59,7 @@ jobs:
         run:  |
           . buildTools.sh
           generateAntTestFileFromIntellij
+          sed -i 's|-->|--><classpath location="lib/junit-4.12.jar"/><classpath location="lib/hamcrest-core-1.3.jar"/>|' test.xml
           echo "::group::test.xml"
           cat test.xml || :
           ls -l out/production out/test || :
