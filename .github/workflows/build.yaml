@@ -54,6 +54,10 @@ jobs:
         run:  |
           . buildTools.sh
           generateAntTestFileFromIntellij
+          echo "::group::test.xml"
+          cat test.xml || :
+          ls -l out/production out/test || :
+          echo "::endgroup::"
           ant -f test.xml
 
       - name: "push changes back to github"
