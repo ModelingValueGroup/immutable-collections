@@ -71,7 +71,7 @@ jobs:
         run:  ant
 
       - name: "test"
-        run:  ant -v TEST-results.jar
+        run:  ant -v test.results.jar.immutable-collections
 
       - name: "javadoc"
         run:  ant -v javadoc.module.immutable-collections
@@ -94,7 +94,7 @@ jobs:
           name: immutable-collections-javadoc.jar
           path: out/artifacts/immutable-collections-javadoc.jar
 
-      - name: "upload TEST-results.jar"
+      - name: "upload immutable-collections-testresults.jar"
         uses: actions/upload-artifact@v1
         with:
           name: immutable-collections-testresults.jar
