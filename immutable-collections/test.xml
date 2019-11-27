@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="test.immutable-collections" default="test.results.jar.immutable-collections">
+  <path id="classpath.test.immutable-collections">
+    <path>
+      <pathelement location="${path.variable.maven_repository}/junit/junit/4.12/junit-4.12.jar"/>
+      <pathelement location="${path.variable.maven_repository}/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"/>
+    </path>
+    <dirset dir="out/production">
+      <include name="*"/>
+    </dirset>
+    <dirset dir="out/test">
+      <include name="*"/>
+    </dirset>
+  </path>
+  <target name="test.immutable-collections">
+    <junit haltonfailure="on" logfailedtests="on" fork="on" forkmode="once">
+      <!-- fork="on" forkmode="perTest" threads="8" -->
+      <classpath refid="classpath.test.immutable-collections"/>
+      <batchtest todir=".">
+        <fileset dir="out/test/immutable-collections">
+          <include name="**/*Test.*"/>
+          <include name="**/*Tests.*"/>
+        </fileset>
+        <formatter type="xml"/>
+      </batchtest>
+    </junit>
+  </target>
+  <target name="test.results.jar.immutable-collections" depends="test.immutable-collections">
+    <mkdir dir="${basedir}/out/artifacts"/>
+    <jar destfile="${basedir}/out/artifacts/immutable-collections-testresults.jar" filesetmanifest="skip">
+      <zipfileset file="${basedir}/TEST-*.xml"/>
+    </jar>
+  </target>
+</project>
