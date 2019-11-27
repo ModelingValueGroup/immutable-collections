@@ -8,17 +8,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-#      - name: "checkout"
-#        uses: actions/checkout@v1
-#
-#      - name: "attach head"
-#        run: git checkout "${GITHUB_REF#refs/heads/}"
-#
-#      - name: "get buildTools"
-#        uses: ModelingValueGroup/buildTools@develop
-#        with:
-#          token: ${{ secrets.GITHUB_TOKEN }}
-#
+      - name: "checkout"
+        uses: actions/checkout@v1
+
+      - name: "attach head"
+        run: git checkout "${GITHUB_REF#refs/heads/}"
+
+      - name: "get buildTools"
+        uses: ModelingValueGroup/buildTools@develop
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "FIND"
+        run: find / -name \*upload-maven-package-action\*
+
 #      - name: "setup JDK"
 #        uses: actions/setup-java@v1
 #        with:
