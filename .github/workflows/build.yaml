@@ -14,100 +14,97 @@ jobs:
       - name: "attach head"
         run: git checkout "${GITHUB_REF#refs/heads/}"
 
-#      - name: "get buildTools"
-#        uses: ModelingValueGroup/buildTools@master
-#        with:
-#          token: ${{ secrets.GITHUB_TOKEN }}
-#
-#      - name: "setup JDK"
-#        uses: actions/setup-java@v1
-#        with:
-#          java-version: 11
-#
-#      - name: "install packages for building"
-#        run: sudo apt-get install xmlstarlet jq maven
-#
-#      - name: "prepare ant"
-#        run:  |
-#          cat <<EOF >build.properties
-#          jdk.home.11=$JAVA_HOME
-#          path.variable.maven_repository=$HOME/.m2/repository
-#          EOF
-#
-#      - name: "(re)generate some files"
-#        run:  |
-#          . buildTools.sh
-#          updateAllPomsFromIntellijDependencies
-#          generateAntTestFilesFromIntellij
-#          generateAntJavadocFilesFromIntellij
-#          cleanupIntellijAntFiles
-#          ant compile.module.build
-#          java -cp out/production/build EolCorrector
-#          java -cp out/production/build HeaderGenerator
-#          java -cp out/production/build StructGenerator
-#
-#      - name: "download dependencies (as mentioned in pom)"
-#        run:  |
-#          . buildTools.sh
-#          mkdir -p lib
-#          mvn_ ${{ secrets.GITHUB_TOKEN }} dependency:copy-dependencies -DoutputDirectory=lib
-#
-#      - name: "build"
-#        run:  ant
-#
-#      - name: "test"
-#        run:  ant test.results.jar.immutable-collections
-#
-#      - name: "javadoc"
-#        run:  ant javadoc.module.immutable-collections
-#
-#      - name: "upload immutable-collections.jar"
-#        uses: actions/upload-artifact@v1
-#        with:
-#          name: jdclare.jar
-#          path: out/artifacts/immutable-collections.jar
-#
-#      - name: "upload immutable-collections-sources.jar"
-#        uses: actions/upload-artifact@v1
-#        with:
-#          name: immutable-collections-sources.jar
-#          path: out/artifacts/immutable-collections-sources.jar
-#
-#      - name: "upload immutable-collections-javadoc.jar"
-#        uses: actions/upload-artifact@v1
-#        with:
-#          name: immutable-collections-javadoc.jar
-#          path: out/artifacts/immutable-collections-javadoc.jar
-#
-#      - name: "upload immutable-collections-testresults.jar"
-#        uses: actions/upload-artifact@v1
-#        with:
-#          name: immutable-collections-testresults.jar
-#          path: out/artifacts/immutable-collections-testresults.jar
-#
-#      - name: "push changes back to github"
-#        run:  |
-#          . buildTools.sh
-#          if [[ -f $CHANGES_MADE_MARKER ]]; then
-#            echo "changes need to be pushed back to github"
-#
-#            echo "::group::what has changed"
-#              cat $CHANGES_MADE_MARKER
-#              rm $CHANGES_MADE_MARKER
-#            echo "::endgroup::"
-#
-#            echo "::group::git commit and push"
-#              git config user.email "automation@modelingvalue.com"
-#              git config user.name "$GITHUB_ACTOR"
-#              git add .
-#              git commit -m "adjusted files [by github actions]"
-#              git push
-#              #git push "https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" "HEAD:${GITHUB_REF#refs/heads/}"
-#            echo "::endgroup::"
-#
-#          else
-#            echo "no changes need to be pushed back to github"
-#          fi
+      - name: "get buildTools"
+        uses: ModelingValueGroup/buildTools@develop
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "setup JDK"
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: "prepare ant"
+        run:  |
+          cat <<EOF >build.properties
+          jdk.home.11=$JAVA_HOME
+          path.variable.maven_repository=$HOME/.m2/repository
+          EOF
+
+      - name: "(re)generate some files"
+        run:  |
+          . buildTools.sh
+          updateAllPomsFromIntellijDependencies
+          generateAntTestFilesFromIntellij
+          generateAntJavadocFilesFromIntellij
+          cleanupIntellijAntFiles
+          ant compile.module.build
+          java -cp out/production/build EolCorrector
+          java -cp out/production/build HeaderGenerator
+          java -cp out/production/build StructGenerator
+
+      - name: "download dependencies (as mentioned in pom)"
+        run:  |
+          . buildTools.sh
+          mkdir -p lib
+          mvn_ ${{ secrets.GITHUB_TOKEN }} dependency:copy-dependencies -DoutputDirectory=lib
+
+      - name: "build"
+        run:  ant
+
+      - name: "test"
+        run:  ant test.results.jar.immutable-collections
+
+      - name: "javadoc"
+        run:  ant javadoc.module.immutable-collections
+
+      - name: "upload immutable-collections.jar"
+        uses: actions/upload-artifact@v1
+        with:
+          name: jdclare.jar
+          path: out/artifacts/immutable-collections.jar
+
+      - name: "upload immutable-collections-sources.jar"
+        uses: actions/upload-artifact@v1
+        with:
+          name: immutable-collections-sources.jar
+          path: out/artifacts/immutable-collections-sources.jar
+
+      - name: "upload immutable-collections-javadoc.jar"
+        uses: actions/upload-artifact@v1
+        with:
+          name: immutable-collections-javadoc.jar
+          path: out/artifacts/immutable-collections-javadoc.jar
+
+      - name: "upload immutable-collections-testresults.jar"
+        uses: actions/upload-artifact@v1
+        with:
+          name: immutable-collections-testresults.jar
+          path: out/artifacts/immutable-collections-testresults.jar
+
+      - name: "push changes back to github"
+        run:  |
+          . buildTools.sh
+          if [[ -f $CHANGES_MADE_MARKER ]]; then
+            echo "changes need to be pushed back to github"
+
+            echo "::group::what has changed"
+              cat $CHANGES_MADE_MARKER
+              rm $CHANGES_MADE_MARKER
+            echo "::endgroup::"
+
+            echo "::group::git commit and push"
+              git config user.email "automation@modelingvalue.com"
+              git config user.name "$GITHUB_ACTOR"
+              git add .
+              git commit -m "adjusted files [by github actions]"
+              git push
+              #git push "https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" "HEAD:${GITHUB_REF#refs/heads/}"
+            echo "::endgroup::"
+
+          else
+            echo "no changes need to be pushed back to github"
+          fi
 
       - name: "upload as package"
         uses: ModelingValueGroup/upload-maven-package-action@develop
