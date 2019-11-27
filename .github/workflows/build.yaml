@@ -99,7 +99,6 @@ jobs:
               git add .
               git commit -m "adjusted files [by github actions]"
               git push
-              #git push "https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git" "HEAD:${GITHUB_REF#refs/heads/}"
             echo "::endgroup::"
 
           else
