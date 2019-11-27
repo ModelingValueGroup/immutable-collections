@@ -24,7 +24,7 @@ jobs:
       - name: "FIND"
         run: find $HOME -type d -name immutable-collections 2>/dev/null
       - name: "FIND"
-        run: find $HOME -type d -name buildTools   2>/dev/null
+        run: find $HOME -type d -name buildTools    2>/dev/null
 
       #      - name: "setup JDK"
 #        uses: actions/setup-java@v1
