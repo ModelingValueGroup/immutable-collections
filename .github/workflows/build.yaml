@@ -20,7 +20,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "FIND"
-        run: find / -name \*upload-maven-package-action\*
+        run: find $HOME -name \*upload-maven-package-action\* 2>/dev/null
+      - name: "FIND"
+        run: find / -name \*upload-maven-package-action\* 2>/dev/null
 
 #      - name: "setup JDK"
 #        uses: actions/setup-java@v1
