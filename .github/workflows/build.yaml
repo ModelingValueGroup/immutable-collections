@@ -20,11 +20,13 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "FIND"
-        run: find $HOME -name \*upload-maven-package-action\* 2>/dev/null
+        run: find $HOME -type d -name upload-maven-package-action 2>/dev/null
       - name: "FIND"
-        run: find / -name \*upload-maven-package-action\* 2>/dev/null
+        run: find $HOME -type d -name immutable-collections 2>/dev/null
+      - name: "FIND"
+        run: find $HOME -type d -name buildTools 2>/dev/null
 
-#      - name: "setup JDK"
+      #      - name: "setup JDK"
 #        uses: actions/setup-java@v1
 #        with:
 #          java-version: 11
