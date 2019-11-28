@@ -90,8 +90,10 @@ jobs:
 
             echo "::group::git commit and push"
               set -x
-              git config user.email "automation@modelingvalue.com"
-              git config user.name "$GITHUB_ACTOR"
+              git config --global user.email "automation@modelingvalue.com"
+              git config --global user.email
+              git config --global user.name "$GITHUB_ACTOR"
+              git config --global user.name
               git add .
               git commit -m "adjusted files [by github actions]"
               git push
