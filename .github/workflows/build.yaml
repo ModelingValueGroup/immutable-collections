@@ -89,11 +89,8 @@ jobs:
             echo "changes need to be pushed back to github"
 
             echo "::group::git commit and push"
-              set -x
-              git config --global user.email "automation@modelingvalue.com"
-              git config --global user.email
-              git config --global user.name "$GITHUB_ACTOR"
-              git config --global user.name
+              git config user.email "automation@modelingvalue.com"
+              git config user.name "$GITHUB_ACTOR"
               git add .
               git commit -m "adjusted files [by github actions]"
               git push "https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git"
