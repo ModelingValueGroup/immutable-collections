@@ -96,7 +96,7 @@ jobs:
               git config --global user.name
               git add .
               git commit -m "adjusted files [by github actions]"
-              git push "https://"$GITHUB_ACTOR":"$GITHUB_TOKEN"@github.com/"$GITHUB_REPOSITORY".git"
+              git push "https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git"
             echo "::endgroup::"
 
           else
