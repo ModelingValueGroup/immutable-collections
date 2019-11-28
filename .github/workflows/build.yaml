@@ -85,7 +85,7 @@ jobs:
       - name: "push changes back to github"
         run:  |
           . buildTools.sh
-          git status || :
+          git ls-files -o --exclude-standard || :
           if [[ -f $CHANGES_MADE_MARKER ]]; then
             echo "changes need to be pushed back to github"
 
