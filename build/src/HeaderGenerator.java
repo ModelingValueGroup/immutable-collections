@@ -16,30 +16,40 @@
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.*;
+
+import static java.lang.Integer.*;
 
 @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
 public class HeaderGenerator extends ScavangerBase {
-    private static final Path        MODULE_DIR        = Paths.get("immutable-collections").toAbsolutePath();
-    private static final Path        BASE_DIR          = MODULE_DIR.getParent();
-    private static final Set<String> FILES_WITH_HEADER = new HashSet<>(Arrays.asList(
-            "header"
-    ));
-    private static final Set<String> EXT_WITH_HEADER   = new HashSet<>(Arrays.asList(
+    private static final Set<String> EXT_WITH_HEADER = new HashSet<>(Arrays.asList(
             "java"
     ));
 
+    private Path         headerFile = Paths.get("build", "header").toAbsolutePath();
+    private List<String> header;
+
     public static void main(String[] args) throws IOException {
-        new HeaderGenerator().generate();
+        new HeaderGenerator().prepare(Arrays.asList(args)).generate();
     }
 
-    void generate() throws IOException {
-        prepare();
-        Files.walk(BASE_DIR)
-                .filter(f -> FORBIDDEN_DIRS.stream().noneMatch(f::startsWith))
-                .filter(Files::isRegularFile)
+    private HeaderGenerator prepare(List<String> args) {
+        if (args.size() != 1) {
+            System.err.println("arg error: one arg expected: <header-template-file>");
+            System.exit(53);
+        }
+        headerFile = Paths.get(args.get(0));
+
+        if (!Files.isRegularFile(headerFile)) {
+            throw new Error("no such file: " + headerFile);
+        }
+        return this;
+    }
+
+    private void generate() throws IOException {
+        allFiles()
                 .filter(this::needsHeader)
                 .forEach(this::replaceHeader);
-        super.generate();
     }
 
     private boolean needsHeader(Path f) {
@@ -49,7 +59,7 @@ public class HeaderGenerator extends ScavangerBase {
             if (Files.size(f) == 0) {
                 return false;
             }
-            if (FILES_WITH_HEADER.contains(filename)) {
+            if (f.equals(headerFile)) {
                 return true;
             }
             if (ext.isEmpty()) {
@@ -63,7 +73,7 @@ public class HeaderGenerator extends ScavangerBase {
 
     private void replaceHeader(Path f) {
         try {
-            List<String> lines = f.getFileName().toString().equals("header") ? new ArrayList<>() : Files.readAllLines(f);
+            List<String> lines = f.equals(headerFile) ? new ArrayList<>() : Files.readAllLines(f);
             while (!lines.isEmpty() && isHeaderLine(lines.get(0))) {
                 lines.remove(0);
             }
@@ -77,4 +87,66 @@ public class HeaderGenerator extends ScavangerBase {
     private boolean isHeaderLine(String line) {
         return (line.startsWith("//") && line.endsWith("~")) || line.trim().isEmpty();
     }
+
+    private List<String> readHeader() throws IOException {
+        return border(cleanup(Files.readAllLines(headerFile)));
+    }
+
+    private List<String> cleanup(List<String> inFile) {
+        List<String> h = inFile
+                .stream()
+                .map(String::stripTrailing)
+                .filter(l -> !l.matches("^//~~*$"))
+                .map(l -> l.replaceAll("^//", ""))
+                .map(l -> l.replaceAll("~$", ""))
+                .map(String::stripTrailing)
+                .collect(Collectors.toList());
+        int indent = calcIndent(h);
+        if (0 < indent) {
+            h = h.stream().map(l -> l.substring(min(l.length(), indent))).collect(Collectors.toList());
+        }
+        while (!h.isEmpty() && h.get(0).trim().isEmpty()) {
+            h.remove(0);
+        }
+        while (!h.isEmpty() && h.get(h.size() - 1).trim().isEmpty()) {
+            h.remove(h.size() - 1);
+        }
+        if (h.isEmpty()) {
+            h.add("no header available");
+        }
+        return h;
+    }
+
+    private List<String> border(List<String> cleaned) {
+        //noinspection OptionalGetWithoutIsPresent
+        int          len      = cleaned.stream().mapToInt(String::length).max().getAsInt();
+        String       border   = "//~" + String.format("%" + len + "s", "").replace(' ', '~') + "~~";
+        List<String> bordered = cleaned.stream().map(l -> String.format("// %-" + len + "s ~", l)).collect(Collectors.toList());
+        bordered.add(0, border);
+        bordered.add(border);
+        bordered.add("");
+        return bordered;
+    }
+
+    private int calcIndent(List<String> h) {
+        int indent = Integer.MAX_VALUE;
+        for (String l : h) {
+            if (l.trim().length() != 0) {
+                indent = min(indent, l.replaceAll("[^ ].*", "").length());
+            }
+        }
+        return indent;
+    }
+
+    private List<String> getHeader() {
+        try {
+            if (header == null) {
+                header = readHeader();
+            }
+            return header;
+        } catch (IOException e) {
+            throw new Error("could not read header: " + headerFile);
+        }
+    }
+
 }

@@ -40,8 +40,8 @@ jobs:
           cleanupIntellijAntFiles
           ant compile.module.build
           java -cp out/production/build EolCorrector
-          java -cp out/production/build HeaderGenerator
-          java -cp out/production/build StructGenerator
+          java -cp out/production/build StructGenerator "25" "immutable-collections/src" "org.modelingvalue.collections.struct"
+          java -cp out/production/build HeaderGenerator "build/header"
 
       - name: "download dependencies (as mentioned in pom)"
         run:  |

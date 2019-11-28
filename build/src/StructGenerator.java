@@ -19,49 +19,74 @@ import java.util.*;
 import java.util.stream.*;
 
 public class StructGenerator extends ScavangerBase {
-    private static final int    MAX_NUM_TYPE_ARGS       = 25;
-    //
-    private static final Path   INTERFACE_PATH          = Paths.get("org", "modelingvalue", "collections", "struct");
-    private static final Path   IMPL_PATH               = INTERFACE_PATH.resolve("impl");
-    //
-    private static final Path   BASE_SRCGEN_DIR         = MODULE_DIR.resolve("src");
-    private static final Path   INTERFACE_SRCGEN_DIR    = BASE_SRCGEN_DIR.resolve(INTERFACE_PATH);
-    private static final Path   IMPL_SRCGEN_DIR         = BASE_SRCGEN_DIR.resolve(IMPL_PATH);
-    //
-    private static final String INTERFACES_JAVA_PACKAGE = INTERFACE_PATH.toString().replace(File.separatorChar, '.');
-    private static final String IMPL_JAVA_PACKAGE       = IMPL_PATH.toString().replace(File.separatorChar, '.');
-
+    private int        maxNumTypeArgs;
+    private Path       interfaceSrcGenDir;
+    private Path       implementSrcGenDir;
+    private String     interfaceJavaPackage;
+    private String     implementJavaPackage;
+    private List<Path> previouslyGenerated = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
-        new StructGenerator().generate();
+        new StructGenerator().prepare(Arrays.asList(args)).generate();
     }
 
-    void generate() throws IOException {
-        prepare();
-        for (int i = 0; i < MAX_NUM_TYPE_ARGS; i++) {
-            overwrite(INTERFACE_SRCGEN_DIR.resolve(structName(i, false) + ".java"), generateStructInterface(i));
-            overwrite(IMPL_SRCGEN_DIR.resolve(structName(i, true) + ".java"), generateStructImplementation(i));
+    private StructGenerator prepare(List<String> args) throws IOException {
+        if (args.size() != 3) {
+            System.err.println("arg error: 3 arg are expected: <max-struct-size> <dir-to-gen-in> <package>");
+            System.exit(53);
         }
-        super.generate();
-    }
+        maxNumTypeArgs = Integer.parseInt(args.get(0));
 
-    void prepare() throws IOException {
-        super.prepare();
+        Path genDir           = Paths.get(args.get(1));
+        Path interfaceGenPack = Paths.get(args.get(2).replace('.', '/'));
+        Path implementGenPack = interfaceGenPack.resolve("impl");
+
+        interfaceSrcGenDir = genDir.resolve(interfaceGenPack);
+        implementSrcGenDir = genDir.resolve(implementGenPack);
+        interfaceJavaPackage = interfaceGenPack.toString().replace(File.separatorChar, '.');
+        implementJavaPackage = implementGenPack.toString().replace(File.separatorChar, '.');
+
+        if (!Files.isDirectory(genDir)) {
+            throw new Error("no such dir: " + genDir);
+        }
         try {
-            Files.createDirectories(IMPL_SRCGEN_DIR);
+            Files.createDirectories(implementSrcGenDir);
         } catch (IOException e) {
-            throw new Error("could not create dir: " + IMPL_SRCGEN_DIR);
+            throw new Error("could not create dir: " + implementSrcGenDir);
         }
-        Stream.concat(Files.list(INTERFACE_SRCGEN_DIR), Files.list(IMPL_SRCGEN_DIR))//
+        Stream.concat(Files.list(interfaceSrcGenDir), Files.list(implementSrcGenDir))//
                 .filter(f -> Files.isRegularFile(f))//
                 .filter(f -> f.getFileName().toString().matches("^Struct[0-9][0-9]*(Impl)?\\.java$"))//
-                .forEach(this::addToPreviouslyGenerated);
+                .forEach(f1 -> previouslyGenerated.add(f1));
+        return this;
     }
 
+    private void generate() throws IOException {
+        for (int i = 0; i < maxNumTypeArgs; i++) {
+            overwrite(interfaceSrcGenDir.resolve(structName(i, false) + ".java"), generateStructInterface(i));
+            overwrite(implementSrcGenDir.resolve(structName(i, true) + ".java"), generateStructImplementation(i));
+        }
+        removeLeftOvers();
+    }
+
+    @Override
+    void overwrite(Path file, List<String> lines, boolean forced) throws IOException {
+        super.overwrite(file, lines, forced);
+        previouslyGenerated.remove(file);
+    }
+
+    private void removeLeftOvers() throws IOException {
+        for (Path file : previouslyGenerated) {
+            System.err.println("- deleted      : " + file);
+            Files.delete(file);
+        }
+    }
+
+
     private List<String> generateStructInterface(int i) {
-        List<String> f    = new ArrayList<>(getHeader());
+        List<String> f    = new ArrayList<>();
         int          prev = i - 1;
-        f.add("package " + INTERFACES_JAVA_PACKAGE + ";");
+        f.add("package " + interfaceJavaPackage + ";");
         f.add("");
         f.add("public interface " + structNameWithTypeArgs(i) + " extends " + structNameWithTypeArgs(prev) + " {");
         if (0 != i) {
@@ -72,11 +97,11 @@ public class StructGenerator extends ScavangerBase {
     }
 
     private List<String> generateStructImplementation(int i) {
-        List<String> f    = new ArrayList<>(getHeader());
+        List<String> f    = new ArrayList<>();
         int          prev = i - 1;
-        f.add("package " + IMPL_JAVA_PACKAGE + ";");
+        f.add("package " + implementJavaPackage + ";");
         f.add("");
-        f.add("import " + INTERFACES_JAVA_PACKAGE + ".*;");
+        f.add("import " + interfaceJavaPackage + ".*;");
         f.add("");
         if (0 != i) {
             f.add("@SuppressWarnings(\"unchecked\")");

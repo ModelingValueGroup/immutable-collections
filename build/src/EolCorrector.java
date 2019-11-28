@@ -18,7 +18,7 @@ import java.nio.file.*;
 import java.util.*;
 
 @SuppressWarnings("ArraysAsListWithZeroOrOneArgument")
-public class EolCorrector extends ScavangerBase{
+public class EolCorrector extends ScavangerBase {
     private static final Set<String> TEXT_FILES         = new HashSet<>(Arrays.asList(
             "LICENSE",
             ".gitignore",
@@ -45,18 +45,18 @@ public class EolCorrector extends ScavangerBase{
     ));
 
     public static void main(String[] args) throws IOException {
+        if (args.length!=0){
+            System.err.println("no args expected");
+            System.exit(31);
+        }
         new EolCorrector().generate();
     }
 
-     void generate() throws IOException {
-        prepare();
-        Files.walk(BASE_DIR)
-                .filter(f -> FORBIDDEN_DIRS.stream().noneMatch(f::startsWith))
-                .filter(Files::isRegularFile)
+    private void generate() throws IOException {
+        allFiles()
                 .filter(this::isTextType)
                 .forEach(this::correctCRLF);
-         super.generate();
-     }
+    }
 
     private void correctCRLF(Path f) {
         try {
@@ -66,7 +66,7 @@ public class EolCorrector extends ScavangerBase{
             List<String> lines = Files.readAllLines(f);
             if (numcr > 0 || lines.size() != numlf) {
                 System.err.printf("rewriting file: %4d lines (%4d cr and %4d lf) - %s\n", lines.size(), numcr, numlf, f);
-                overwrite(f, lines,true);
+                overwrite(f, lines, true);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -76,27 +76,31 @@ public class EolCorrector extends ScavangerBase{
     private boolean isTextType(Path f) {
         String           filename = f.getFileName().toString();
         Optional<String> ext      = getExtension(filename);
-        try {
-            if (Files.size(f) == 0) {
-                return false;
-            }
-            if (TEXT_FILES.contains(filename)) {
-                return true;
-            }
-            if (NO_TEXT_FILES.contains(filename)) {
-                return false;
-            }
-            if (ext.isEmpty()) {
-                return false;
-            }
-            if (TEXT_EXTENSIONS.contains(ext.get())) {
-                return true;
-            }
-            if (NO_TEXT_EXTENSIONS.contains(ext.get())) {
-                return false;
-            }
-            System.err.println("WARNING: unknown file type to correct cr/lf: " + f);
+        if (size(f) == 0L) {
             return false;
+        }
+        if (TEXT_FILES.contains(filename)) {
+            return true;
+        }
+        if (NO_TEXT_FILES.contains(filename)) {
+            return false;
+        }
+        if (ext.isEmpty()) {
+            return false;
+        }
+        if (TEXT_EXTENSIONS.contains(ext.get())) {
+            return true;
+        }
+        if (NO_TEXT_EXTENSIONS.contains(ext.get())) {
+            return false;
+        }
+        System.err.println("WARNING: unknown file type (not correcting cr/lf): " + f);
+        return false;
+    }
+
+    private long size(Path f) {
+        try {
+            return Files.size(f);
         } catch (IOException e) {
             throw new Error("file size failed", e);
         }
