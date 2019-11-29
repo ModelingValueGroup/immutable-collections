@@ -18,7 +18,9 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.stream.*;
 
-public class StructGenerator extends ScavangerBase {
+public class StructGenerator {
+    private static final String IMPL = "impl";
+
     private int        maxNumTypeArgs;
     private Path       interfaceSrcGenDir;
     private Path       implementSrcGenDir;
@@ -39,7 +41,7 @@ public class StructGenerator extends ScavangerBase {
 
         Path genDir           = Paths.get(args.get(1));
         Path interfaceGenPack = Paths.get(args.get(2).replace('.', '/'));
-        Path implementGenPack = interfaceGenPack.resolve("impl");
+        Path implementGenPack = interfaceGenPack.resolve(IMPL);
 
         interfaceSrcGenDir = genDir.resolve(interfaceGenPack);
         implementSrcGenDir = genDir.resolve(implementGenPack);
@@ -69,9 +71,19 @@ public class StructGenerator extends ScavangerBase {
         removeLeftOvers();
     }
 
-    @Override
-    void overwrite(Path file, List<String> lines, boolean forced) throws IOException {
-        super.overwrite(file, lines, forced);
+    private void overwrite(Path file, List<String> lines) throws IOException {
+        if (Files.notExists(file)) {
+            System.err.println("+ generated  : " + file);
+            Files.write(file, lines);
+        } else {
+            List<String> old = Files.readAllLines(file);
+            if (!lines.equals(old)) {
+                System.err.println("+ regenerated: " + file);
+                Files.write(file, lines);
+            } else {
+                System.err.println("+ already ok : " + file);
+            }
+        }
         previouslyGenerated.remove(file);
     }
 
@@ -81,7 +93,6 @@ public class StructGenerator extends ScavangerBase {
             Files.delete(file);
         }
     }
-
 
     private List<String> generateStructInterface(int i) {
         List<String> f    = new ArrayList<>();
