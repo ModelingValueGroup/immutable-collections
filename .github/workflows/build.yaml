@@ -104,7 +104,7 @@ jobs:
           fi
 
       - name: "upload as package"
-        uses: ModelingValueGroup/upload-maven-package-action@develop
+        uses: ModelingValueGroup/upload-maven-package-action@master
         if: github.ref == 'refs/heads/master'
         with:
           file: "out/artifacts/immutable-collections.jar"
