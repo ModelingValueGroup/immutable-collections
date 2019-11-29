@@ -14,15 +14,19 @@ jobs:
       - name: "attach head"
         run: git checkout "${GITHUB_REF#refs/heads/}"
 
-      - name: "get buildTools"
-        uses: ModelingValueGroup/buildTools@develop
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: "setup JDK"
         uses: actions/setup-java@v1
         with:
           java-version: 11
+
+      - name: "get buildTools"
+        uses: ModelingValueGroup/buildTools@master
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "debug"
+        run:  |
+          find . -type f | sed 's/^/@@@/'
 
       - name: "prepare ant"
         run:  |
@@ -33,19 +37,19 @@ jobs:
 
       - name: "(re)generate some files"
         run:  |
-          . buildTools.sh
+          . <(java -jar buildTools.jar)
           updateAllPomsFromIntellijDependencies
           generateAntTestFilesFromIntellij
           generateAntJavadocFilesFromIntellij
           cleanupIntellijAntFiles
           ant compile.module.build
-          java -cp out/production/build EolCorrector
-          java -cp out/production/build HeaderGenerator
-          java -cp out/production/build StructGenerator
+          java -cp out/production/build StructGenerator "25" "immutable-collections/src" "org.modelingvalue.collections.struct"
+          correctEols
+          correctHeaders header
 
       - name: "download dependencies (as mentioned in pom)"
         run:  |
-          . buildTools.sh
+          . <(java -jar buildTools.jar)
           mkdir -p lib
           mvn_ ${{ secrets.GITHUB_TOKEN }} dependency:copy-dependencies -DoutputDirectory=lib
 
@@ -84,21 +88,15 @@ jobs:
 
       - name: "push changes back to github"
         run:  |
-          . buildTools.sh
-          if [[ -f $CHANGES_MADE_MARKER ]]; then
+          if [[ "$(git ls-files -o --exclude-standard)" ]]; then
             echo "changes need to be pushed back to github"
-
-            echo "::group::what has changed"
-              cat $CHANGES_MADE_MARKER
-              rm $CHANGES_MADE_MARKER
-            echo "::endgroup::"
 
             echo "::group::git commit and push"
               git config user.email "automation@modelingvalue.com"
               git config user.name "$GITHUB_ACTOR"
               git add .
               git commit -m "adjusted files [by github actions]"
-              git push
+              git push "https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git"
             echo "::endgroup::"
 
           else
@@ -106,7 +104,7 @@ jobs:
           fi
 
       - name: "upload as package"
-        uses: ModelingValueGroup/upload-maven-package-action@develop
+        uses: ModelingValueGroup/upload-maven-package-action@master
         if: github.ref == 'refs/heads/master'
         with:
           file: "out/artifacts/immutable-collections.jar"
