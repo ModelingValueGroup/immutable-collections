@@ -20,7 +20,7 @@ jobs:
           java-version: 11
 
       - name: "get buildTools"
-        uses: ModelingValueGroup/buildTools@develop
+        uses: ModelingValueGroup/buildTools@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
