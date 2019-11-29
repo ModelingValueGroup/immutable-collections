@@ -24,6 +24,10 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: "debug"
+        run:  |
+          find . -type f | sed 's/^/@@@/'
+
       - name: "prepare ant"
         run:  |
           cat <<EOF >build.properties
