@@ -24,10 +24,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: "debug"
-        run:  |
-          find . -type f | sed 's/^/@@@/'
-
       - name: "prepare ant"
         run:  |
           cat <<EOF >build.properties
@@ -103,7 +99,7 @@ jobs:
             echo "no changes need to be pushed back to github"
           fi
 
-      - name: "upload as package"
+      - name: "upload package immutable-collections.jar"
         uses: ModelingValueGroup/upload-maven-package-action@master
         if: github.ref == 'refs/heads/master'
         with:
