@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--==============================================================-->
+<!-- WARNING: this file will be overwritten by the build scripts! -->
+<!--          change  project.sh  instead                         -->
+<!--==============================================================-->
 <project name="javadoc.build" default="javadoc.module.build">
-    <!--==============================================================-->
-    <!-- WARNING: this file will be overwritten by the build scripts! -->
-    <!--==============================================================-->
     <property name="build.javadoc.dir" value="${basedir}/out/artifacts"/>
     <property name="build.javadoc.tmp" value="${build.javadoc.dir}/tmp"/>
     <property name="build.javadoc.jar" value="${build.javadoc.dir}/build-javadoc.jar"/>
