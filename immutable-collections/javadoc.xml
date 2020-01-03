@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--==============================================================-->
+<!-- WARNING: this file will be overwritten by the build scripts! -->
+<!--          change  project.sh  instead                         -->
+<!--==============================================================-->
 <project name="javadoc.immutable-collections" default="javadoc.module.immutable-collections">
-    <!--==============================================================-->
-    <!-- WARNING: this file will be overwritten by the build scripts! -->
-    <!--==============================================================-->
     <property name="immutable-collections.javadoc.dir" value="${basedir}/out/artifacts"/>
     <property name="immutable-collections.javadoc.tmp" value="${immutable-collections.javadoc.dir}/tmp"/>
     <property name="immutable-collections.javadoc.jar" value="${immutable-collections.javadoc.dir}/immutable-collections-javadoc.jar"/>

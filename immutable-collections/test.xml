@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--==============================================================-->
+<!-- WARNING: this file will be overwritten by the build scripts! -->
+<!--          change  project.sh  instead                         -->
+<!--==============================================================-->
 <project name="test.immutable-collections" default="test.results.jar.immutable-collections">
-  <!--==============================================================-->
-  <!-- WARNING: this file will be overwritten by the build scripts! -->
-  <!--==============================================================-->
   <path id="classpath.test.immutable-collections">
     <path>
       <pathelement location="${path.variable.maven_repository}/junit/junit/4.12/junit-4.12.jar"/>
