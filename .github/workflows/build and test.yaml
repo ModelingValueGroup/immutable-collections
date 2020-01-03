@@ -37,10 +37,7 @@ jobs:
       - name: "(re)generate some files"
         run:  |
           . <(java -jar buildTools.jar)
-          updateAllPomsFromIntellijDependencies
-          generateAntTestFilesFromIntellij
-          generateAntJavadocFilesFromIntellij
-          cleanupIntellijAntFiles
+          generateAll
           ant compile.module.build
           java -cp out/production/build StructGenerator "25" "immutable-collections/src" "org.modelingvalue.collections.struct"
           correctEols
