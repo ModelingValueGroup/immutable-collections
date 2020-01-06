@@ -23,7 +23,7 @@
 #       s = sources
 #===================================================================
 artifacts=(
-  "org.modelingvalue   immutable-collections   1.0.12       jar jds"
+  "org.modelingvalue   immutable-collections   1.0.13       jar jds"
 )
 dependencies=(
   "junit               junit                   4.12        jar jds"
