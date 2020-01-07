@@ -86,7 +86,7 @@ jobs:
           name: immutable-collections-testresults.jar
           path: out/artifacts/immutable-collections-testresults.jar
 
-      - name: "publish maven-artifacts (jar/pom/sources/javadoc)"
+      - name: "if master: publish maven-artifacts (jar/pom/sources/javadoc)"
         uses: ModelingValueGroup/upload-maven-package-action@master
         if: github.ref == 'refs/heads/master'
         with:
