@@ -5,6 +5,11 @@
 <!--==============================================================-->
 <project name="test.immutable-collections" default="test.results.jar.immutable-collections">
   <path id="classpath.test.immutable-collections">
+    <pathelement location="${immutable-collections.output.dir}"/>
+    <path refid="${module.jdk.classpath.immutable-collections}"/>
+    <path refid="library.gen:_hamcrest-core.classpath"/>
+    <path refid="library.gen:_junit.classpath"/>
+<!--
     <path>
       <pathelement location="${path.variable.maven_repository}/junit/junit/4.12/junit-4.12.jar"/>
       <pathelement location="${path.variable.maven_repository}/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"/>
@@ -15,11 +20,13 @@
     <dirset dir="out/test">
       <include name="*"/>
     </dirset>
+    -->
   </path>
   <target name="test.immutable-collections">
+    <echo>TOMTOMTOM</echo>
     <junit haltonfailure="on" logfailedtests="on" fork="on" forkmode="once">
       <!-- fork="on" forkmode="perTest" threads="8" -->
-      <classpath refid="classpath.test.immutable-collections"/>
+      <classpath refid="immutable-collections.module.classpath"/>
       <batchtest todir=".">
         <fileset dir="out/test/immutable-collections">
           <include name="**/*Test.*"/>
