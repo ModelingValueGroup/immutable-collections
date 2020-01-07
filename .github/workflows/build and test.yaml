@@ -11,7 +11,7 @@ jobs:
       - name: "checkout"
         uses: actions/checkout@v1
 
-      - name: "attach head"
+      - name: "attach git head"
         run: git checkout "${GITHUB_REF#refs/heads/}"
 
       - name: "setup JDK"
@@ -19,7 +19,7 @@ jobs:
         with:
           java-version: 11
 
-      - name: "get generic info"
+      - name: "get generic mvg-info"
         uses: ModelingValueGroup/generic-info@master
 
       - name: "get buildTools"
@@ -57,6 +57,11 @@ jobs:
       - name: "generate javadoc"
         run:  ant javadoc.module.immutable-collections
 
+      - name: "push changes back to github"
+        run:  |
+          . <(java -jar buildTools.jar)
+          pushBackToGithub "${{ secrets.GITHUB_TOKEN }}" "automation@modelingvalue.com" "adjusted files [by github actions]"
+
       - name: "publish action-artifact jar"
         uses: actions/upload-artifact@v1
         with:
@@ -80,11 +85,6 @@ jobs:
         with:
           name: immutable-collections-testresults.jar
           path: out/artifacts/immutable-collections-testresults.jar
-
-      - name: "push changes back to github"
-        run:  |
-          . <(java -jar buildTools.jar)
-          pushBackToGithub "${{ secrets.GITHUB_TOKEN }}" "automation@modelingvalue.com" "adjusted files [by github actions]"
 
       - name: "publish maven-artifacts (jar/pom/sources/javadoc)"
         uses: ModelingValueGroup/upload-maven-package-action@master
