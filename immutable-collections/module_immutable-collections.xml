@@ -63,7 +63,7 @@
   
   <target name="compile.module.immutable-collections.production" description="Compile module immutable-collections; production classes">
     <mkdir dir="${immutable-collections.output.dir}"/>
-    <javac destdir="${immutable-collections.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.immutable-collections}/javac">
+    <javac includeantruntime="false" destdir="${immutable-collections.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.immutable-collections}/javac">
       <compilerarg line="${compiler.args.immutable-collections}"/>
       <bootclasspath refid="immutable-collections.module.bootclasspath"/>
       <classpath refid="immutable-collections.module.production.classpath"/>
@@ -81,7 +81,7 @@
   
   <target name="compile.module.immutable-collections.tests" depends="compile.module.immutable-collections.production" description="compile module immutable-collections; test classes" unless="skip.tests">
     <mkdir dir="${immutable-collections.testoutput.dir}"/>
-    <javac destdir="${immutable-collections.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.immutable-collections}/javac">
+    <javac includeantruntime="false" destdir="${immutable-collections.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.immutable-collections}/javac">
       <compilerarg line="${compiler.args.immutable-collections}"/>
       <bootclasspath refid="immutable-collections.module.bootclasspath"/>
       <classpath refid="immutable-collections.module.classpath"/>
