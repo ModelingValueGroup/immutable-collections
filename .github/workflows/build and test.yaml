@@ -54,28 +54,28 @@ jobs:
       - name: "test"
         run:  ant test.results.jar.immutable-collections
 
-      - name: "javadoc"
+      - name: "generate javadoc"
         run:  ant javadoc.module.immutable-collections
 
-      - name: "upload immutable-collections.jar"
+      - name: "publish action-artifact jar"
         uses: actions/upload-artifact@v1
         with:
           name: jdclare.jar
           path: out/artifacts/immutable-collections.jar
 
-      - name: "upload immutable-collections-sources.jar"
+      - name: "publish action-artifact sources"
         uses: actions/upload-artifact@v1
         with:
           name: immutable-collections-sources.jar
           path: out/artifacts/immutable-collections-sources.jar
 
-      - name: "upload immutable-collections-javadoc.jar"
+      - name: "publish action-artifact javadoc"
         uses: actions/upload-artifact@v1
         with:
           name: immutable-collections-javadoc.jar
           path: out/artifacts/immutable-collections-javadoc.jar
 
-      - name: "upload immutable-collections-testresults.jar"
+      - name: "publish action-artifact test-results"
         uses: actions/upload-artifact@v1
         with:
           name: immutable-collections-testresults.jar
@@ -86,7 +86,7 @@ jobs:
           . <(java -jar buildTools.jar)
           pushBackToGithub "${{ secrets.GITHUB_TOKEN }}" "automation@modelingvalue.com" "adjusted files [by github actions]"
 
-      - name: "upload package immutable-collections.jar"
+      - name: "publish maven-artifacts (jar/pom/sources/javadoc)"
         uses: ModelingValueGroup/upload-maven-package-action@master
         if: github.ref == 'refs/heads/master'
         with:
