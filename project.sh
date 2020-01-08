@@ -24,7 +24,7 @@
 #       t = test
 #===================================================================
 artifacts=(
-  "org.modelingvalue   immutable-collections   1.0.17      jar jds"
+  "org.modelingvalue   immutable-collections   1.0.18      jar jds"
 )
 dependencies=(
   "junit               junit                   4.12        jar jdst"
