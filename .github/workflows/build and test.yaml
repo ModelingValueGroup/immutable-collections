@@ -52,10 +52,10 @@ jobs:
         run:  ant
 
       - name: "test"
-        run:  ant test.results.jar.immutable-collections
+        run:  ant test
 
       - name: "generate javadoc"
-        run:  ant javadoc.module.immutable-collections
+        run:  ant javadoc
 
       - name: "push changes back to github"
         run:  |
