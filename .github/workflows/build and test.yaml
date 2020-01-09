@@ -39,7 +39,7 @@ jobs:
           . <(java -jar buildTools.jar)
           generateAll
           ant compile.module.build
-          java -cp out/production/build StructGenerator "25" "immutable-collections/src" "org.modelingvalue.collections.struct"
+          java -cp out/production/build generator.StructGenerator "25" "immutable-collections/src" "org.modelingvalue.collections.struct"
           correctEols
           correctHeaders header
 
