@@ -13,20 +13,7 @@
 //     Arjan Kok, Carel Bast                                                                                           ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-package generator;//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2019 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
-//                                                                                                                     ~
-// Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
-// compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
-// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on ~
-// an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the  ~
-// specific language governing permissions and limitations under the License.                                          ~
-//                                                                                                                     ~
-// Maintainers:                                                                                                        ~
-//     Wim Bast, Tom Brus, Ronald Krijgsheld                                                                           ~
-// Contributors:                                                                                                       ~
-//     Arjan Kok, Carel Bast                                                                                           ~
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+package generator;
 
 import java.io.*;
 import java.nio.file.*;
@@ -36,18 +23,18 @@ import java.util.stream.*;
 public class StructGenerator {
     private static final String IMPL = "impl";
 
-    private int        maxNumTypeArgs;
-    private Path       interfaceSrcGenDir;
-    private Path       implementSrcGenDir;
-    private String     interfaceJavaPackage;
-    private String     implementJavaPackage;
-    private List<Path> previouslyGenerated = new ArrayList<>();
+    private int         maxNumTypeArgs;
+    private Path        interfaceSrcGenDir;
+    private Path        implementSrcGenDir;
+    private String      interfaceJavaPackage;
+    private String      implementJavaPackage;
+    private List <Path> previouslyGenerated = new ArrayList <>();
 
     public static void main(String[] args) throws IOException {
         new StructGenerator().prepare(Arrays.asList(args)).generate();
     }
 
-    private StructGenerator prepare(List<String> args) throws IOException {
+    private StructGenerator prepare(List <String> args) throws IOException {
         if (args.size() != 3) {
             System.err.println("arg error: 3 arg are expected: <max-struct-size> <dir-to-gen-in> <package>");
             System.exit(53);
@@ -86,12 +73,12 @@ public class StructGenerator {
         removeLeftOvers();
     }
 
-    private void overwrite(Path file, List<String> lines) throws IOException {
+    private void overwrite(Path file, List <String> lines) throws IOException {
         if (Files.notExists(file)) {
             System.err.println("+ generated  : " + file);
             Files.write(file, lines);
         } else {
-            List<String> old = Files.readAllLines(file);
+            List <String> old = Files.readAllLines(file);
             if (!lines.equals(old)) {
                 System.err.println("+ regenerated: " + file);
                 Files.write(file, lines);
@@ -109,9 +96,9 @@ public class StructGenerator {
         }
     }
 
-    private List<String> generateStructInterface(int i) {
-        List<String> f    = new ArrayList<>();
-        int          prev = i - 1;
+    private List <String> generateStructInterface(int i) {
+        List <String> f    = new ArrayList <>();
+        int           prev = i - 1;
         f.add("package " + interfaceJavaPackage + ";");
         f.add("");
         f.add("public interface " + structNameWithTypeArgs(i) + " extends " + structNameWithTypeArgs(prev) + " {");
@@ -122,9 +109,9 @@ public class StructGenerator {
         return f;
     }
 
-    private List<String> generateStructImplementation(int i) {
-        List<String> f    = new ArrayList<>();
-        int          prev = i - 1;
+    private List <String> generateStructImplementation(int i) {
+        List <String> f    = new ArrayList <>();
+        int           prev = i - 1;
         f.add("package " + implementJavaPackage + ";");
         f.add("");
         f.add("import " + interfaceJavaPackage + ".*;");
