@@ -1,50 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="module_build" default="compile.module.build">
   <dirname property="module.build.basedir" file="${ant.file.module_build}"/>
+  
   <property name="module.jdk.home.build" value="${project.jdk.home}"/>
   <property name="module.jdk.bin.build" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.build" value="${project.jdk.classpath}"/>
+  
   <property name="compiler.args.build" value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
+  
   <property name="build.output.dir" value="${module.build.basedir}/../out/production/build"/>
   <property name="build.testoutput.dir" value="${module.build.basedir}/../out/test/build"/>
+  
   <path id="build.module.bootclasspath">
     <!-- Paths to be included in compilation bootclasspath -->
   </path>
+  
   <path id="build.module.production.classpath">
     <path refid="${module.jdk.classpath.build}"/>
   </path>
+  
   <path id="build.runtime.production.module.classpath">
     <pathelement location="${build.output.dir}"/>
   </path>
+  
   <path id="build.module.classpath">
     <path refid="${module.jdk.classpath.build}"/>
     <pathelement location="${build.output.dir}"/>
   </path>
+  
   <path id="build.runtime.module.classpath">
     <pathelement location="${build.testoutput.dir}"/>
     <pathelement location="${build.output.dir}"/>
   </path>
+  
+  
   <patternset id="excluded.from.module.build">
     <patternset refid="ignored.files"/>
   </patternset>
+  
   <patternset id="excluded.from.compilation.build">
     <patternset refid="excluded.from.module.build"/>
   </patternset>
+  
   <path id="build.module.sourcepath">
     <dirset dir="${module.build.basedir}">
       <include name="src"/>
     </dirset>
   </path>
+  
+  
   <target name="compile.module.build" depends="compile.module.build.production,compile.module.build.tests" description="Compile module build"/>
+  
   <target name="compile.module.build.production" description="Compile module build; production classes">
     <mkdir dir="${build.output.dir}"/>
-    <javac includeantruntime="false" destdir="${build.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.build}/javac">
+    <javac destdir="${build.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.build}/javac">
       <compilerarg line="${compiler.args.build}"/>
       <bootclasspath refid="build.module.bootclasspath"/>
       <classpath refid="build.module.production.classpath"/>
       <src refid="build.module.sourcepath"/>
       <patternset refid="excluded.from.compilation.build"/>
     </javac>
+    
     <copy todir="${build.output.dir}">
       <fileset dir="${module.build.basedir}/src">
         <patternset refid="compiler.resources"/>
@@ -52,19 +68,11 @@
       </fileset>
     </copy>
   </target>
+  
   <target name="compile.module.build.tests" depends="compile.module.build.production" description="compile module build; test classes" unless="skip.tests"/>
+  
   <target name="clean.module.build" description="cleanup module">
     <delete dir="${build.output.dir}"/>
     <delete dir="${build.testoutput.dir}"/>
-  </target>
-  <target name="javadoc.module.build">
-    <property name="build.javadoc.dir" value="${basedir}/out/artifacts"/>
-    <property name="build.javadoc.tmp" value="${build.javadoc.dir}/tmp"/>
-    <property name="build.javadoc.jar" value="${build.javadoc.dir}/build-javadoc.jar"/>
-    <javadoc sourcepathref="build.module.test.sourcepath" destdir="${build.javadoc.tmp}" classpathref="build.module.classpath"/>
-    <jar destfile="${build.javadoc.jar}" filesetmanifest="skip">
-      <zipfileset dir="${build.javadoc.tmp}"/>
-    </jar>
-    <delete dir="${build.javadoc.tmp}"/>
   </target>
 </project>
