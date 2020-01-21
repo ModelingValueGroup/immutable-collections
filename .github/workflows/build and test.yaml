@@ -1,4 +1,4 @@
-name: build
+name: build and test
 
 on: [push]
 
@@ -11,7 +11,7 @@ jobs:
       - name: "checkout"
         uses: actions/checkout@v1
 
-      - name: "attach head"
+      - name: "attach git head"
         run: git checkout "${GITHUB_REF#refs/heads/}"
 
       - name: "setup JDK"
@@ -19,14 +19,13 @@ jobs:
         with:
           java-version: 11
 
+      - name: "get generic mvg-info"
+        uses: ModelingValueGroup/generic-info@master
+
       - name: "get buildTools"
         uses: ModelingValueGroup/buildTools@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: "debug"
-        run:  |
-          find . -type f | sed 's/^/@@@/'
 
       - name: "prepare ant"
         run:  |
@@ -38,72 +37,56 @@ jobs:
       - name: "(re)generate some files"
         run:  |
           . <(java -jar buildTools.jar)
-          updateAllPomsFromIntellijDependencies
-          generateAntTestFilesFromIntellij
-          generateAntJavadocFilesFromIntellij
-          cleanupIntellijAntFiles
+          generateAll
           ant compile.module.build
-          java -cp out/production/build StructGenerator "25" "immutable-collections/src" "org.modelingvalue.collections.struct"
+          java -cp out/production/build generator.StructGenerator "25" "immutable-collections/src" "org.modelingvalue.collections.struct"
           correctEols
           correctHeaders header
 
       - name: "download dependencies (as mentioned in pom)"
         run:  |
           . <(java -jar buildTools.jar)
-          mkdir -p lib
-          mvn_ ${{ secrets.GITHUB_TOKEN }} dependency:copy-dependencies -DoutputDirectory=lib
+          getAllDependencies ${{ secrets.GITHUB_TOKEN }}
 
       - name: "build"
         run:  ant
 
       - name: "test"
-        run:  ant test.results.jar.immutable-collections
+        run:  ant test
 
-      - name: "javadoc"
-        run:  ant javadoc.module.immutable-collections
+      - name: "generate javadoc"
+        run:  ant javadoc
 
-      - name: "upload immutable-collections.jar"
+      - name: "push changes back to github"
+        run:  |
+          . <(java -jar buildTools.jar)
+          pushBackToGithub "${{ secrets.GITHUB_TOKEN }}" "automation@modelingvalue.com" "adjusted files [by github actions]"
+
+      - name: "publish action-artifact jar"
         uses: actions/upload-artifact@v1
         with:
           name: jdclare.jar
           path: out/artifacts/immutable-collections.jar
 
-      - name: "upload immutable-collections-sources.jar"
+      - name: "publish action-artifact sources"
         uses: actions/upload-artifact@v1
         with:
           name: immutable-collections-sources.jar
           path: out/artifacts/immutable-collections-sources.jar
 
-      - name: "upload immutable-collections-javadoc.jar"
+      - name: "publish action-artifact javadoc"
         uses: actions/upload-artifact@v1
         with:
           name: immutable-collections-javadoc.jar
           path: out/artifacts/immutable-collections-javadoc.jar
 
-      - name: "upload immutable-collections-testresults.jar"
+      - name: "publish action-artifact test-results"
         uses: actions/upload-artifact@v1
         with:
           name: immutable-collections-testresults.jar
           path: out/artifacts/immutable-collections-testresults.jar
 
-      - name: "push changes back to github"
-        run:  |
-          if [[ "$(git ls-files -o --exclude-standard)" ]]; then
-            echo "changes need to be pushed back to github"
-
-            echo "::group::git commit and push"
-              git config user.email "automation@modelingvalue.org"
-              git config user.name "automation"
-              git add .
-              git commit -m "adjusted files [by github actions]"
-              git push "https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git"
-            echo "::endgroup::"
-
-          else
-            echo "no changes need to be pushed back to github"
-          fi
-
-      - name: "upload as package"
+      - name: "if master: publish maven-artifacts (jar/pom/sources/javadoc)"
         uses: ModelingValueGroup/upload-maven-package-action@master
         if: github.ref == 'refs/heads/master'
         with:

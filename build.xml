@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="immutable-collections" default="all">
-  
-  
   <property file="build.properties"/>
   <!-- Uncomment the following property if no tests compilation is needed -->
   <!-- 
   <property name="skip.tests" value="true"/>
    -->
-  
   <!-- Compiler options -->
-  
   <property name="compiler.debug" value="on"/>
   <property name="compiler.generate.no.warnings" value="off"/>
   <property name="compiler.args" value=""/>
@@ -36,8 +32,8 @@
     <include name="*.swc"/>
     <include name="*.apk"/>
     <include name="*.zip"/>
-    <include name="*.egg"/>
     <include name="*.ane"/>
+    <include name="*.egg"/>
     <include name="*.jar"/>
     <include name="*.ear"/>
     <include name="*.klib"/>
@@ -54,9 +50,7 @@
     <include name="**/?*.tld"/>
     <include name="**/?*.ftl"/>
   </patternset>
-  
   <!-- JDK definitions -->
-  
   <property name="jdk.bin.11" value="${jdk.home.11}/bin"/>
   <path id="jdk.classpath.11">
     <fileset dir="${jdk.home.11}">
@@ -132,39 +126,24 @@
       <include name="../Home!/jdk.zipfs"/>
     </fileset>
   </path>
-  
   <property name="project.jdk.home" value="${jdk.home.11}"/>
   <property name="project.jdk.bin" value="${jdk.bin.11}"/>
   <property name="project.jdk.classpath" value="jdk.classpath.11"/>
-  
-  
   <!-- Project Libraries -->
-  
-  <path id="library.maven:_junit:junit:4.12.classpath">
-    <pathelement location="${path.variable.maven_repository}/junit/junit/4.12/junit-4.12.jar"/>
+  <path id="library.gen:_hamcrest-core.classpath">
+    <pathelement location="${basedir}/lib/hamcrest-core.jar"/>
   </path>
-  
-  <path id="library.maven:_org.hamcrest:hamcrest-core:1.3.classpath">
-    <pathelement location="${path.variable.maven_repository}/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar"/>
+  <path id="library.gen:_junit.classpath">
+    <pathelement location="${basedir}/lib/junit.jar"/>
   </path>
-  
-  
-  <!-- Global Libraries -->
-  
   <!-- Modules -->
-  
   <import file="${basedir}/build/module_build.xml"/>
-  
   <import file="${basedir}/immutable-collections/module_immutable-collections.xml"/>
-  
   <target name="init" description="Build initialization">
     <!-- Perform any build initialization in this target -->
   </target>
-  
   <target name="clean" depends="clean.module.build, clean.module.immutable-collections" description="cleanup all"/>
-  
   <target name="build.modules" depends="init, clean, compile.module.build, compile.module.immutable-collections" description="build all modules"/>
-  
   <target name="init.artifacts">
     <property name="artifacts.temp.dir" value="${basedir}/__artifacts_temp"/>
     <property name="artifact.output.immutable-collections-sources:jar" value="${basedir}/out/artifacts"/>
@@ -173,8 +152,7 @@
     <property name="temp.jar.path.immutable-collections-sources.jar" value="${artifacts.temp.dir}/immutable-collections-sources.jar"/>
     <property name="temp.jar.path.immutable-collections.jar" value="${artifacts.temp.dir}/immutable-collections.jar"/>
   </target>
-  
-  <target name="artifact.immutable-collections-sources:jar" depends="init.artifacts" description="Build &#39;immutable-collections-sources:jar&#39; artifact">
+  <target name="artifact.immutable-collections-sources:jar" depends="init.artifacts" description="Build 'immutable-collections-sources:jar' artifact">
     <property name="artifact.temp.output.immutable-collections-sources:jar" value="${artifacts.temp.dir}/immutable_collections_sources_jar"/>
     <mkdir dir="${artifact.temp.output.immutable-collections-sources:jar}"/>
     <jar destfile="${temp.jar.path.immutable-collections-sources.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
@@ -182,8 +160,7 @@
     </jar>
     <copy file="${temp.jar.path.immutable-collections-sources.jar}" tofile="${artifact.temp.output.immutable-collections-sources:jar}/immutable-collections-sources.jar"/>
   </target>
-  
-  <target name="artifact.immutable-collections:jar" depends="init.artifacts, compile.module.immutable-collections" description="Build &#39;immutable-collections:jar&#39; artifact">
+  <target name="artifact.immutable-collections:jar" depends="init.artifacts, compile.module.immutable-collections" description="Build 'immutable-collections:jar' artifact">
     <property name="artifact.temp.output.immutable-collections:jar" value="${artifacts.temp.dir}/immutable_collections_jar"/>
     <mkdir dir="${artifact.temp.output.immutable-collections:jar}"/>
     <jar destfile="${temp.jar.path.immutable-collections.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
@@ -191,7 +168,6 @@
     </jar>
     <copy file="${temp.jar.path.immutable-collections.jar}" tofile="${artifact.temp.output.immutable-collections:jar}/immutable-collections.jar"/>
   </target>
-  
   <target name="build.all.artifacts" depends="artifact.immutable-collections-sources:jar, artifact.immutable-collections:jar" description="Build all artifacts">
     <mkdir dir="${artifact.output.immutable-collections-sources:jar}"/>
     <copy todir="${artifact.output.immutable-collections-sources:jar}">
@@ -201,10 +177,14 @@
     <copy todir="${artifact.output.immutable-collections:jar}">
       <fileset dir="${artifact.temp.output.immutable-collections:jar}"/>
     </copy>
-    
     <!-- Delete temporary files -->
     <delete dir="${artifacts.temp.dir}"/>
   </target>
-  
   <target name="all" depends="build.modules, build.all.artifacts" description="build all"/>
-<import file="${basedir}/immutable-collections/test.xml"/><import file="${basedir}/build/javadoc.xml"/><import file="${basedir}/immutable-collections/javadoc.xml"/><import file="${basedir}/immutable-collections/test.xml"/><import file="${basedir}/build/javadoc.xml"/><import file="${basedir}/immutable-collections/javadoc.xml"/></project>
+  <target name="test" depends="testresults.module.immutable-collections">
+    <echo>all done for test</echo>
+  </target>
+  <target name="javadoc" depends="javadoc.module.build,javadoc.module.immutable-collections">
+    <echo>all done for javadoc</echo>
+  </target>
+</project>
