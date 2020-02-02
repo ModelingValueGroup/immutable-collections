@@ -282,6 +282,39 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
                 return new HashMultiValue(result, result.length, result.length * index, (byte) 2, index, NR_OF_PARTS, si == values.length ? mask | 1L << si : mask);
             }
         }
+
+        @SuppressWarnings("rawtypes")
+        private Object checkHashIntegrity(Function key) {
+            if (level == NR_OF_PARTS) {
+                for (Object v : values) {
+                    int vi = index(v, key);
+                    if (vi != index) {
+                        return v;
+                    }
+                }
+            } else {
+                int im = INDEX_MASKS[level];
+                int pi = Long.numberOfTrailingZeros(mask);
+                for (Object v : values) {
+                    int vi = index(v, key) & im;
+                    int ii = pi << PART_SHIFTS[level];
+                    if (vi != (index | ii)) {
+                        return v;
+                    } else if (v instanceof HashMultiValue) {
+                        Object wrong = ((HashMultiValue) v).checkHashIntegrity(key);
+                        if (wrong != null) {
+                            return wrong;
+                        }
+                    }
+                    pi += Long.numberOfTrailingZeros(mask >>> (pi + 1)) + 1;
+                }
+            }
+            return null;
+        }
+    }
+
+    public Object checkHashIntegrity() {
+        return value instanceof HashMultiValue ? ((HashMultiValue) value).checkHashIntegrity(key()) : null;
     }
 
     private static int getIt(long mask, int idx) {
