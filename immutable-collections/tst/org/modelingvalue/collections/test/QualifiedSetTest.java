@@ -23,7 +23,6 @@ import java.util.concurrent.*;
 import java.util.stream.*;
 
 import static org.junit.Assert.*;
-//import org.modelingvalue.jdclare.DNamed;
 
 public class QualifiedSetTest {
 

@@ -65,7 +65,7 @@ jobs:
       - name: "publish action-artifact jar"
         uses: actions/upload-artifact@v1
         with:
-          name: jdclare.jar
+          name: immutable-collections.jar
           path: out/artifacts/immutable-collections.jar
 
       - name: "publish action-artifact sources"
