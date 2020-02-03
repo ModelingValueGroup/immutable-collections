@@ -117,7 +117,7 @@ public class StructGenerator {
         f.add("import " + interfaceJavaPackage + ".*;");
         f.add("");
         if (0 != i) {
-            f.add("@SuppressWarnings(\"unchecked\",, \"unused\")");
+            f.add("@SuppressWarnings(\"unchecked\", \"unused\")");
         }
         f.add("public class " + structNameWithTypeArgsImpl(i) + " extends " + structNameWithTypeArgsImpl(prev) + " implements " + structNameWithTypeArgs(i) + " {");
         f.add("");
