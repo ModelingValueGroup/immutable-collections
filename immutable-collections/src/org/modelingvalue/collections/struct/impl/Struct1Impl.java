@@ -20,7 +20,7 @@ import org.modelingvalue.collections.struct.*;
 @SuppressWarnings({"unchecked", "unused"})
 public class Struct1Impl<T0> extends Struct0Impl implements Struct1<T0> {
 
-    private static final long serialVersionUID = -851702181710134661L;
+    private static final long serialVersionUID = 0x47114711_B5A08F1CL;
 
     public Struct1Impl(T0 t0) {
         this((Object) t0);
