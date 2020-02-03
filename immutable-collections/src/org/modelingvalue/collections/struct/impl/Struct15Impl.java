@@ -17,7 +17,7 @@ package org.modelingvalue.collections.struct.impl;
 
 import org.modelingvalue.collections.struct.*;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "unused"})
 public class Struct15Impl<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14> extends Struct14Impl<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13> implements Struct15<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9,T10,T11,T12,T13,T14> {
 
     private static final long serialVersionUID = -8517021815710134661L;
