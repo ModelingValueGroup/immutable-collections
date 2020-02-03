@@ -29,11 +29,11 @@ public class Context<T> {
     private static final Object[]      DEFAULTS          = new Object[MAX_NR_OF_CONTEXT];
 
     public static <V> Context<V> of() {
-        return new Context<V>(null);
+        return new Context<>(null);
     }
 
     public static <V> Context<V> of(V def) {
-        return new Context<V>(def);
+        return new Context<>(def);
     }
 
     private final int nr;

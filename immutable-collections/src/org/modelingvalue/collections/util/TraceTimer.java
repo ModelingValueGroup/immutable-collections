@@ -15,19 +15,11 @@
 
 package org.modelingvalue.collections.util;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.regex.Pattern;
+import java.util.*;
+import java.util.Map.*;
+import java.util.regex.*;
 
+@SuppressWarnings("unused")
 public final class TraceTimer {
     private static final String                              REST                     = "<REST>";
     private static final int                                 MIL                      = 1000000;
@@ -40,26 +32,18 @@ public final class TraceTimer {
     private static final String                              TRACE_PATTERN            = System.getProperties().getProperty("TRACE_PATTERN");
     private static final Pattern                             TRACE_PATTERN_PATTERN    = TRACE_PATTERN != null ? Pattern.compile(TRACE_PATTERN) : null;
 
-    private static final Comparator<Map.Entry<String, Long>> COMPARATOR               = new Comparator<Map.Entry<String, Long>>() {
-                                                                                          @Override
-                                                                                          public int compare(Entry<String, Long> o1, Entry<String, Long> o2) {
-                                                                                              return o2.getValue().compareTo(o1.getValue());
-                                                                                          }
-                                                                                      };
+    private static final Comparator<Map.Entry<String, Long>> COMPARATOR               = (o1, o2) -> o2.getValue().compareTo(o1.getValue());
 
-    private static final List<TraceTimer>                    ALL_TIMERS               = new ArrayList<TraceTimer>();
-    private static final ThreadLocal<TraceTimer>             TIMER                    = new ThreadLocal<TraceTimer>() {
-                                                                                          @Override
-                                                                                          protected TraceTimer initialValue() {
-                                                                                              TraceTimer tt = new TraceTimer(Thread.currentThread());
-                                                                                              synchronized (ALL_TIMERS) {
-                                                                                                  ALL_TIMERS.add(tt);
-                                                                                                  Collections.sort(ALL_TIMERS, (o1, o2) -> o1.thread.getName().compareTo(o2.thread.getName()));
-                                                                                              }
-                                                                                              tt.init();
-                                                                                              return tt;
-                                                                                          }
-                                                                                      };
+    private static final List<TraceTimer>                    ALL_TIMERS               = new ArrayList<>();
+    private static final ThreadLocal<TraceTimer>             TIMER                    = ThreadLocal.withInitial(() -> {
+        TraceTimer tt = new TraceTimer(Thread.currentThread());
+        synchronized (ALL_TIMERS) {
+            ALL_TIMERS.add(tt);
+            ALL_TIMERS.sort(Comparator.comparing(o -> o.thread.getName()));
+        }
+        tt.init();
+        return tt;
+    });
 
     private static Timer                                     dumpTimer;
 
@@ -88,9 +72,9 @@ public final class TraceTimer {
 
     private long                       time;
     private long                       grandTotal;
-    private final Deque<String>        queue   = new LinkedList<String>();
-    private final Map<String, Long>    total   = new LinkedHashMap<String, Long>();
-    private final Map<String, Integer> count   = new LinkedHashMap<String, Integer>();
+    private final Deque<String>        queue   = new LinkedList<>();
+    private final Map<String, Long>    total   = new LinkedHashMap<>();
+    private final Map<String, Integer> count   = new LinkedHashMap<>();
     private final Thread               thread;
 
     private TraceTimer(Thread thread) {
@@ -103,7 +87,7 @@ public final class TraceTimer {
     }
 
     private synchronized void clear() {
-        grandTotal = 0l;
+        grandTotal = 0L;
         queue.clear();
         total.clear();
         count.clear();
@@ -156,6 +140,7 @@ public final class TraceTimer {
     }
 
     private void total(String name, long delta) {
+        //noinspection StringEquality
         if (name != REST) {
             grandTotal += delta;
         }
@@ -181,15 +166,15 @@ public final class TraceTimer {
     }
 
     private static void dump(StringBuilder log, String name, long grandTotal, Map<String, Long> total, Map<String, Integer> count, int nrOffThreads) {
-        if (grandTotal > 0l) {
-            List<Map.Entry<String, Long>> list = new ArrayList<Map.Entry<String, Long>>(total.entrySet());
-            Collections.sort(list, COMPARATOR);
+        if (grandTotal > 0L) {
+            List<Map.Entry<String, Long>> list = new ArrayList<>(total.entrySet());
+            list.sort(COMPARATOR);
             boolean preDone = false;
             for (int i = 0; i < TRACE_TIME_DUMP_NR && i < list.size(); i++) {
                 Map.Entry<String, Long> entry = list.get(i);
                 Long tot = total.get(entry.getKey());
-                tot = tot != null ? tot : 0l;
-                long prc = 100l * tot / grandTotal;
+                tot = tot != null ? tot : 0L;
+                long prc = 100L * tot / grandTotal;
                 if (!preDone) {
                     preDone = true;
                     log.append(String.format("------------%-32s%10dms--------------------\n", name, grandTotal / MIL).replace(' ', '-'));
@@ -221,7 +206,7 @@ public final class TraceTimer {
             changed = false;
             TraceTimer[] all;
             synchronized (ALL_TIMERS) {
-                all = ALL_TIMERS.toArray(new TraceTimer[ALL_TIMERS.size()]);
+                all = ALL_TIMERS.toArray(new TraceTimer[0]);
             }
             for (final TraceTimer tt : all) {
                 tt.clear();
@@ -237,13 +222,13 @@ public final class TraceTimer {
             changed = false;
             TraceTimer[] all;
             synchronized (ALL_TIMERS) {
-                all = ALL_TIMERS.toArray(new TraceTimer[ALL_TIMERS.size()]);
+                all = ALL_TIMERS.toArray(new TraceTimer[0]);
             }
             StringBuilder log = new StringBuilder();
             if (TRACE_TIME_TOTAL != null) {
-                long grandTotal = 0l;
-                Map<String, Long> total = new LinkedHashMap<String, Long>();
-                Map<String, Integer> count = new LinkedHashMap<String, Integer>();
+                long grandTotal = 0L;
+                Map<String, Long> total = new LinkedHashMap<>();
+                Map<String, Integer> count = new LinkedHashMap<>();
                 int nrOffThreads = 0;
                 for (final TraceTimer tt : all) {
                     if (TRACE_TIME_TOTAL_PATTERN.matcher(tt.thread.getName()).matches()) {

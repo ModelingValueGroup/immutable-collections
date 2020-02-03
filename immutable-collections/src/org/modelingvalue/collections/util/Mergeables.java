@@ -15,8 +15,7 @@
 
 package org.modelingvalue.collections.util;
 
-import java.util.Arrays;
-import java.util.Objects;
+import java.util.*;
 
 public interface Mergeables {
 
@@ -37,16 +36,15 @@ public interface Mergeables {
                     }
                 }
             }
-            if (merger != null) {
-                for (int i = 0; i < bl; i++) {
-                    if (bs[i] == null) {
-                        bs[i] = (T) merger;
-                    }
-                }
-                return (T) ((Mergeable) (b == null ? merger : b)).merge(bs, (int) bl);
-            } else {
+            if (merger == null || (b != null && !(b instanceof Mergeable))) {
                 throw new NotMergeableException(b + " -> " + Arrays.toString(bs));
             }
+            for (int i = 0; i < bl; i++) {
+                if (bs[i] == null) {
+                    bs[i] = (T) merger;
+                }
+            }
+            return (T) (b == null ? merger : (Mergeable) b).merge(bs, (int) bl);
         }, branches, l);
     }
 

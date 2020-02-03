@@ -15,13 +15,12 @@
 
 package org.modelingvalue.collections;
 
-import java.util.function.Predicate;
+import org.modelingvalue.collections.impl.*;
+import org.modelingvalue.collections.util.*;
 
-import org.modelingvalue.collections.impl.QualifiedSetImpl;
-import org.modelingvalue.collections.util.Mergeable;
-import org.modelingvalue.collections.util.QuadFunction;
-import org.modelingvalue.collections.util.SerializableFunction;
+import java.util.function.*;
 
+@SuppressWarnings("unused")
 public interface QualifiedSet<K, V> extends ContainingCollection<V>, Mergeable<QualifiedSet<K, V>> {
     @SafeVarargs
     static <K, V> QualifiedSet<K, V> of(SerializableFunction<V, K> qualifier, V... e) {

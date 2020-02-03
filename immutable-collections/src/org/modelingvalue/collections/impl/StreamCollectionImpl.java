@@ -15,18 +15,13 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.util.Iterator;
-import java.util.Spliterator;
-import java.util.function.BiFunction;
-import java.util.function.IntFunction;
-import java.util.stream.BaseStream;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
-
 import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.StreamCollection;
-import org.modelingvalue.collections.util.TriConsumer;
-import org.modelingvalue.collections.util.TriFunction;
+import org.modelingvalue.collections.*;
+import org.modelingvalue.collections.util.*;
+
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 
 @SuppressWarnings("serial")
 public final class StreamCollectionImpl<T> extends CollectionImpl<T> implements StreamCollection<T> {
@@ -66,7 +61,7 @@ public final class StreamCollectionImpl<T> extends CollectionImpl<T> implements 
 
     @Override
     public boolean isEmpty() {
-        return !stream.findFirst().isPresent();
+        return stream.findFirst().isEmpty();
     }
 
     @Override
@@ -81,6 +76,7 @@ public final class StreamCollectionImpl<T> extends CollectionImpl<T> implements 
 
     @Override
     public <A> A[] toArray(IntFunction<A[]> generator) {
+        //noinspection SuspiciousToArrayCall
         return stream.toArray(generator);
     }
 

@@ -15,25 +15,23 @@
 
 package org.modelingvalue.collections.test;
 
-import static org.junit.Assert.*;
+import org.junit.*;
+import org.modelingvalue.collections.*;
+import org.modelingvalue.collections.util.*;
 
-import org.junit.Test;
-import org.modelingvalue.collections.Entry;
-import org.modelingvalue.collections.Map;
-import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.util.Pair;
+import static org.junit.Assert.*;
 
 public class MapTest {
 
     @Test
-    public void test() throws Exception {
+    public void test() {
         Map<String, String> map1 = Map.of(Entry.of("A", "xxxxx"), Entry.of("B", "yyyyy"), Entry.of("B", "bbbbb"), Entry.of("A", "aaaaa"));
         Map<String, String> map2 = Map.of(Entry.of("B", "bbbbb"), Entry.of("A", "aaaaa"), Entry.of("A", "xxxxx"), Entry.of("B", "yyyyy"));
         Map<String, String> map3 = map1.putAll(map2);
         Map<String, String> map4 = map1.put("B", "yyyyy").put("C", "zzzzz");
         Map<String, String> map5 = map4.removeAllKey(map1);
         Map<String, String> map6 = map4.removeAllKey(map1.toKeys());
-        Set<String> set = Set.of("B", "A");
+        Set<String>         set  = Set.of("B", "A");
         assertEquals(2, map1.size());
         assertEquals(2, map2.size());
         assertEquals(1, map5.size());
@@ -62,7 +60,7 @@ public class MapTest {
     }
 
     @Test
-    public void compareTest() throws Exception {
+    public void compareTest() {
         Map<String, String> map1 = Map.of(Entry.of("A", "xxxxx"), Entry.of("B", "yyyyy"), Entry.of("C", "ccccc"), Entry.of("D", "ddddd"));
         Map<String, String> map2 = Map.of(Entry.of("A", "aaaaa"), Entry.of("B", "bbbbb"), Entry.of("C", "ccccc"), Entry.of("D", "ddddd"));
         System.err.println(map1.compare(map2).map(a -> Pair.of(a[0], a[1])).toSet().toString());
@@ -70,10 +68,10 @@ public class MapTest {
     }
 
     @Test
-    public void identityTest() throws Exception {
+    public void identityTest() {
         Map<String, String> map = Map.of(Entry.of("a", "1"));
-        assertTrue(map == map.removeKey("d"));
-        assertTrue(map == map.put("a", "1"));
+        assertSame(map, map.removeKey("d"));
+        assertSame(map, map.put("a", "1"));
     }
 
     @Test
@@ -91,7 +89,9 @@ public class MapTest {
         assertEquals(1, map1.size());
 
         //Test map uses equals...
+        //noinspection StringOperationCanBeSimplified
         String newAA = new String("AA");
+        //noinspection StringEquality
         if (newAA != "AA") {
             map1 = map1.put(newAA, "bb");
         }
@@ -158,7 +158,7 @@ public class MapTest {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Test
-    public void combineTest() throws Exception {
+    public void combineTest() {
         Map<String, Map> map1 = Map.of(Entry.of("a", Map.of(Entry.of("x", "1"))));
         Map<String, Map> map2 = Map.of(Entry.of("a", Map.of(Entry.of("x", "1"))), Entry.of("b", Map.of(Entry.of("x", "1"))), Entry.of("c", Map.of(Entry.of("x", Set.of("1")))));
         Map<String, Map> map3 = Map.of(Entry.of("a", Map.of(Entry.of("x", "1"))), Entry.of("c", Map.of(Entry.of("x", Set.of("2")))));

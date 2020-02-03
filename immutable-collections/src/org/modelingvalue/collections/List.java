@@ -15,13 +15,12 @@
 
 package org.modelingvalue.collections;
 
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import org.modelingvalue.collections.impl.*;
+import org.modelingvalue.collections.util.*;
 
-import org.modelingvalue.collections.impl.ListImpl;
-import org.modelingvalue.collections.util.Mergeable;
+import java.util.function.*;
 
+@SuppressWarnings("unused")
 public interface List<T> extends ContainingCollection<T>, Mergeable<List<T>> {
 
     @SafeVarargs

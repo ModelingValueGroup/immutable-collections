@@ -22,6 +22,7 @@ import org.modelingvalue.collections.util.*;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.*;
 import java.util.stream.*;
 
 import static org.junit.Assert.*;
@@ -30,10 +31,10 @@ public class SetTest {
 
     private static final Context<Object> CONTEXT = Context.of();
 
-    private static final long SEED = 267835244387707587l;
+    private static final long SEED = 267835244387707587L;
 
     @Test
-    public void test() throws Exception {
+    public void test() {
         Set<String> set1 = Set.of("noot", "mies", "teun", "mies", "jet", "aap");
         System.err.println(set1);
         assertEquals(5, set1.size());
@@ -45,7 +46,7 @@ public class SetTest {
         assertTrue(set1.containsAll(set2));
         assertTrue(set2.containsAll(set1));
         set1.forEach(obj -> assertTrue(set2.contains(obj)));
-        set2.forEach(obj -> set1.contains(obj));
+        set2.forEach(obj -> assertTrue(set1.contains(obj)));
         String expected = "aap" + "jet" + "mies" + "noot" + "teun";
         String reduce1  = set1.sequential().reduce("", (a, b) -> a + b);
         String reduce2  = set2.sequential().reduce("", (a, b) -> a + b);
@@ -57,13 +58,13 @@ public class SetTest {
 
     @SuppressWarnings("serial")
     @Test
-    public void bigTest() throws Exception {
+    public void bigTest() {
         ContextThread.createPool().invoke(new RecursiveAction() {
             @Override
             protected void compute() {
                 Object ctx = new Object();
                 CONTEXT.set(ctx);
-                Set<Long> set = Collection.of(LongStream.range(Long.MAX_VALUE - 10_000_000, Long.MAX_VALUE)).reduce(Set.<Long>of(), (s, i) -> {
+                Set<Long> set = Collection.of(LongStream.range(Long.MAX_VALUE - 10_000_000, Long.MAX_VALUE)).reduce(Set.of(), (s, i) -> {
                     assertEquals(ctx, CONTEXT.get());
                     return s.add(i);
                 }, (x, y) -> {
@@ -88,15 +89,15 @@ public class SetTest {
     public void randomtest() {
         Random random = new Random();
         random.setSeed(SEED);
-        Set<Integer> set1 = Collection.of(() -> random.nextInt()).limit(5_000_000).toSet();
+        Set<Integer> set1 = Collection.of((Supplier<Integer>) random::nextInt).limit(5_000_000).toSet();
         assertEquals(4_997_213, set1.size());
         random.setSeed(SEED);
-        Set<Integer> set2 = Collection.of(() -> random.nextInt()).limit(5_000_000).toSet();
+        Set<Integer> set2 = Collection.of((Supplier<Integer>) random::nextInt).limit(5_000_000).toSet();
         assertEquals(4_997_213, set2.size());
     }
 
     @Test
-    public void equaltest() throws Exception {
+    public void equaltest() {
         int                    max    = 1_000_000;
         Set<Integer>           set1   = Collection.of(IntStream.range(0, max)).toSet();
         Set<Integer>           set2   = Collection.of(IntStream.range(0, max).map(i -> max - i - 1)).toSet();
@@ -122,7 +123,7 @@ public class SetTest {
     }
 
     @Test
-    public void subsetTest() throws Exception {
+    public void subsetTest() {
         int          max  = 500_000;
         Set<Integer> set0 = Collection.of(IntStream.range(0, max * 2)).toSet();
         assertEquals(max * 2, set0.size());
@@ -184,7 +185,7 @@ public class SetTest {
     }
 
     @Test
-    public void equalHashesTest() throws Exception {
+    public void equalHashesTest() {
         Set<Object> set1 = Set.of();
         Set<Object> set2 = Set.of();
         for (int i = 0; i < 100; i++) {
@@ -205,7 +206,7 @@ public class SetTest {
     }
 
     @Test
-    public void merge() throws Exception {
+    public void merge() {
 
         Set<Integer> setx = Set.of(-2000, -1900, -1800);
         Set<Integer> sety = Set.of(2000, 1900, 1800);

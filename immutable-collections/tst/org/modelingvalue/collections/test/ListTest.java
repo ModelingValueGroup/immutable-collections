@@ -15,16 +15,14 @@
 
 package org.modelingvalue.collections.test;
 
-import static org.junit.Assert.*;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.stream.IntStream;
-
-import org.junit.Test;
+import org.junit.*;
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.List;
+
+import java.util.*;
+import java.util.stream.*;
+
+import static org.junit.Assert.*;
 
 public class ListTest {
 
@@ -32,7 +30,7 @@ public class ListTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void compare() throws Exception {
+    public void compare() {
         List<String> list1 = List.of("c", "d");
         List<String> list2 = list1.prependList(List.of("a", "b"));
         List<String> list3 = list1.appendList(List.of("e", "f"));
@@ -48,15 +46,15 @@ public class ListTest {
     public void reuseTest() {
         List<String[]> ab1 = List.of(new String[]{"a"}, new String[]{"b"});
         System.err.println(ab1);
-        System.err.println(ab1.map(a -> a.hashCode()).toList());
+        System.err.println(ab1.map(Object::hashCode).toList());
         List<String> axb = List.of("b", "b");
-        List<String[]> ab2 = axb.reuse(ab1, (t, s) -> t[0].equals(s), (t, s) -> t[0] = s, t -> 0l, (t, s) -> true, (s, i) -> new String[1]);
+        List<String[]> ab2 = axb.reuse(ab1, (t, s) -> t[0].equals(s), (t, s) -> t[0] = s, t -> 0L, (t, s) -> true, (s, i) -> new String[1]);
         System.err.println(ab2);
-        System.err.println(ab2.map(a -> a.hashCode()).toList());
+        System.err.println(ab2.map(Object::hashCode).toList());
     }
 
-    class MyClass {
-        int i;
+    static class MyClass {
+        final int i;
 
         MyClass(int i) {
             this.i = i;
@@ -101,7 +99,7 @@ public class ListTest {
     }
 
     @Test
-    public void orderSpliteratorTest() throws Exception {
+    public void orderSpliteratorTest() {
         List<Integer> list1 = Collection.of(IntStream.range(0, 100000)).toList();
         List<Integer> list2 = list1.map(e -> 10).toList();
         List<Integer> list3 = Collection.of(IntStream.range(100000, 200000)).map(e -> 10).toList();
@@ -112,7 +110,7 @@ public class ListTest {
     }
 
     @Test
-    public void random() throws Exception {
+    public void random() {
         List<Integer> list = Collection.of(IntStream.range(0, 64)).toList();
         for (int i = 0; i < 10; i++) {
             System.err.println(list.random().toList());
@@ -120,7 +118,7 @@ public class ListTest {
     }
 
     @Test
-    public void reverse() throws Exception {
+    public void reverse() {
         List<Integer> list1 = Collection.of(IntStream.range(0, 100000)).toList();
         List<Integer> list2 = list1.sorted((a, b) -> Integer.compare(b, a)).toList();
         List<Integer> list3 = list1.reverse().toList();
@@ -131,7 +129,7 @@ public class ListTest {
 
     @SuppressWarnings("resource")
     @Test
-    public void test() throws Exception {
+    public void test() {
         List<String> list1 = List.of("a", "b", "c", "d");
         List<String> list2 = List.of("a", "b", "c", "d");
         List<String> list3 = List.of("d", "a", "b", "c");

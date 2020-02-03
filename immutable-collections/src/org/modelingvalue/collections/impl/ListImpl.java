@@ -15,19 +15,13 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Spliterator;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.List;
-import org.modelingvalue.collections.StreamCollection;
-import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.*;
+import org.modelingvalue.collections.util.*;
+
+import java.util.*;
+import java.util.function.*;
 
 public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
 
@@ -265,7 +259,8 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
         public Object getAllDeep(int beginIndex, int endIndex) {
             if (beginIndex == 0 && endIndex == size) {
                 return this;
-            } else if (beginIndex < size) {
+            }
+            if (beginIndex < size) {
                 return ListImpl.getAllDeep(values, beginIndex, endIndex);
             }
             throw new IndexOutOfBoundsException();
@@ -277,20 +272,19 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
         }
 
         private boolean equalsWithStop(Object other, int min, boolean[] stop) {
-            int len[] = new int[values.length];
+            int[] len = new int[values.length];
             for (int i = 0; i < values.length; i++) {
                 len[i] = size(values[i]) + prev(len, i);
             }
             return getIntStream(0, values.length, stop, size).allMatch(i -> {
-                if (stop[0]) {
-                    return false;
+                if (!stop[0]) {
+                    Object val = values[i];
+                    int    pos = min + prev(len, i);
+                    if (val instanceof ListMultivalue ? ((ListMultivalue) val).equalsWithStop(other, pos, stop) : val.equals(TreeCollectionImpl.getDeep(other, pos))) {
+                        return true;
+                    }
+                    stop[0] = true;
                 }
-                Object val = values[i];
-                int pos = min + prev(len, i);
-                if (val instanceof ListMultivalue ? ((ListMultivalue) val).equalsWithStop(other, pos, stop) : val.equals(TreeCollectionImpl.getDeep(other, pos))) {
-                    return true;
-                }
-                stop[0] = true;
                 return false;
             });
         }
@@ -338,12 +332,12 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
 
     @Override
     public Spliterator<T> spliterator() {
-        return new OrderedCollectionSpliterator<T>(value, 0, length(value), size(value), false);
+        return new OrderedCollectionSpliterator<>(value, 0, length(value), size(value), false);
     }
 
     @Override
     public Spliterator<T> reverseSpliterator() {
-        return new OrderedCollectionSpliterator<T>(value, 0, length(value), size(value), true);
+        return new OrderedCollectionSpliterator<>(value, 0, length(value), size(value), true);
     }
 
     @Override
@@ -523,7 +517,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     @Override
     public Collection<Integer> indexesOfList(int begin, int end, List<?> sublist) {
         if (sublist.isEmpty()) {
-            return Collection.of(getIntStream(begin, end + 1, new boolean[1], end - begin).mapToObj(i -> i));
+            return Collection.of(getIntStream(begin, end + 1, new boolean[1], end - begin).boxed());
         } else {
             return Collection.of(getIntStream(begin, end - sublist.size() + 1, new boolean[1], end - begin).mapToObj(i -> sublist(i, i + sublist.size()).equals(sublist) ? i : null).filter(notNullFunction()));
         }
@@ -677,7 +671,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     @SuppressWarnings("unchecked")
     @Override
     protected ListImpl<T> create(Object val) {
-        return val != value ? (val == null ? (ListImpl<T>) EMPTY : new ListImpl<T>(val)) : this;
+        return val != value ? (val == null ? (ListImpl<T>) EMPTY : new ListImpl<>(val)) : this;
     }
 
     @SuppressWarnings("unchecked")

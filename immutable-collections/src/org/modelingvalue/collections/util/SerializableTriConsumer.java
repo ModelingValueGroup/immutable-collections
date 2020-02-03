@@ -20,10 +20,10 @@ public interface SerializableTriConsumer<A, B, C> extends TriConsumer<A, B, C>, 
 
     @Override
     default SerializableTriConsumerImpl<A, B, C> of() {
-        return this instanceof SerializableTriConsumerImpl ? (SerializableTriConsumerImpl<A, B, C>) this : new SerializableTriConsumerImpl<A, B, C>(this);
+        return this instanceof SerializableTriConsumerImpl ? (SerializableTriConsumerImpl<A, B, C>) this : new SerializableTriConsumerImpl<>(this);
     }
 
-    static class SerializableTriConsumerImpl<A, B, C> extends LambdaImpl<SerializableTriConsumer<A, B, C>> implements SerializableTriConsumer<A, B, C> {
+    class SerializableTriConsumerImpl<A, B, C> extends LambdaImpl<SerializableTriConsumer<A, B, C>> implements SerializableTriConsumer<A, B, C> {
 
         private static final long serialVersionUID = -6808570298306369071L;
 

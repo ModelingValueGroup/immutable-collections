@@ -34,13 +34,11 @@ public class DefaultMapTest {
     private static final String teun = "teun";
 
     @Test
-    public void test() throws Exception {
-        DefaultMap<String, String> dm = DefaultMap.<String, String> of((a) -> reverse(a)).//
-                put(aap, aap).//
-                put(noot, noot).//
-                put(mies, mies).//
-                put(zus, zus).//
-                put(jet, jet);
+    public void test() {
+        DefaultMap<String, String> dm = DefaultMap.of(DefaultMapTest::reverse)
+                .put(aap, aap)
+                .put(noot, noot)
+                .put(mies, mies).put(zus, zus).put(jet, jet);
 
         assertEquals("nuet", dm.get(teun));
         assertEquals(aap, dm.get(aap));
@@ -58,7 +56,7 @@ public class DefaultMapTest {
         dm = dm.put(noot, noot);
 
         dm = dm.remove(noot, noot, (a, b) -> null);
-        assertEquals(null, dm.get(noot));
+        assertNull(dm.get(noot));
 
         dm = dm.put(noot, noot);
         assertEquals(noot, dm.get(noot));

@@ -30,7 +30,8 @@ public class QualifiedSetTest {
     private static final Context<Object> CONTEXT = Context.of();
 
     private static class O {
-        public String k, v;
+        final String k;
+        final String v;
 
         private O(String a, String b) {
             k = a;
@@ -40,55 +41,75 @@ public class QualifiedSetTest {
         public static O of(String str) {
             return new O("k" + str, str);
         }
+
+        @Override
+        public String toString() {
+            return "O{k='" + k + "', v='" + v + "'}";
+        }
     }
 
     @Test
-    public void test() throws Exception {
-        Set<O> set1 = Set.of(O.of("noot"), O.of("mies"), O.of("teun"), O.of("mies"), O.of("jet"), O.of("aap"));
+    public void testSetSize() {
+        Set<O> set1 = Set.of(O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"));
+        Set<O> set2 = Set.of(O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"), O.of("teun"));
+        Set<O> set3 = set1.addAll(set2);
+
         assertEquals(6, set1.size());
-        Set<O> set2 = Set.of(O.of("aap"), O.of("jet"), O.of("mies"), O.of("noot"), O.of("noot"), O.of("noot"), O.of("teun"));
         assertEquals(7, set2.size());
+        assertEquals(13, set3.size());
+    }
 
-        QualifiedSet<String, O> qset3 = QualifiedSet.of(o -> o.k, O.of("noot"), O.of("mies"), O.of("teun"), O.of("mies"), O.of("jet"), O.of("aap"));
-        assertEquals(5, qset3.size());
-        QualifiedSet<String, O> qset4 = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("jet"), O.of("mies"), O.of("noot"), O.of("noot"), O.of("noot"), O.of("teun"));
-        assertEquals(5, qset4.size());
-        assertTrue(qset3.containsAll(qset4));
-        assertTrue(qset4.containsAll(qset3));
-        qset3.forEach(obj -> assertTrue(qset4.map(a -> a.v).sequential().toSet().contains(obj.v)));
+    @Test
+    public void testQualifiedSet1() {
+        QualifiedSet<String, O> qset1     = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"));
+        QualifiedSet<String, O> qset2     = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"), O.of("jet"), O.of("jet"));
+        Set<String>             qset1keys = qset1.map(a -> a.v).sequential().toSet();
+        Set<String>             qset2keys = qset2.map(a -> a.v).sequential().toSet();
 
-        qset4.forEach(obj -> qset3.contains(obj));
-        String expected = "kaap" + "kjet" + "kmies" + "knoot" + "kteun";
+        assertEquals(5, qset1.size());
+        assertEquals(5, qset2.size());
+        assertEquals(5, qset1keys.size());
+        assertEquals(5, qset2keys.size());
 
-        String reduce1 = qset3.map(o -> o.k).sequential().reduce("", (a, b) -> a + b);
-        String reduce2 = qset4.map(o -> o.k).sequential().reduce("", (a, b) -> a + b);
+        assertTrue(qset1.containsAll(qset2));
+        assertTrue(qset2.containsAll(qset1));
+        //REVIEW: containsAll() returns true, but contains() retuens false???
+        //qset2.forEach(obj -> assertTrue("qset1 does not contain " + obj, qset1.contains(obj)));
+        //qset1.forEach(obj -> assertTrue("qset2 does not contain " + obj, qset2.contains(obj)));
+        qset1.forEach(obj -> assertTrue(qset2keys.contains(obj.v)));
+        qset2.forEach(obj -> assertTrue(qset1keys.contains(obj.v)));
+    }
 
-        assertEquals(expected.length(), reduce1.length());
-        assertEquals(expected.length(), reduce2.length());
-        assertEquals(expected, reduce1);
-        assertEquals(expected, reduce2);
+    @Test
+    public void testQualifiedSet2() {
+        QualifiedSet<String, O> qset1          = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"));
+        QualifiedSet<String, O> qset2          = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"), O.of("jet"), O.of("jet"));
+        String                  keys1          = qset1.map(o -> o.k).sequential().reduce("", (a, b) -> a + b);
+        String                  keys2          = qset2.map(o -> o.k).sequential().reduce("", (a, b) -> a + b);
+        String                  values1        = qset1.map(o -> o.v).sequential().reduce("", (a, b) -> a + b);
+        String                  values2        = qset2.map(o -> o.v).sequential().reduce("", (a, b) -> a + b);
+        String                  expectedKeys   = "kaap" + "kjet" + "kmies" + "knoot" + "kteun";
+        String                  expectedValues = "aap" + "jet" + "mies" + "noot" + "teun";
 
-        expected = "aap" + "jet" + "mies" + "noot" + "teun";
-
-        String reduce3 = qset3.map(o -> o.v).sequential().reduce("", (a, b) -> a + b);
-        String reduce4 = qset4.map(o -> o.v).sequential().reduce("", (a, b) -> a + b);
-
-        assertEquals(expected.length(), reduce3.length());
-        assertEquals(expected.length(), reduce4.length());
-        assertEquals(expected, reduce3);
-        assertEquals(expected, reduce4);
-
+        assertEquals(expectedKeys.length(), keys1.length());
+        assertEquals(expectedKeys.length(), keys2.length());
+        assertEquals(expectedValues.length(), values1.length());
+        assertEquals(expectedValues.length(), values2.length());
+        assertEquals(expectedKeys, keys1);
+        assertEquals(expectedKeys, keys2);
+        assertEquals(expectedValues, values1);
+        assertEquals(expectedValues, values2);
     }
 
     @SuppressWarnings("serial")
     @Test
-    public void bigTest() throws Exception {
+    public void bigTest() {
         ContextThread.createPool().invoke(new RecursiveAction() {
             @Override
             protected void compute() {
                 Object ctx = new Object();
                 CONTEXT.set(ctx);
-                QualifiedSet<String, Long> set = QualifiedSet.of(l -> l.toString(), Collection.of(LongStream.range(Long.MAX_VALUE - 10_000_000, Long.MAX_VALUE)).collect(Collectors.toSet()));
+                QualifiedSet<String, Long> set = QualifiedSet.of(Object::toString, Collection.of(LongStream.range(Long.MAX_VALUE - 10_000_000, Long.MAX_VALUE)).collect(Collectors.toSet()));
                 Double sum = set.toSet().reduce(0d, (s, e) -> {
                     assertEquals(ctx, CONTEXT.get());
                     return s + e;
@@ -103,12 +124,12 @@ public class QualifiedSetTest {
     }
 
     @Test
-    public void equalTest() throws Exception {
+    public void equalTest() {
         java.util.Collection<O> collection = Set.of(O.of("noot"), O.of("mies"), O.of("teun"), O.of("mies"), O.of("jet"), O.of("aap")).collect(Collectors.toSet());
 
-        SerializableFunction<O, String> f = o -> o.k;
-        QualifiedSet<String, O> qset1 = QualifiedSet.of(f, collection);
-        QualifiedSet<String, O> qset2 = QualifiedSet.of(f, collection);
+        SerializableFunction<O, String> f     = o -> o.k;
+        QualifiedSet<String, O>         qset1 = QualifiedSet.of(f, collection);
+        QualifiedSet<String, O>         qset2 = QualifiedSet.of(f, collection);
         assertEquals(qset1, qset2);
 
         QualifiedSet<String, O> qset3 = QualifiedSet.of(QualifiedSetTest::k, collection);
@@ -122,11 +143,11 @@ public class QualifiedSetTest {
     }
 
     @Test
-    public void subsetTest() throws Exception {
-        int max = 500_000;
-        Set<Integer> set0 = Collection.of(IntStream.range(0, max * 2)).toSet();
-        SerializableFunction<Integer, String> f = i -> i.toString();
-        QualifiedSet<String, Integer> qset0 = QualifiedSet.of(f, set0.collect(Collectors.toSet()));
+    public void subsetTest() {
+        int                                   max   = 500_000;
+        Set<Integer>                          set0  = Collection.of(IntStream.range(0, max * 2)).toSet();
+        SerializableFunction<Integer, String> f     = Object::toString;
+        QualifiedSet<String, Integer>         qset0 = QualifiedSet.of(f, set0.collect(Collectors.toSet()));
 
         Set<Integer> set1 = Collection.of(IntStream.range(0, max).map(i -> i * 2)).toSet();
         Set<Integer> set2 = Collection.of(IntStream.range(0, max).map(i -> i * 2 + 1)).toSet();

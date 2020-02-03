@@ -24,6 +24,7 @@ import java.util.concurrent.*;
 import java.util.function.*;
 import java.util.stream.*;
 
+@SuppressWarnings("unused")
 public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
 
     int PARALLELISM = Integer.getInteger("PARALLELISM", ForkJoinPool.getCommonPoolParallelism());
@@ -87,55 +88,55 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
     void forEach(Consumer<? super T> action);
 
     default Set<T> toSet() {
-        return reduce(Set.of(), (s, a) -> s.add(a), (a, b) -> a.addAll(b));
+        return reduce(Set.of(), Set::add, Set::addAll);
     }
 
     default List<T> toList() {
-        return reduce(List.of(), (s, a) -> s.append(a), (a, b) -> a.appendList(b));
+        return reduce(List.of(), List::append, List::appendList);
     }
 
     default <K, V> Map<K, V> toMap(Function<T, Entry<K, V>> entry) {
-        return reduce(Map.<K, V> of(), (s, a) -> s.put(entry.apply(a)), (a, b) -> a.putAll(b));
+        return reduce(Map.of(), (s, a) -> s.put(entry.apply(a)), Map::putAll);
     }
 
     default <K, V> DefaultMap<K, V> toDefaultMap(SerializableFunction<K, V> defaultFunction, Function<T, Entry<K, V>> entry) {
-        return reduce(DefaultMap.<K, V> of(defaultFunction), (s, a) -> s.put(entry.apply(a)), (a, b) -> a.putAll(b));
+        return reduce(DefaultMap.of(defaultFunction), (s, a) -> s.put(entry.apply(a)), DefaultMap::putAll);
     }
 
     @SuppressWarnings("unchecked")
     default <K, V> QualifiedSet<K, V> toQualifiedSet(SerializableFunction<V, K> qualifier) {
-        return reduce(QualifiedSet.<K, V> of(qualifier), (s, a) -> s.add((V) a), (a, b) -> a.addAll(b));
+        return reduce(QualifiedSet.of(qualifier), (s, a) -> s.add((V) a), QualifiedSet::addAll);
     }
 
     @SuppressWarnings("unchecked")
     default <K, V> QualifiedDefaultSet<K, V> toQualifiedDefaultSet(SerializableFunction<V, K> qualifier, SerializableFunction<K, V> defaultFunction) {
-        return reduce(QualifiedDefaultSet.<K, V> of(qualifier, defaultFunction), (s, a) -> s.add((V) a), (a, b) -> a.addAll(b));
+        return reduce(QualifiedDefaultSet.of(qualifier, defaultFunction), (s, a) -> s.add((V) a), QualifiedDefaultSet::addAll);
     }
 
     @SuppressWarnings("rawtypes")
     static <T> Collection<T> of(BaseStream<T, ? extends BaseStream> base) {
-        return new StreamCollectionImpl<T>(base);
+        return new StreamCollectionImpl<>(base);
     }
 
     static <T> Collection<T> of(Stream<T> base) {
-        return base instanceof Collection ? (Collection<T>) base : new StreamCollectionImpl<T>(base);
+        return base instanceof Collection ? (Collection<T>) base : new StreamCollectionImpl<>(base);
     }
 
     static <T> Collection<T> of(Spliterator<T> base) {
-        return new StreamCollectionImpl<T>(base);
+        return new StreamCollectionImpl<>(base);
     }
 
     static <T> Collection<T> of(Iterable<T> base) {
-        return base instanceof Collection ? (Collection<T>) base : new StreamCollectionImpl<T>(base);
+        return base instanceof Collection ? (Collection<T>) base : new StreamCollectionImpl<>(base);
     }
 
     static <T> Collection<T> of(Supplier<T> base) {
-        return new StreamCollectionImpl<T>(Stream.generate(base));
+        return new StreamCollectionImpl<>(Stream.generate(base));
     }
 
     @SafeVarargs
     static <T> Collection<T> of(T... elements) {
-        return new StreamCollectionImpl<T>(Stream.of(elements));
+        return new StreamCollectionImpl<>(Stream.of(elements));
     }
 
     static Collection<Integer> range(int from, int to) {

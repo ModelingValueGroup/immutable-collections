@@ -17,12 +17,13 @@ package org.modelingvalue.collections.util;
 
 import org.modelingvalue.collections.struct.impl.*;
 
+@SuppressWarnings("unused")
 public class Quadruple<A, B, C, D> extends Struct4Impl<A, B, C, D> {
 
     private static final long serialVersionUID = 8726207278114194562L;
 
     public static <X, Y, Z, Q> Quadruple<X, Y, Z, Q> of(X a, Y b, Z c, Q d) {
-        return new Quadruple<X, Y, Z, Q>(a, b, c, d);
+        return new Quadruple<>(a, b, c, d);
     }
 
     protected Quadruple(A a, B b, C c, D d) {

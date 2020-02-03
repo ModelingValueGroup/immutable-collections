@@ -27,7 +27,7 @@ public interface Entry<K, V> extends Serializable, Internable {
     V getValue();
 
     static <K, V> Entry<K, V> of(K key, V value) {
-        return new EntryImpl<K, V>(key, value);
+        return new EntryImpl<>(key, value);
     }
 
     void setValueIfEqual(V value);

@@ -15,42 +15,32 @@
 
 package org.modelingvalue.collections.test;
 
-import static org.junit.Assert.*;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
-import java.util.HashMap;
-
-import org.junit.Test;
-import org.modelingvalue.collections.DefaultMap;
-import org.modelingvalue.collections.Entry;
+import org.junit.*;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
-import org.modelingvalue.collections.QualifiedSet;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.impl.ListImpl;
-import org.modelingvalue.collections.impl.SetImpl;
+import org.modelingvalue.collections.*;
+import org.modelingvalue.collections.impl.*;
+
+import java.io.*;
+import java.util.*;
+
+import static org.junit.Assert.*;
 
 public class SerializeTest {
 
     static class NotSerializable {
+        @SuppressWarnings("unused")
         public String nonsense;
 
         public NotSerializable() {
-
         }
     }
 
     static class AnObject implements Serializable {
 
         private static final long serialVersionUID = 1636023751463490430L;
-        private int               i;
+        private final        int  i;
 
         public AnObject(int i) {
             this.i = i;
@@ -64,8 +54,8 @@ public class SerializeTest {
 
     static class AnObjectWithEquals implements Serializable {
 
-        private static final long serialVersionUID = 1636023751463490430L;
-        private String            s;
+        private static final long   serialVersionUID = 1636023751463490430L;
+        private final        String s;
 
         public AnObjectWithEquals(int i) {
             this.s = Integer.toString(i);
@@ -93,7 +83,7 @@ public class SerializeTest {
     @Test
     public void serializeQualifiedSet() {
         QualifiedSet<String, String> qset = QualifiedSet.of(s -> s);
-        Set<String> set = Set.of("a", "b", "c", "d", "e");
+        Set<String>                  set  = Set.of("a", "b", "c", "d", "e");
         qset = qset.addAll(set);
         testSerializability(qset);
     }
@@ -101,7 +91,7 @@ public class SerializeTest {
     @Test
     public void serializeDefaultMap() {
         DefaultMap<String, String> dmap = DefaultMap.of(s -> s);
-        Set<String> set = Set.of("a", "b", "c", "d", "e");
+        Set<String>                set  = Set.of("a", "b", "c", "d", "e");
         dmap = dmap.addAll(set.map(s -> Entry.of(s, s)));
         testSerializability(dmap);
     }
@@ -144,10 +134,16 @@ public class SerializeTest {
         }
         testSerializability(setOfInt1000);
 
-        NotSerializable not = new NotSerializable();
-        Set<NotSerializable> setOfNots = Set.of(not);
-        byte[] bytes = writeObject(setOfNots);
-        assertNull(bytes);
+        try {
+            NotSerializable      not       = new NotSerializable();
+            Set<NotSerializable> setOfNots = Set.of(not);
+            byte[]               bytes     = writeObject(setOfNots);
+            fail("should not be reached: bytes=" + Arrays.toString(bytes));
+        } catch (Error err) {
+            if (!(err.getCause() instanceof NotSerializableException)) {
+                fail();
+            }
+        }
 
         Set<AnObject> setOfAnObjects = SetImpl.EMPTY;
 
@@ -157,14 +153,14 @@ public class SerializeTest {
             setOfAnObjects = setOfAnObjects.add(e);
             elements.put(i, e);
         }
-        bytes = writeObject(setOfAnObjects);
+        byte[]        bytes           = writeObject(setOfAnObjects);
         Set<AnObject> deserializedSet = (Set<AnObject>) readObject(bytes);
 
-        if (deserializedSet.size() != setOfAnObjects.size()) {
+        if (deserializedSet == null || deserializedSet.size() != setOfAnObjects.size()) {
             fail();
         }
 
-        for (AnObject a : deserializedSet) {
+        for (AnObject a: deserializedSet) {
             if (elements.remove(a.i) == null) {
                 fail("Failed: " + a.i + " not found?");
             }
@@ -192,44 +188,23 @@ public class SerializeTest {
     }
 
     private static byte[] writeObject(Serializable s) {
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutput out = null;
-        try {
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            ObjectOutput out;
             out = new ObjectOutputStream(bos);
             out.writeObject(s);
             out.flush();
-            byte[] bytes = bos.toByteArray();
-            return bytes;
+            return bos.toByteArray();
         } catch (IOException ex) {
-            // System.err.println(ex);
-        } finally {
-            try {
-                bos.close();
-            } catch (IOException ex) {
-                // ignore close exception
-            }
+            throw new Error(ex);
         }
-        return null;
     }
 
     private static Object readObject(byte[] bytes) {
         ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-        ObjectInput in = null;
-        try {
-            in = new ObjectInputStream(bis);
-            Object o = in.readObject();
-            return o;
+        try (ObjectInput in = new ObjectInputStream(bis)) {
+            return in.readObject();
         } catch (ClassNotFoundException | IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if (in != null) {
-                    in.close();
-                }
-            } catch (IOException ex) {
-                // ignore close exception
-            }
+            throw new Error(e);
         }
-        return null;
     }
 }

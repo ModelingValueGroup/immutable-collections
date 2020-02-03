@@ -15,6 +15,7 @@
 
 package org.modelingvalue.collections.util;
 
+@SuppressWarnings("unused")
 @FunctionalInterface
 public interface TernaryOperator<T> extends TriFunction<T, T, T, T> {
 

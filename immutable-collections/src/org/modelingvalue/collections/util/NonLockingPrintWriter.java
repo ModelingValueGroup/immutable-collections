@@ -24,7 +24,7 @@ import java.util.function.Consumer;
 
 public class NonLockingPrintWriter extends PrintWriter {
 
-    public static final NonLockingPrintWriter of(Consumer<String> consumer) {
+    public static NonLockingPrintWriter of(Consumer<String> consumer) {
         return new NonLockingPrintWriter(consumer);
     }
 
@@ -37,6 +37,7 @@ public class NonLockingPrintWriter extends PrintWriter {
         try {
             out.write(s, off, len);
         } catch (IOException x) {
+            //REVIEW: empty catch?
         }
     }
 
@@ -45,6 +46,7 @@ public class NonLockingPrintWriter extends PrintWriter {
         try {
             out.write(buf, off, len);
         } catch (IOException e) {
+            //REVIEW: empty catch?
         }
     }
 
@@ -53,6 +55,7 @@ public class NonLockingPrintWriter extends PrintWriter {
         try {
             out.write(c);
         } catch (IOException e) {
+            //REVIEW: empty catch?
         }
     }
 
@@ -138,11 +141,11 @@ public class NonLockingPrintWriter extends PrintWriter {
         }
 
         @Override
-        public void close() throws IOException {
+        public void close() {
         }
 
         @Override
-        public void flush() throws IOException {
+        public void flush() {
         }
 
         @Override
@@ -151,13 +154,13 @@ public class NonLockingPrintWriter extends PrintWriter {
         }
 
         @Override
-        public void write(char[] arg0, int arg1, int arg2) throws IOException {
+        public void write(char[] arg0, int arg1, int arg2) {
             String post = String.valueOf(arg0, arg1, arg2);
             write(post, 0, post.length());
         }
 
         @Override
-        public void write(int c) throws IOException {
+        public void write(int c) {
             write(new char[]{(char) c}, 0, 1);
         }
 
