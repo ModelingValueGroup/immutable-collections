@@ -23,18 +23,18 @@ import java.util.stream.*;
 public class StructGenerator {
     private static final String IMPL = "impl";
 
-    private int         maxNumTypeArgs;
-    private Path        interfaceSrcGenDir;
-    private Path        implementSrcGenDir;
-    private String      interfaceJavaPackage;
-    private String      implementJavaPackage;
-    private List <Path> previouslyGenerated = new ArrayList <>();
+    private int        maxNumTypeArgs;
+    private Path       interfaceSrcGenDir;
+    private Path       implementSrcGenDir;
+    private String     interfaceJavaPackage;
+    private String     implementJavaPackage;
+    private List<Path> previouslyGenerated = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
         new StructGenerator().prepare(Arrays.asList(args)).generate();
     }
 
-    private StructGenerator prepare(List <String> args) throws IOException {
+    private StructGenerator prepare(List<String> args) throws IOException {
         if (args.size() != 3) {
             System.err.println("arg error: 3 arg are expected: <max-struct-size> <dir-to-gen-in> <package>");
             System.exit(53);
@@ -73,12 +73,12 @@ public class StructGenerator {
         removeLeftOvers();
     }
 
-    private void overwrite(Path file, List <String> lines) throws IOException {
+    private void overwrite(Path file, List<String> lines) throws IOException {
         if (Files.notExists(file)) {
             System.err.println("+ generated  : " + file);
             Files.write(file, lines);
         } else {
-            List <String> old = Files.readAllLines(file);
+            List<String> old = Files.readAllLines(file);
             if (!lines.equals(old)) {
                 System.err.println("+ regenerated: " + file);
                 Files.write(file, lines);
@@ -90,15 +90,15 @@ public class StructGenerator {
     }
 
     private void removeLeftOvers() throws IOException {
-        for (Path file : previouslyGenerated) {
+        for (Path file: previouslyGenerated) {
             System.err.println("- deleted      : " + file);
             Files.delete(file);
         }
     }
 
-    private List <String> generateStructInterface(int i) {
-        List <String> f    = new ArrayList <>();
-        int           prev = i - 1;
+    private List<String> generateStructInterface(int i) {
+        List<String> f    = new ArrayList<>();
+        int          prev = i - 1;
         f.add("package " + interfaceJavaPackage + ";");
         f.add("");
         f.add("public interface " + structNameWithTypeArgs(i) + " extends " + structNameWithTypeArgs(prev) + " {");
@@ -109,9 +109,9 @@ public class StructGenerator {
         return f;
     }
 
-    private List <String> generateStructImplementation(int i) {
-        List <String> f    = new ArrayList <>();
-        int           prev = i - 1;
+    private List<String> generateStructImplementation(int i) {
+        List<String> f    = new ArrayList<>();
+        int          prev = i - 1;
         f.add("package " + implementJavaPackage + ";");
         f.add("");
         f.add("import " + interfaceJavaPackage + ".*;");
@@ -121,7 +121,7 @@ public class StructGenerator {
         }
         f.add("public class " + structNameWithTypeArgsImpl(i) + " extends " + structNameWithTypeArgsImpl(prev) + " implements " + structNameWithTypeArgs(i) + " {");
         f.add("");
-        f.add("    private static final long serialVersionUID = -85170218" + i + "710134661L;");
+        f.add("    private static final long serialVersionUID = " + String.format("0x%08X_%08XL", 0x47114711, structName(i, true).hashCode()) + ";");
         f.add("");
         f.add("    public Struct" + i + "Impl(" + argTypesWithParams(i) + ") {");
         if (0 != i) {
