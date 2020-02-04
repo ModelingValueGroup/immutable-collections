@@ -15,22 +15,28 @@
 
 package org.modelingvalue.collections.test;
 
-import org.junit.*;
+import static org.junit.Assert.*;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.concurrent.RecursiveAction;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+
+import org.junit.Test;
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.util.*;
-
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.stream.*;
-
-import static org.junit.Assert.*;
+import org.modelingvalue.collections.impl.HashCollectionImpl;
+import org.modelingvalue.collections.util.Context;
+import org.modelingvalue.collections.util.ContextThread;
 
 public class SetTest {
 
     private static final Context<Object> CONTEXT = Context.of();
 
-    private static final long SEED = 267835244387707587l;
+    private static final long            SEED    = 267835244387707587l;
 
     @Test
     public void test() throws Exception {
@@ -47,8 +53,8 @@ public class SetTest {
         set1.forEach(obj -> assertTrue(set2.contains(obj)));
         set2.forEach(obj -> set1.contains(obj));
         String expected = "aap" + "jet" + "mies" + "noot" + "teun";
-        String reduce1  = set1.sequential().reduce("", (a, b) -> a + b);
-        String reduce2  = set2.sequential().reduce("", (a, b) -> a + b);
+        String reduce1 = set1.sequential().reduce("", (a, b) -> a + b);
+        String reduce2 = set2.sequential().reduce("", (a, b) -> a + b);
         assertEquals(expected.length(), reduce1.length());
         assertEquals(expected.length(), reduce2.length());
         assertEquals(expected, reduce1);
@@ -63,7 +69,7 @@ public class SetTest {
             protected void compute() {
                 Object ctx = new Object();
                 CONTEXT.set(ctx);
-                Set<Long> set = Collection.of(LongStream.range(Long.MAX_VALUE - 10_000_000, Long.MAX_VALUE)).reduce(Set.<Long>of(), (s, i) -> {
+                Set<Long> set = Collection.of(LongStream.range(Long.MAX_VALUE - 10_000_000, Long.MAX_VALUE)).reduce(Set.<Long> of(), (s, i) -> {
                     assertEquals(ctx, CONTEXT.get());
                     return s.add(i);
                 }, (x, y) -> {
@@ -97,11 +103,11 @@ public class SetTest {
 
     @Test
     public void equaltest() throws Exception {
-        int                    max    = 1_000_000;
-        Set<Integer>           set1   = Collection.of(IntStream.range(0, max)).toSet();
-        Set<Integer>           set2   = Collection.of(IntStream.range(0, max).map(i -> max - i - 1)).toSet();
-        Random                 random = new Random();
-        java.util.Set<Integer> set    = Collections.synchronizedSet(new HashSet<>());
+        int max = 1_000_000;
+        Set<Integer> set1 = Collection.of(IntStream.range(0, max)).toSet();
+        Set<Integer> set2 = Collection.of(IntStream.range(0, max).map(i -> max - i - 1)).toSet();
+        Random random = new Random();
+        java.util.Set<Integer> set = Collections.synchronizedSet(new HashSet<>());
         Set<Integer> set3 = Collection.of(() -> {
             int r = random.nextInt(max);
             while (!set.add(r)) {
@@ -123,7 +129,7 @@ public class SetTest {
 
     @Test
     public void subsetTest() throws Exception {
-        int          max  = 500_000;
+        int max = 500_000;
         Set<Integer> set0 = Collection.of(IntStream.range(0, max * 2)).toSet();
         assertEquals(max * 2, set0.size());
 
@@ -185,21 +191,15 @@ public class SetTest {
 
     @Test
     public void equalHashesTest() throws Exception {
-        Set<Object> set1 = Set.of();
-        Set<Object> set2 = Set.of();
+        Set<HashSharingInteger> set1 = Set.of();
+        Set<HashSharingInteger> set2 = Set.of();
         for (int i = 0; i < 100; i++) {
-            int hash = i % 10;
-            Object obj = new Object() {
-                @Override
-                public int hashCode() {
-                    return hash;
-                }
-            };
+            HashSharingInteger obj = new HashSharingInteger(i, i % 10);
             set1 = set1.add(obj);
             set2 = set2.add(obj);
         }
         assertEquals(100, set1.size());
-        Set<Object> test2 = set2;
+        Set<HashSharingInteger> test2 = set2;
         set1.forEach(obj -> assertTrue(test2.contains(obj)));
         assertEquals(set1, set2);
     }
@@ -246,4 +246,70 @@ public class SetTest {
         System.err.println();
         setA.compare(setB).forEach(c -> System.err.println(Arrays.deepToString(c)));
     }
+
+    @Test
+    public void contains() throws Exception {
+        int max = 10_000_000;
+        int step = Integer.MAX_VALUE / max;
+        Set<Integer> set = Collection.of(IntStream.range(-max, max).map(i -> i * step)).toSet();
+        assertTrue(IntStream.range(-max, max).map(i -> i * step).allMatch(set::contains));
+    }
+
+    @Test
+    public void bigBigMerge() throws Exception {
+        int max = 10_000_000;
+        int step = Integer.MAX_VALUE / max;
+        int half = step / 2;
+        Set<Integer> set1 = Collection.of(IntStream.range(-max, max).map(i -> i * step)).toSet();
+        Set<Integer> set2 = Collection.of(IntStream.range(-max, max).map(i -> i * step + half)).toSet();
+        Set<Integer> set3 = Set.<Integer> of().merge(set1, set2);
+        assertTrue(IntStream.range(-max, max).map(i -> i * step).allMatch(i -> set3.contains(i) && set3.contains(i + half)));
+    }
+
+    @Test
+    public void bigSmallMerge() throws Exception {
+        int max = 10_000_000;
+        int min = 10;
+        int step = Integer.MAX_VALUE / max;
+        int half = step / 2;
+        Set<Integer> set1 = Collection.of(IntStream.range(-min, min).map(i -> i * step)).toSet();
+        Set<Integer> set2 = Collection.of(IntStream.range(-max, max).map(i -> i * step + half)).toSet();
+        Set<Integer> set3 = Set.<Integer> of().merge(set1, set2);
+        assertTrue(IntStream.range(-min, min).map(i -> i * step).allMatch(i -> set3.contains(i)));
+        assertTrue(IntStream.range(-max, max).map(i -> i * step).allMatch(i -> set3.contains(i + half)));
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Test
+    public void checkHashIntegrity() throws Exception {
+        int max = 10_000;
+        Set<HashSharingInteger> set = Collection.of(IntStream.range(-max, max)).map(i -> new HashSharingInteger(i, i - i % 5)).toSet();
+        assertNull(((HashCollectionImpl) set).checkHashIntegrity());
+    }
+
+    private final class HashSharingInteger {
+        private final int integer;
+        private final int hashCode;
+
+        private HashSharingInteger(int integer, int hashCode) {
+            this.integer = integer;
+            this.hashCode = hashCode;
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode;
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            return other instanceof HashSharingInteger && ((HashSharingInteger) other).integer == integer;
+        }
+
+        @Override
+        public String toString() {
+            return Integer.toString(integer);
+        }
+    }
+
 }
