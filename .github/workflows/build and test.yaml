@@ -86,9 +86,19 @@ jobs:
           name: immutable-collections-testresults.jar
           path: out/artifacts/immutable-collections-testresults.jar
 
+      - name: "publish jars on S3"
+        uses: ModelingValueGroup/sync-s3-action@master
+        with:
+          access_key: "${{ secrets.SCALEWAY_ACCESS_KEY }}"
+          secret_key: "${{ secrets.SCALEWAY_SECRET_KEY }}"
+          bucket    : "mvg-dclare-artifacts"
+          cmd       : "put"
+          local_dir : "out/artifacts"
+          s3_dir    : "ModelingValueGroup/immutable-collections/${{ github.ref }}"
+
       - name: "if master: publish maven-artifacts (jar/pom/sources/javadoc)"
         uses: ModelingValueGroup/upload-maven-package-action@master
-        if: github.ref == 'refs/heads/master'
+        if  : github.ref == 'refs/heads/master'
         with:
-          file: "out/artifacts/immutable-collections.jar"
+          file : "out/artifacts/immutable-collections.jar"
           token: "${{ secrets.GITHUB_TOKEN }}"
