@@ -59,7 +59,6 @@ public class Concurrent<T> {
         }
         int i = ContextThread.getNr();
         if (i < 0) {
-            //REVIEW: synchronized on non-static field, why is this ok?
             //noinspection SynchronizeOnNonFinalField
             synchronized (states) {
                 T t = states[ContextThread.POOL_SIZE];
@@ -97,7 +96,8 @@ public class Concurrent<T> {
         }
         int i = ContextThread.getNr();
         if (i < 0) {
-            //REVIEW: synchronized on non-static field, why is this ok?
+            // this is a synchronize on a non-final field and this is on purpose
+            // the states field is only assigned once in one of the init methods
             //noinspection SynchronizeOnNonFinalField
             synchronized (states) {
                 if (states[ContextThread.POOL_SIZE] != value) {

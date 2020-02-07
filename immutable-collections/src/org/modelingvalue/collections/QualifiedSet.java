@@ -66,7 +66,7 @@ public interface QualifiedSet<K, V> extends ContainingCollection<V>, Mergeable<Q
     @Override
     QualifiedSet<K, V> remove(Object e);
 
-    boolean containsAll(Collection<?> c);
+    boolean containsAll(Collection<?> c); //TODO: see DCL-151: consider a rename
 
     QualifiedSet<K, V> exclusiveAll(Collection<? extends V> c);
 

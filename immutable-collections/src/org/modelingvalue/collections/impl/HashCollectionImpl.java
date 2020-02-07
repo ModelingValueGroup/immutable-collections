@@ -38,9 +38,11 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
 
     @SuppressWarnings("rawtypes")
     private static final BiFunction PRUNE = (v1, v2) -> {
-        //REVIEW: how does this work? return value of equals is ignored....
+        // the result of this equals call is purposely ignored
+        // the importance is in the side-effect that sharing is discovered and accomplished in parts of v1 and v2
         //noinspection ResultOfMethodCallIgnored
         v1.equals(v2);
+        // null is returned here on purpose to create as little overhead as possible
         return null;
     };
 
@@ -330,7 +332,6 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     }
 
     protected static <T> Object putAll(@SuppressWarnings("SameParameterValue") Object value, Function<T, Object> key, T[] adds) {
-        //REVIEW: 'value' is always null
         for (T added: adds) {
             value = put(value, key, added, key);
         }

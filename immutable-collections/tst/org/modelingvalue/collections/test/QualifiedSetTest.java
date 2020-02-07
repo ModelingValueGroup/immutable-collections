@@ -72,7 +72,7 @@ public class QualifiedSetTest {
 
         assertTrue(qset1.containsAll(qset2));
         assertTrue(qset2.containsAll(qset1));
-        //REVIEW: containsAll() returns true, but contains() retuens false???
+        //TODO: see DCL-151
         //qset2.forEach(obj -> assertTrue("qset1 does not contain " + obj, qset1.contains(obj)));
         //qset1.forEach(obj -> assertTrue("qset2 does not contain " + obj, qset2.contains(obj)));
         qset1.forEach(obj -> assertTrue(qset2keys.contains(obj.v)));

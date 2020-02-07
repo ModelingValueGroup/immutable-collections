@@ -15,12 +15,9 @@
 
 package org.modelingvalue.collections.util;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.util.Formatter;
-import java.util.Locale;
-import java.util.function.Consumer;
+import java.io.*;
+import java.util.*;
+import java.util.function.*;
 
 public class NonLockingPrintWriter extends PrintWriter {
 
@@ -36,8 +33,8 @@ public class NonLockingPrintWriter extends PrintWriter {
     public void write(String s, int off, int len) {
         try {
             out.write(s, off, len);
-        } catch (IOException x) {
-            //REVIEW: empty catch?
+        } catch (IOException e) {
+            throw new Error("IOException in NonLockingPrintWriter.write(String,int,int)", e);
         }
     }
 
@@ -46,7 +43,7 @@ public class NonLockingPrintWriter extends PrintWriter {
         try {
             out.write(buf, off, len);
         } catch (IOException e) {
-            //REVIEW: empty catch?
+            throw new Error("IOException in NonLockingPrintWriter.write(char[],int,int)", e);
         }
     }
 
@@ -55,7 +52,7 @@ public class NonLockingPrintWriter extends PrintWriter {
         try {
             out.write(c);
         } catch (IOException e) {
-            //REVIEW: empty catch?
+            throw new Error("IOException in NonLockingPrintWriter.write(int)", e);
         }
     }
 

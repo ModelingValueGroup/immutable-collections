@@ -47,13 +47,11 @@ public final class ContextThread extends ForkJoinWorkerThread {
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    //REVIEW: return value never used... why?
     public static Object[] setDecrement(Object[] context) {
         return setContext(context, -1);
     }
 
     @SuppressWarnings("UnusedReturnValue")
-    //REVIEW: return value never used... why?
     public static Object[] setContext(Object[] context) {
         return setContext(context, 0);
     }

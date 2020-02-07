@@ -505,7 +505,6 @@ public abstract class CollectionImpl<T> implements Collection<T> {
 
     @Override
     public <A> A[] toArray(IntFunction<A[]> generator) {
-        //REVIEW: why should this function be wrapped? it only returns an array of the approprate class, it could even be an empty array...
         //noinspection SuspiciousToArrayCall
         return baseStream().toArray(wrap(isParallel(), generator));
     }
