@@ -35,6 +35,7 @@ public final class TraceTimer {
     private static final boolean                             TRACE_TIME_STEP          = Boolean.parseBoolean(System.getProperties().getProperty("TRACE_TIME_STEP", "false"));
     private static final int                                 TRACE_TIME_DUMP_INTERVAL = Integer.parseInt(System.getProperties().getProperty("TRACE_TIME_DUMP_INTERVAL", "10")) * 1000;
     private static final int                                 TRACE_TIME_DUMP_NR       = Integer.parseInt(System.getProperties().getProperty("TRACE_TIME_DUMP_NR", "100"));
+    private static final boolean                             TRACE_TIME_CLEAR         = Boolean.parseBoolean(System.getProperties().getProperty("TRACE_TIME_CLEAR", "false"));
     private static final String                              TRACE_TIME_TOTAL         = System.getProperties().getProperty("TRACE_TIME_TOTAL");
     private static final Pattern                             TRACE_TIME_TOTAL_PATTERN = TRACE_TIME_TOTAL != null ? Pattern.compile(TRACE_TIME_TOTAL) : null;
     private static final String                              TRACE_PATTERN            = System.getProperties().getProperty("TRACE_PATTERN");
@@ -261,6 +262,9 @@ public final class TraceTimer {
             }
             if (log.length() > 0) {
                 System.err.println(log);
+                if (TRACE_TIME_CLEAR) {
+                    clearAll();
+                }
             }
         }
     }
