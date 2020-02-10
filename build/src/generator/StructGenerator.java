@@ -15,10 +15,17 @@
 
 package generator;
 
-import java.io.*;
-import java.nio.file.*;
-import java.util.*;
-import java.util.stream.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class StructGenerator {
     private static final String IMPL = "impl";
@@ -90,7 +97,7 @@ public class StructGenerator {
     }
 
     private void removeLeftOvers() throws IOException {
-        for (Path file: previouslyGenerated) {
+        for (Path file : previouslyGenerated) {
             System.err.println("- deleted      : " + file);
             Files.delete(file);
         }
@@ -114,7 +121,7 @@ public class StructGenerator {
         int          prev = i - 1;
         f.add("package " + implementJavaPackage + ";");
         f.add("");
-        f.add("import " + interfaceJavaPackage + ".*;");
+        f.add("import " + interfaceJavaPackage + "." + structName(i, false) + ";");
         f.add("");
         if (0 != i) {
             f.add("@SuppressWarnings({\"unchecked\", \"unused\"})");
@@ -131,7 +138,7 @@ public class StructGenerator {
         }
         f.add("    }");
         f.add("");
-        f.add("    protected Struct" + i + "Impl(Object...data){");
+        f.add("    protected Struct" + i + "Impl(Object... data){");
         f.add("        super(data);");
         f.add("    }");
 
@@ -170,6 +177,6 @@ public class StructGenerator {
     }
 
     private static String seq(int n, String fmt) {
-        return IntStream.range(0, n).mapToObj(i -> String.format(fmt, i, i, i, i, i, i, i, i)).collect(Collectors.joining(","));
+        return IntStream.range(0, n).mapToObj(i -> String.format(fmt, i, i, i, i, i, i, i, i)).collect(Collectors.joining(", "));
     }
 }
