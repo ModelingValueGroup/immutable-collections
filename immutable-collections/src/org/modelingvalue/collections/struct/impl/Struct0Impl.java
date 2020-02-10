@@ -15,7 +15,7 @@
 
 package org.modelingvalue.collections.struct.impl;
 
-import org.modelingvalue.collections.struct.*;
+import org.modelingvalue.collections.struct.Struct0;
 
 public class Struct0Impl extends StructImpl implements Struct0 {
 
@@ -25,7 +25,7 @@ public class Struct0Impl extends StructImpl implements Struct0 {
         super();
     }
 
-    protected Struct0Impl(Object...data){
+    protected Struct0Impl(Object... data){
         super(data);
     }
 }
