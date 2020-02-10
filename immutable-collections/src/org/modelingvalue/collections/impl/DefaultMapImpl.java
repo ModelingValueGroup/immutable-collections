@@ -15,14 +15,21 @@
 
 package org.modelingvalue.collections.impl;
 
-import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.*;
-import org.modelingvalue.collections.util.*;
+import java.lang.reflect.Array;
+import java.util.Objects;
+import java.util.Spliterator;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
-import java.lang.reflect.*;
-import java.util.*;
-import java.util.function.*;
+import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.DefaultMap;
+import org.modelingvalue.collections.Entry;
+import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.Mergeables;
+import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.QuadFunction;
+import org.modelingvalue.collections.util.SerializableFunction;
 
 public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements DefaultMap<K, V> {
 
@@ -144,6 +151,7 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
         return e instanceof Entry ? removeKey(((Entry<K, V>) e).getKey()) : this;
     }
 
+    @SuppressWarnings("resource")
     @Override
     public DefaultMap<K, V> removeAll(Collection<?> e) {
         DefaultMap<K, V> result = this;

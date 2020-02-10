@@ -15,11 +15,12 @@
 
 package org.modelingvalue.collections.util;
 
-import org.modelingvalue.collections.*;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory;
+import java.util.concurrent.ForkJoinWorkerThread;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 
-import java.util.concurrent.*;
-import java.util.concurrent.ForkJoinPool.*;
-import java.util.concurrent.atomic.*;
+import org.modelingvalue.collections.Collection;
 
 @SuppressWarnings("unused")
 public final class ContextThread extends ForkJoinWorkerThread {
@@ -46,12 +47,10 @@ public final class ContextThread extends ForkJoinWorkerThread {
         return setContext(context, +1);
     }
 
-    @SuppressWarnings("UnusedReturnValue")
     public static Object[] setDecrement(Object[] context) {
         return setContext(context, -1);
     }
 
-    @SuppressWarnings("UnusedReturnValue")
     public static Object[] setContext(Object[] context) {
         return setContext(context, 0);
     }
@@ -145,7 +144,7 @@ public final class ContextThread extends ForkJoinWorkerThread {
         public int runningThreads() {
             int nr = running;
             if (nr < 0) {
-                for (int value: activity) {
+                for (int value : activity) {
                     if (value > 0) {
                         nr++;
                     }

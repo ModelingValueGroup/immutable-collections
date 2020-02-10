@@ -15,29 +15,39 @@
 
 package org.modelingvalue.collections.impl;
 
-import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.*;
-import org.modelingvalue.collections.util.*;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Spliterator;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-import java.util.*;
-import java.util.function.*;
+import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.ContainingCollection;
+import org.modelingvalue.collections.StreamCollection;
+import org.modelingvalue.collections.util.Age;
+import org.modelingvalue.collections.util.Concurrent;
+import org.modelingvalue.collections.util.ContextThread;
+import org.modelingvalue.collections.util.Reusable;
+import org.modelingvalue.collections.util.StringUtil;
 
 @SuppressWarnings("unused")
 public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
 
-    private static final long serialVersionUID = 3453919290764033219L;
+    private static final long                      serialVersionUID             = 3453919290764033219L;
 
-    private static final int EQUAL_HASHCODE_WARNING_LEVEL = Integer.getInteger("EQUAL_HASHCODE_WARNING_LEVEL", 16);
-
-    @SuppressWarnings("rawtypes")
-    private static final BiFunction RETURN_2    = (v1, v2) -> v1.equals(v2) ? v1 : v2;
-    @SuppressWarnings("rawtypes")
-    private static final BiFunction RETURN_1    = (v1, v2) -> v1;
-    @SuppressWarnings("rawtypes")
-    private static final BiFunction RETURN_NULL = (v1, v2) -> null;
+    private static final int                       EQUAL_HASHCODE_WARNING_LEVEL = Integer.getInteger("EQUAL_HASHCODE_WARNING_LEVEL", 16);
 
     @SuppressWarnings("rawtypes")
-    private static final BiFunction PRUNE = (v1, v2) -> {
+    private static final BiFunction                RETURN_2                     = (v1, v2) -> v1.equals(v2) ? v1 : v2;
+    @SuppressWarnings("rawtypes")
+    private static final BiFunction                RETURN_1                     = (v1, v2) -> v1;
+    @SuppressWarnings("rawtypes")
+    private static final BiFunction                RETURN_NULL                  = (v1, v2) -> null;
+
+    @SuppressWarnings("rawtypes")
+    private static final BiFunction                PRUNE                        = (v1, v2) -> {
         // the result of this equals call is purposely ignored
         // the importance is in the side-effect that sharing is discovered and accomplished in parts of v1 and v2
         //noinspection ResultOfMethodCallIgnored
@@ -46,22 +56,22 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         return null;
     };
 
-    private static final int   PART_SIZE   = Integer.getInteger("HASH_PARTITION_SIZE", 6);
-    private static final int   PART_REST   = Integer.SIZE % PART_SIZE == 0 ? 0 : PART_SIZE - Integer.SIZE % PART_SIZE;
-    private static final byte  NR_OF_PARTS = (byte) (Integer.SIZE / PART_SIZE + (PART_REST == 0 ? 0 : 1));
-    private static final int[] PART_MASKS  = new int[NR_OF_PARTS];
-    private static final int[] INDEX_MASKS = new int[NR_OF_PARTS];
-    private static final int[] PART_SHIFTS = new int[NR_OF_PARTS];
+    private static final int                       PART_SIZE                    = Integer.getInteger("HASH_PARTITION_SIZE", 6);
+    private static final int                       PART_REST                    = Integer.SIZE % PART_SIZE == 0 ? 0 : PART_SIZE - Integer.SIZE % PART_SIZE;
+    private static final byte                      NR_OF_PARTS                  = (byte) (Integer.SIZE / PART_SIZE + (PART_REST == 0 ? 0 : 1));
+    private static final int[]                     PART_MASKS                   = new int[NR_OF_PARTS];
+    private static final int[]                     INDEX_MASKS                  = new int[NR_OF_PARTS];
+    private static final int[]                     PART_SHIFTS                  = new int[NR_OF_PARTS];
 
-    private static final int            COMPARE_MAX = Integer.getInteger("COMPARE_MAX", ContextThread.POOL_SIZE * 2);
-    private static final HashMultiValue DUMMY       = new HashMultiValue(new Object[0], 0, 0, (byte) 1, 0, (byte) 0, 0);
-    private static       Object[][]     SINGLES     = new Object[COMPARE_MAX][COMPARE_MAX];
+    private static final int                       COMPARE_MAX                  = Integer.getInteger("COMPARE_MAX", ContextThread.POOL_SIZE * 2);
+    private static final HashMultiValue            DUMMY                        = new HashMultiValue(new Object[0], 0, 0, (byte) 1, 0, (byte) 0, 0);
+    private static Object[][]                      SINGLES                      = new Object[COMPARE_MAX][COMPARE_MAX];
 
-    private static final Concurrent<CompareStates> COMPARE_STATES = Concurrent.of(CompareStates::new);
+    private static final Concurrent<CompareStates> COMPARE_STATES               = Concurrent.of(CompareStates::new);
 
     static {
         int normal = Integer.MAX_VALUE << (Integer.SIZE - PART_SIZE);
-        int small  = normal << 1;
+        int small = normal << 1;
         for (int i = 0; i < NR_OF_PARTS; i++) {
             if (i < PART_REST) {
                 PART_MASKS[i] = small >>> (i * (PART_SIZE - 1));
@@ -133,9 +143,9 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
 
     private static final class HashMultiValue extends MultiValue {
         private static final long serialVersionUID = 3238646981697101095L;
-        private final        int  index;
-        private final        byte level;
-        private final        long mask;
+        private final int         index;
+        private final byte        level;
+        private final long        mask;
 
         private HashMultiValue(Object[] values, int size, int hash, byte depth, int index, byte level, long mask) {
             super(values, size, hash, depth);
@@ -236,8 +246,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         }
 
         private static Object of(Object v1, Object v2, int index, byte level, long newMask) {
-            return new HashMultiValue(new Object[]{v1,
-                    v2}, size(v1) + size(v2), hash(v1) + hash(v2), (byte) (max(depth(v1), depth(v2)) + 1), index, level, newMask);
+            return new HashMultiValue(new Object[]{v1, v2}, size(v1) + size(v2), hash(v1) + hash(v2), (byte) (max(depth(v1), depth(v2)) + 1), index, level, newMask);
         }
 
         private static HashMultiValue of(Object v1, Object v2, int index) {
@@ -318,28 +327,28 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     }
 
     protected static <T> Object addAll(Object value, Function<T, Object> key, T[] adds) {
-        for (T added: adds) {
+        for (T added : adds) {
             value = add(value, key, added, key);
         }
         return value;
     }
 
     protected static <T> Object addAll(Object value, Function<T, Object> key, java.util.Collection<? extends T> adds) {
-        for (T added: adds) {
+        for (T added : adds) {
             value = add(value, key, added, key);
         }
         return value;
     }
 
-    protected static <T> Object putAll(@SuppressWarnings("SameParameterValue") Object value, Function<T, Object> key, T[] adds) {
-        for (T added: adds) {
+    protected static <T> Object putAll(Object value, Function<T, Object> key, T[] adds) {
+        for (T added : adds) {
             value = put(value, key, added, key);
         }
         return value;
     }
 
     protected static <T> Object putAll(Object value, Function<T, Object> key, java.util.Collection<? extends T> adds) {
-        for (T added: adds) {
+        for (T added : adds) {
             value = put(value, key, added, key);
         }
         return value;
@@ -350,7 +359,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         if (v == null) {
             return null;
         } else {
-            int  id    = find.hashCode(), it;
+            int id = find.hashCode(), it;
             byte level = -1;
             while (v instanceof HashMultiValue) {
                 HashMultiValue mv = (HashMultiValue) v;
@@ -437,14 +446,14 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static Object setMultiOne(HashMultiValue mv1, Function key1, Function set1, Object val2, Function key2, int id2, Function set2, byte lev, int idx, BiFunction set12, boolean flip) {
-        int    p2  = id2 & PART_MASKS[lev], i = p2 >>> PART_SHIFTS[lev], it1 = getIt(mv1.mask, i);
+        int p2 = id2 & PART_MASKS[lev], i = p2 >>> PART_SHIFTS[lev], it1 = getIt(mv1.mask, i);
         Object val = it1 >= 0 ? mv1.values[it1] : null;
         val = set(val, key1, index(val, key1), set1, val2, key2, id2, set2, (byte) (lev + 1), idx | p2, set12, flip);
         if (set1 == nullFunction()) {
             return val;
         } else if (set1 == identity()) {
-            long downMask  = val == null ? (mv1.mask & ~(1L << i)) : (mv1.mask | 1L << i);
-            int  newLength = Long.bitCount(downMask);
+            long downMask = val == null ? (mv1.mask & ~(1L << i)) : (mv1.mask | 1L << i);
+            int newLength = Long.bitCount(downMask);
             if (newLength == 1) {
                 return mv1.values[getIt(mv1.mask, Long.numberOfTrailingZeros(downMask))];
             } else {
@@ -452,11 +461,11 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
             }
         } else {
             Object[] result = null;
-            int      len    = 0, hash = 0, size = 0;
-            byte     depth  = 0;
-            long     mask   = mv1.mask;
-            boolean  eq     = true;
-            Object   v, e;
+            int len = 0, hash = 0, size = 0;
+            byte depth = 0;
+            long mask = mv1.mask;
+            boolean eq = true;
+            Object v, e;
             for (int it = 0; it < mv1.values.length; it++) {
                 v = mv1.values[it];
                 e = it == it1 ? val : set1.apply(v);
@@ -490,11 +499,11 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
 
     @SuppressWarnings("rawtypes")
     private static Object setMultiMulti(HashMultiValue mv1, Function key1, Function set1, HashMultiValue mv2, Function key2, Function set2, byte lev, int idx, BiFunction set12, boolean flip) {
-        long     mask   = (mv1.mask & mv2.mask) | (set1 != nullFunction() ? mv1.mask : 0L) | (set2 != nullFunction() ? mv2.mask : 0L);
+        long mask = (mv1.mask & mv2.mask) | (set1 != nullFunction() ? mv1.mask : 0L) | (set2 != nullFunction() ? mv2.mask : 0L);
         Object[] result = null;
-        int      len    = 0, hash = 0, size = 0, i, i1, i2, l;
-        byte     depth  = 0;
-        boolean  eq1    = (mask & mv1.mask) == mv1.mask, eq2 = (mask & mv2.mask) == mv2.mask;
+        int len = 0, hash = 0, size = 0, i, i1, i2, l;
+        byte depth = 0;
+        boolean eq1 = (mask & mv1.mask) == mv1.mask, eq2 = (mask & mv2.mask) == mv2.mask;
         if (set1 == identity()) {
             size += mv1.size;
             hash += mv1.hash;
@@ -591,10 +600,10 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     private static Object setEqualHashes(Object val1, Function key1, Function set1, Object val2, Function key2, Function set2, int idx, BiFunction set12, boolean flip) {
         int len1 = length(val1), len2 = length(val2);
         if (len1 + len2 > 2) {
-            Object   e1, k1, e2, k2, e;
+            Object e1, k1, e2, k2, e;
             Object[] result = null;
-            int      len    = 0, i1, i2;
-            boolean  eq1    = true, eq2 = true;
+            int len = 0, i1, i2;
+            boolean eq1 = true, eq2 = true;
             next1:
             for (i1 = 0; i1 < len1; i1++) {
                 e1 = get(val1, i1);
@@ -730,12 +739,12 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         private static final int VISIT_CHARACTERISTICS = Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL;
 
         @SuppressWarnings("rawtypes")
-        private final Function key1;
+        private final Function   key1;
         @SuppressWarnings("rawtypes")
-        private final Function key2;
-        private final Object   val1;
-        private final Object   val2;
-        private final int      total;
+        private final Function   key2;
+        private final Object     val1;
+        private final Object     val2;
+        private final int        total;
 
         @SuppressWarnings("rawtypes")
         private Comparer(Function key1, Object val1, Function key2, Object val2, int total) {
@@ -810,7 +819,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     protected final Object visit(BiFunction<? super Object[], Integer, Object> visitor, ContainingCollection<? extends T>[] others, int len) {
         len++;
         CompareStates css = COMPARE_STATES.get();
-        CompareSate   cs  = css.open(null, len);
+        CompareSate cs = css.open(null, len);
         try {
             cs.values[0][0] = value;
             cs.keys[0][0] = key();
@@ -849,7 +858,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         private int[][]      ids;
         private long[][]     masks;
 
-        private int length = -1;
+        private int          length = -1;
 
         private CompareSate() {
             values = new Object[NR_OF_PARTS + 2][COMPARE_MAX];
@@ -919,10 +928,10 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         }
 
         private Object visitUnequalHashes(BiFunction<? super Object[], Integer, Object> visitor, byte level, int index, int len, byte dep) {
-            Object result         = null, val;
-            int    resultIdx      = -1, idx, prev = 0;
-            byte   it, maxLevel   = -1;
-            long   downMask, mask = 0;
+            Object result = null, val;
+            int resultIdx = -1, idx, prev = 0;
+            byte it, maxLevel = -1;
+            long downMask, mask = 0;
             for (it = 0; it < len; it++) {
                 if (keep[dep][it]) {
                     val = values[dep][it];
@@ -993,7 +1002,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         @SuppressWarnings("unchecked")
         private Object visitEqualHashes(BiFunction<? super Object[], Integer, Object> visitor, int index, int len, byte dep) {
             Object obj, other, key, result = null;
-            int    it, length, base        = -1, prev = -1;
+            int it, length, base = -1, prev = -1;
             for (it = 0; it < len; it++) {
                 if (keep[dep][it]) {
                     obj = values[dep][it];
@@ -1049,8 +1058,8 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         }
 
         private int equalKeys(int len, byte dep) {
-            Object  prev  = null;
-            int     l     = 0, i, ii;
+            Object prev = null;
+            int l = 0, i, ii;
             boolean equal = true;
             for (i = 0; i < len; i++) {
                 for (ii = 0; ii < l; ii++) {
