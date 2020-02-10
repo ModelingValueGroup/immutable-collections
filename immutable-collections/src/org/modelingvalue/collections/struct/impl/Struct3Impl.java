@@ -17,10 +17,10 @@ package org.modelingvalue.collections.struct.impl;
 
 import org.modelingvalue.collections.struct.*;
 
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "unused"})
 public class Struct3Impl<T0,T1,T2> extends Struct2Impl<T0,T1> implements Struct3<T0,T1,T2> {
 
-    private static final long serialVersionUID = -851702183710134661L;
+    private static final long serialVersionUID = 0x47114711_B5BCBE1EL;
 
     public Struct3Impl(T0 t0,T1 t1,T2 t2) {
         this((Object) t0,t1,t2);

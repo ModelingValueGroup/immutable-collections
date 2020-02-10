@@ -22,10 +22,10 @@ public interface SerializableBiConsumer<A, B> extends BiConsumer<A, B>, LambdaRe
 
     @Override
     default SerializableBiConsumerImpl<A, B> of() {
-        return this instanceof SerializableBiConsumerImpl ? (SerializableBiConsumerImpl<A, B>) this : new SerializableBiConsumerImpl<A, B>(this);
+        return this instanceof SerializableBiConsumerImpl ? (SerializableBiConsumerImpl<A, B>) this : new SerializableBiConsumerImpl<>(this);
     }
 
-    static class SerializableBiConsumerImpl<A, B> extends LambdaImpl<SerializableBiConsumer<A, B>> implements SerializableBiConsumer<A, B> {
+    class SerializableBiConsumerImpl<A, B> extends LambdaImpl<SerializableBiConsumer<A, B>> implements SerializableBiConsumer<A, B> {
 
         private static final long serialVersionUID = 4203724319598910043L;
 

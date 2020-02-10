@@ -20,10 +20,10 @@ public interface SerializableTriFunction<A, B, C, D> extends TriFunction<A, B, C
 
     @Override
     default SerializableTriFunctionImpl<A, B, C, D> of() {
-        return this instanceof SerializableTriFunctionImpl ? (SerializableTriFunctionImpl<A, B, C, D>) this : new SerializableTriFunctionImpl<A, B, C, D>(this);
+        return this instanceof SerializableTriFunctionImpl ? (SerializableTriFunctionImpl<A, B, C, D>) this : new SerializableTriFunctionImpl<>(this);
     }
 
-    static class SerializableTriFunctionImpl<A, B, C, D> extends LambdaImpl<SerializableTriFunction<A, B, C, D>> implements SerializableTriFunction<A, B, C, D> {
+    class SerializableTriFunctionImpl<A, B, C, D> extends LambdaImpl<SerializableTriFunction<A, B, C, D>> implements SerializableTriFunction<A, B, C, D> {
 
         private static final long serialVersionUID = -1175580467666540454L;
 

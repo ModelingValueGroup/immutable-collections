@@ -15,16 +15,13 @@
 
 package org.modelingvalue.collections.util;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Writer;
-import java.util.Formatter;
-import java.util.Locale;
-import java.util.function.Consumer;
+import java.io.*;
+import java.util.*;
+import java.util.function.*;
 
 public class NonLockingPrintWriter extends PrintWriter {
 
-    public static final NonLockingPrintWriter of(Consumer<String> consumer) {
+    public static NonLockingPrintWriter of(Consumer<String> consumer) {
         return new NonLockingPrintWriter(consumer);
     }
 
@@ -36,7 +33,8 @@ public class NonLockingPrintWriter extends PrintWriter {
     public void write(String s, int off, int len) {
         try {
             out.write(s, off, len);
-        } catch (IOException x) {
+        } catch (IOException e) {
+            throw new Error("IOException in NonLockingPrintWriter.write(String,int,int)", e);
         }
     }
 
@@ -45,6 +43,7 @@ public class NonLockingPrintWriter extends PrintWriter {
         try {
             out.write(buf, off, len);
         } catch (IOException e) {
+            throw new Error("IOException in NonLockingPrintWriter.write(char[],int,int)", e);
         }
     }
 
@@ -53,6 +52,7 @@ public class NonLockingPrintWriter extends PrintWriter {
         try {
             out.write(c);
         } catch (IOException e) {
+            throw new Error("IOException in NonLockingPrintWriter.write(int)", e);
         }
     }
 
@@ -138,11 +138,11 @@ public class NonLockingPrintWriter extends PrintWriter {
         }
 
         @Override
-        public void close() throws IOException {
+        public void close() {
         }
 
         @Override
-        public void flush() throws IOException {
+        public void flush() {
         }
 
         @Override
@@ -151,13 +151,13 @@ public class NonLockingPrintWriter extends PrintWriter {
         }
 
         @Override
-        public void write(char[] arg0, int arg1, int arg2) throws IOException {
+        public void write(char[] arg0, int arg1, int arg2) {
             String post = String.valueOf(arg0, arg1, arg2);
             write(post, 0, post.length());
         }
 
         @Override
-        public void write(int c) throws IOException {
+        public void write(int c) {
             write(new char[]{(char) c}, 0, 1);
         }
 

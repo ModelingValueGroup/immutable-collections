@@ -23,7 +23,7 @@ public interface SerializableRunnable extends Runnable, LambdaReflection {
         return this instanceof SerializableRunnableImpl ? (SerializableRunnableImpl) this : new SerializableRunnableImpl(this);
     }
 
-    static class SerializableRunnableImpl extends LambdaImpl<SerializableRunnable> implements SerializableRunnable {
+    class SerializableRunnableImpl extends LambdaImpl<SerializableRunnable> implements SerializableRunnable {
 
         private static final long serialVersionUID = -930587277518158938L;
 

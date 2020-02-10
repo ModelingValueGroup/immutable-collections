@@ -22,10 +22,10 @@ public interface SerializableBiFunction<A, B, C> extends BiFunction<A, B, C>, La
 
     @Override
     default SerializableBiFunctionImpl<A, B, C> of() {
-        return this instanceof SerializableBiFunctionImpl ? (SerializableBiFunctionImpl<A, B, C>) this : new SerializableBiFunctionImpl<A, B, C>(this);
+        return this instanceof SerializableBiFunctionImpl ? (SerializableBiFunctionImpl<A, B, C>) this : new SerializableBiFunctionImpl<>(this);
     }
 
-    static class SerializableBiFunctionImpl<A, B, C> extends LambdaImpl<SerializableBiFunction<A, B, C>> implements SerializableBiFunction<A, B, C> {
+    class SerializableBiFunctionImpl<A, B, C> extends LambdaImpl<SerializableBiFunction<A, B, C>> implements SerializableBiFunction<A, B, C> {
 
         private static final long serialVersionUID = 3679004512278552829L;
 

@@ -19,6 +19,7 @@ import org.modelingvalue.collections.util.*;
 
 import java.util.*;
 
+@SuppressWarnings("unused")
 public interface ContainingCollection<T> extends Collection<T>, Internable {
 
     <R extends ContainingCollection<T>> StreamCollection<R[]> compare(R other);

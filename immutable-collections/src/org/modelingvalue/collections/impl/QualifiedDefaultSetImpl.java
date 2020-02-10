@@ -15,17 +15,14 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.lang.reflect.Array;
-import java.util.Objects;
-import java.util.Spliterator;
-import java.util.function.Predicate;
-
 import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.QualifiedDefaultSet;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.util.Mergeables;
-import org.modelingvalue.collections.util.QuadFunction;
-import org.modelingvalue.collections.util.SerializableFunction;
+import org.modelingvalue.collections.*;
+import org.modelingvalue.collections.util.*;
+
+import java.lang.reflect.*;
+import java.util.*;
+import java.util.function.*;
 
 @SuppressWarnings("serial")
 public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> implements QualifiedDefaultSet<K, V> {
@@ -85,12 +82,12 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
 
     @Override
     public Spliterator<V> spliterator() {
-        return new DistinctCollectionSpliterator<V>(value, 0, length(value), size(value), false);
+        return new DistinctCollectionSpliterator<>(value, 0, length(value), size(value), false);
     }
 
     @Override
     public Spliterator<V> reverseSpliterator() {
-        return new DistinctCollectionSpliterator<V>(value, 0, length(value), size(value), true);
+        return new DistinctCollectionSpliterator<>(value, 0, length(value), size(value), true);
     }
 
     @Override

@@ -15,13 +15,13 @@
 
 package org.modelingvalue.collections.test;
 
+import org.junit.*;
+import org.modelingvalue.collections.*;
+import org.modelingvalue.collections.util.*;
+
+import java.lang.reflect.*;
+
 import static org.junit.Assert.*;
-
-import java.lang.reflect.Method;
-
-import org.junit.Test;
-import org.modelingvalue.collections.List;
-import org.modelingvalue.collections.util.SerializableBiFunction;
 
 public class LambdaTest {
 
@@ -44,7 +44,7 @@ public class LambdaTest {
         SerializableBiFunction<String, Integer, String> f2 = LambdaTest::a;
         f1 = f1.of();
         f2 = f2.of();
-        assertTrue(f1.equals(f2));
+        assertEquals(f1, f2);
         assertEquals(f1.hashCode(), f2.hashCode());
         assertEquals(f1.toString(), f2.toString());
         assertEquals(f1.implMethod(), f2.implMethod());
@@ -54,9 +54,7 @@ public class LambdaTest {
     private Method reflect() {
         try {
             return LambdaTest.class.getMethod("a", String.class, int.class);
-        } catch (NoSuchMethodException e) {
-            throw new Error(e);
-        } catch (SecurityException e) {
+        } catch (NoSuchMethodException | SecurityException e) {
             throw new Error(e);
         }
     }

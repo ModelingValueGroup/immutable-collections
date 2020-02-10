@@ -22,7 +22,7 @@ public class Pair<A, B> extends Struct2Impl<A, B> {
     private static final long serialVersionUID = -4958481941140818352L;
 
     public static <X, Y> Pair<X, Y> of(X a, Y b) {
-        return new Pair<X, Y>(a, b);
+        return new Pair<>(a, b);
     }
 
     protected Pair(A a, B b) {

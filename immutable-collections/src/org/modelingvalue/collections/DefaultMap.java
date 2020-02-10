@@ -15,20 +15,17 @@
 
 package org.modelingvalue.collections;
 
-import java.util.function.BinaryOperator;
-import java.util.function.Predicate;
+import org.modelingvalue.collections.impl.*;
+import org.modelingvalue.collections.util.*;
 
-import org.modelingvalue.collections.impl.DefaultMapImpl;
-import org.modelingvalue.collections.util.Mergeable;
-import org.modelingvalue.collections.util.Pair;
-import org.modelingvalue.collections.util.QuadFunction;
-import org.modelingvalue.collections.util.SerializableFunction;
+import java.util.function.*;
 
+@SuppressWarnings("unused")
 public interface DefaultMap<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<DefaultMap<K, V>> {
 
     @SafeVarargs
     static <K, V> DefaultMap<K, V> of(SerializableFunction<K, V> defaultFunction, Entry<K, V>... e) {
-        return new DefaultMapImpl<K, V>(e, defaultFunction);
+        return new DefaultMapImpl<>(e, defaultFunction);
     }
 
     V get(K key);
