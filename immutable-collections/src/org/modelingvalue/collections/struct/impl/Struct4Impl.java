@@ -15,18 +15,18 @@
 
 package org.modelingvalue.collections.struct.impl;
 
-import org.modelingvalue.collections.struct.*;
+import org.modelingvalue.collections.struct.Struct4;
 
 @SuppressWarnings({"unchecked", "unused"})
-public class Struct4Impl<T0,T1,T2,T3> extends Struct3Impl<T0,T1,T2> implements Struct4<T0,T1,T2,T3> {
+public class Struct4Impl<T0, T1, T2, T3> extends Struct3Impl<T0, T1, T2> implements Struct4<T0, T1, T2, T3> {
 
     private static final long serialVersionUID = 0x47114711_B5CAD59FL;
 
-    public Struct4Impl(T0 t0,T1 t1,T2 t2,T3 t3) {
-        this((Object) t0,t1,t2,t3);
+    public Struct4Impl(T0 t0, T1 t1, T2 t2, T3 t3) {
+        this((Object) t0, t1, t2, t3);
     }
 
-    protected Struct4Impl(Object...data){
+    protected Struct4Impl(Object... data){
         super(data);
     }
 
