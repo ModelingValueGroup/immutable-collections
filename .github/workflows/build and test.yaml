@@ -97,7 +97,6 @@ jobs:
           cmd            : "put"
           local_dir      : "out/artifacts"
           s3_dir_branched: "/"
-          trace: true
 
       - name: "if master: publish maven-artifacts (jar/pom/sources/javadoc)"
         uses: ModelingValueGroup/upload-maven-package-action@master
