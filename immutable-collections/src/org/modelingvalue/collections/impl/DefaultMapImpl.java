@@ -15,7 +15,6 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.lang.reflect.Array;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.BinaryOperator;
@@ -26,6 +25,7 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.ArrayUtil;
 import org.modelingvalue.collections.util.Mergeables;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadFunction;
@@ -213,7 +213,7 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
         K key = es[0] != null ? ((Entry<K, V>) es[0]).getKey() : null;
         V def = key != null ? defaultFunction.apply(key) : null;
         V v = es[0] != null ? ((Entry<K, V>) es[0]).getValue() : def;
-        V[] vs = def != null ? (V[]) Array.newInstance(def.getClass(), el - 1) : v != null ? (V[]) Array.newInstance(v.getClass(), el - 1) : null;
+        V[] vs = null;
         V b;
         boolean noKey;
         for (int i = 1; i < el; i++) {
@@ -225,19 +225,16 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
                     v = def;
                 }
                 b = ((Entry<K, V>) es[i]).getValue();
-                if (vs == null) {
-                    vs = def != null ? (V[]) Array.newInstance(def.getClass(), el - 1) : b != null ? (V[]) Array.newInstance(b.getClass(), el - 1) : null;
-                }
                 if (def != null && noKey) {
                     for (int ii = 0; ii < i - 1; ii++) {
-                        vs[ii] = def;
+                        vs = ArrayUtil.set(vs, ii, def, el - 1);
                     }
                 }
                 if (b != null) {
-                    vs[i - 1] = b;
+                    vs = ArrayUtil.set(vs, i - 1, b, el - 1);
                 }
             } else if (def != null) {
-                vs[i - 1] = def;
+                vs = ArrayUtil.set(vs, i - 1, def, el - 1);
             }
         }
         V result = merger.apply(key, v, vs, el - 1);

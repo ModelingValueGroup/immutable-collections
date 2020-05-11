@@ -15,14 +15,17 @@
 
 package org.modelingvalue.collections.impl;
 
-import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.*;
-import org.modelingvalue.collections.util.*;
+import java.util.Objects;
+import java.util.Spliterator;
+import java.util.function.Predicate;
 
-import java.lang.reflect.*;
-import java.util.*;
-import java.util.function.*;
+import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.QualifiedDefaultSet;
+import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.ArrayUtil;
+import org.modelingvalue.collections.util.Mergeables;
+import org.modelingvalue.collections.util.QuadFunction;
+import org.modelingvalue.collections.util.SerializableFunction;
 
 @SuppressWarnings("serial")
 public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> implements QualifiedDefaultSet<K, V> {
@@ -182,14 +185,13 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
     private Object merge(QuadFunction<K, V, V[], Integer, V> merger, Object[] es, int el) {
         K key = es[0] != null ? qualifier.apply((V) es[0]) : null;
         V v = (V) es[0];
-        V[] vs = key != null ? (V[]) Array.newInstance(v.getClass(), el - 1) : null;
+        V[] vs = null;
         for (int i = 1; i < el; i++) {
             if (es[i] != null) {
                 if (key == null) {
                     key = qualifier.apply((V) es[i]);
-                    vs = (V[]) Array.newInstance(es[i].getClass(), el - 1);
                 }
-                vs[i - 1] = (V) es[i];
+                vs = ArrayUtil.set(vs, i - 1, (V) es[i], el - 1);
             }
         }
         V result = merger.apply(key, v, vs, el - 1);
