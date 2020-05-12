@@ -22,10 +22,10 @@ public interface SerializableConsumer<U> extends Consumer<U>, LambdaReflection {
 
     @Override
     default SerializableConsumerImpl<U> of() {
-        return this instanceof SerializableConsumerImpl ? (SerializableConsumerImpl<U>) this : new SerializableConsumerImpl<U>(this);
+        return this instanceof SerializableConsumerImpl ? (SerializableConsumerImpl<U>) this : new SerializableConsumerImpl<>(this);
     }
 
-    static class SerializableConsumerImpl<U> extends LambdaImpl<SerializableConsumer<U>> implements SerializableConsumer<U> {
+    class SerializableConsumerImpl<U> extends LambdaImpl<SerializableConsumer<U>> implements SerializableConsumer<U> {
 
         private static final long serialVersionUID = -6443217484725683637L;
 

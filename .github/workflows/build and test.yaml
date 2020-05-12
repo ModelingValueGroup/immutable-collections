@@ -36,7 +36,7 @@ jobs:
 
       - name: "(re)generate some files"
         run:  |
-          . <(java -jar buildTools.jar)
+          . <(java -jar ~/buildTools.jar)
           generateAll
           ant compile.module.build
           java -cp out/production/build generator.StructGenerator "25" "immutable-collections/src" "org.modelingvalue.collections.struct"
@@ -45,7 +45,7 @@ jobs:
 
       - name: "download dependencies (as mentioned in pom)"
         run:  |
-          . <(java -jar buildTools.jar)
+          . <(java -jar ~/buildTools.jar)
           getAllDependencies ${{ secrets.GITHUB_TOKEN }}
 
       - name: "build"
@@ -59,13 +59,13 @@ jobs:
 
       - name: "push changes back to github"
         run:  |
-          . <(java -jar buildTools.jar)
+          . <(java -jar ~/buildTools.jar)
           pushBackToGithub "${{ secrets.GITHUB_TOKEN }}" "automation@modelingvalue.com" "adjusted files [by github actions]"
 
       - name: "publish action-artifact jar"
         uses: actions/upload-artifact@v1
         with:
-          name: jdclare.jar
+          name: immutable-collections.jar
           path: out/artifacts/immutable-collections.jar
 
       - name: "publish action-artifact sources"
@@ -86,9 +86,22 @@ jobs:
           name: immutable-collections-testresults.jar
           path: out/artifacts/immutable-collections-testresults.jar
 
+      - name: "publish jars on S3"
+        uses: ModelingValueGroup/sync-s3-action@master
+        with:
+          token          : "${{ secrets.GITHUB_TOKEN }}"
+          access_key     : "${{ secrets.SCALEWAY_ACCESS_KEY }}"
+          secret_key     : "${{ secrets.SCALEWAY_SECRET_KEY }}"
+          trigger_token  : "${{ secrets.RETRIGGER_TOKEN }}"
+          bucket         : "mvg-artifacts"
+          cmd            : "put"
+          local_dir      : "out/artifacts"
+          s3_dir_branched: "/"
+
       - name: "if master: publish maven-artifacts (jar/pom/sources/javadoc)"
         uses: ModelingValueGroup/upload-maven-package-action@master
-        if: github.ref == 'refs/heads/master'
+        if  : github.ref == 'refs/heads/master'
         with:
-          file: "out/artifacts/immutable-collections.jar"
+          file : "out/artifacts/immutable-collections.jar"
           token: "${{ secrets.GITHUB_TOKEN }}"
+

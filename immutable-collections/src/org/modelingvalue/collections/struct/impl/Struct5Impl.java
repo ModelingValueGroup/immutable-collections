@@ -15,18 +15,18 @@
 
 package org.modelingvalue.collections.struct.impl;
 
-import org.modelingvalue.collections.struct.*;
+import org.modelingvalue.collections.struct.Struct5;
 
-@SuppressWarnings("unchecked")
-public class Struct5Impl<T0,T1,T2,T3,T4> extends Struct4Impl<T0,T1,T2,T3> implements Struct5<T0,T1,T2,T3,T4> {
+@SuppressWarnings({"unchecked", "unused"})
+public class Struct5Impl<T0, T1, T2, T3, T4> extends Struct4Impl<T0, T1, T2, T3> implements Struct5<T0, T1, T2, T3, T4> {
 
-    private static final long serialVersionUID = -851702185710134661L;
+    private static final long serialVersionUID = 0x47114711_B5D8ED20L;
 
-    public Struct5Impl(T0 t0,T1 t1,T2 t2,T3 t3,T4 t4) {
-        this((Object) t0,t1,t2,t3,t4);
+    public Struct5Impl(T0 t0, T1 t1, T2 t2, T3 t3, T4 t4) {
+        this((Object) t0, t1, t2, t3, t4);
     }
 
-    protected Struct5Impl(Object...data){
+    protected Struct5Impl(Object... data){
         super(data);
     }
 

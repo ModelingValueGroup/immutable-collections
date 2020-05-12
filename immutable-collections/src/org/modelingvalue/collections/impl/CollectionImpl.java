@@ -18,7 +18,6 @@ package org.modelingvalue.collections.impl;
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.util.*;
 
-import java.util.Set;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.function.*;
@@ -32,7 +31,7 @@ public abstract class CollectionImpl<T> implements Collection<T> {
     protected static final Function<Object, Object> IDENTITY             = Function.identity();
 
     @SuppressWarnings("rawtypes")
-    private static final Predicate                  NOT_NULL             = x -> x != null;
+    private static final Predicate                  NOT_NULL             = Objects::nonNull;
 
     @Override
     public boolean isParallel() {
@@ -281,12 +280,12 @@ public abstract class CollectionImpl<T> implements Collection<T> {
 
     private static <T, A, R> Collector<T, A, R> wrap(boolean parallel, Collector<T, A, R> func) {
         if (parallel) {
-            return new Collector<T, A, R>() {
+            return new Collector<>() {
 
-                private final BiConsumer<A, T>  accumulator = wrap(parallel, func.accumulator());
-                private final BinaryOperator<A> combiner    = wrap(parallel, func.combiner());
-                private final Function<A, R>    finisher    = wrap(parallel, func.finisher());
-                private final Supplier<A>       supplier    = wrap(parallel, func.supplier());
+                private final BiConsumer<A, T> accumulator = wrap(true, func.accumulator());
+                private final BinaryOperator<A> combiner = wrap(true, func.combiner());
+                private final Function<A, R> finisher = wrap(true, func.finisher());
+                private final Supplier<A> supplier = wrap(true, func.supplier());
 
                 @Override
                 public BiConsumer<A, T> accumulator() {
@@ -430,73 +429,73 @@ public abstract class CollectionImpl<T> implements Collection<T> {
 
     @Override
     public Collection<T> filter(Predicate<? super T> predicate) {
-        return new StreamCollectionImpl<T>(baseStream().filter(wrap(isParallel(), predicate)));
+        return new StreamCollectionImpl<>(baseStream().filter(wrap(isParallel(), predicate)));
     }
 
     @Override
     public <R> Collection<R> map(Function<? super T, ? extends R> mapper) {
-        return new StreamCollectionImpl<R>(baseStream().map(wrap(isParallel(), mapper)));
+        return new StreamCollectionImpl<>(baseStream().map(wrap(isParallel(), mapper)));
     }
 
     @Override
     public <R> Collection<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper) {
-        return new StreamCollectionImpl<R>(baseStream().flatMap(wrap(isParallel(), mapper)));
+        return new StreamCollectionImpl<>(baseStream().flatMap(wrap(isParallel(), mapper)));
     }
 
     @Override
     public Collection<T> distinct() {
-        return new StreamCollectionImpl<T>(baseStream().distinct());
+        return new StreamCollectionImpl<>(baseStream().distinct());
     }
 
     @Override
     public Collection<T> sorted() {
-        return new StreamCollectionImpl<T>(baseStream().sorted());
+        return new StreamCollectionImpl<>(baseStream().sorted());
     }
 
     @Override
     public Collection<T> random() {
         int r = ThreadLocalRandom.current().nextInt();
-        return new StreamCollectionImpl<T>(baseStream().sorted((a, b) -> Integer.compare(a.hashCode() ^ r, b.hashCode() ^ r)));
+        return new StreamCollectionImpl<>(baseStream().sorted(Comparator.comparingInt(a -> a.hashCode() ^ r)));
     }
 
     @Override
     public Collection<T> sorted(Comparator<? super T> comparator) {
-        return new StreamCollectionImpl<T>(baseStream().sorted(wrap(isParallel(), comparator)));
+        return new StreamCollectionImpl<>(baseStream().sorted(wrap(isParallel(), comparator)));
     }
 
     @Override
     public Collection<T> peek(Consumer<? super T> action) {
-        return new StreamCollectionImpl<T>(baseStream().peek(wrap(isParallel(), action)));
+        return new StreamCollectionImpl<>(baseStream().peek(wrap(isParallel(), action)));
     }
 
     @Override
     public Collection<T> limit(long maxSize) {
-        return new StreamCollectionImpl<T>(baseStream().limit(maxSize));
+        return new StreamCollectionImpl<>(baseStream().limit(maxSize));
     }
 
     @Override
     public Collection<T> skip(long n) {
-        return new StreamCollectionImpl<T>(baseStream().skip(n));
+        return new StreamCollectionImpl<>(baseStream().skip(n));
     }
 
     @Override
     public Collection<T> sequential() {
-        return new StreamCollectionImpl<T>(baseStream().sequential());
+        return new StreamCollectionImpl<>(baseStream().sequential());
     }
 
     @Override
     public Collection<T> parallel() {
-        return new StreamCollectionImpl<T>(baseStream().parallel());
+        return new StreamCollectionImpl<>(baseStream().parallel());
     }
 
     @Override
     public Collection<T> unordered() {
-        return new StreamCollectionImpl<T>(baseStream().unordered());
+        return new StreamCollectionImpl<>(baseStream().unordered());
     }
 
     @Override
     public Collection<T> onClose(Runnable closeHandler) {
-        return new StreamCollectionImpl<T>(baseStream().onClose(wrap(isParallel(), closeHandler)));
+        return new StreamCollectionImpl<>(baseStream().onClose(wrap(isParallel(), closeHandler)));
     }
 
     @Override
@@ -506,6 +505,7 @@ public abstract class CollectionImpl<T> implements Collection<T> {
 
     @Override
     public <A> A[] toArray(IntFunction<A[]> generator) {
+        //noinspection SuspiciousToArrayCall
         return baseStream().toArray(wrap(isParallel(), generator));
     }
 
@@ -517,7 +517,7 @@ public abstract class CollectionImpl<T> implements Collection<T> {
 
     @Override
     public <U extends Mergeable<U>> U reduce(U identity, BiFunction<U, ? super T, U> accumulator) {
-        return reduce(identity, accumulator, (a, b) -> identity.merge(a, b));
+        return reduce(identity, accumulator, identity::merge);
     }
 
 }

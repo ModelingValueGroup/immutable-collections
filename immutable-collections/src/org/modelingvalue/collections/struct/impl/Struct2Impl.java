@@ -15,18 +15,18 @@
 
 package org.modelingvalue.collections.struct.impl;
 
-import org.modelingvalue.collections.struct.*;
+import org.modelingvalue.collections.struct.Struct2;
 
-@SuppressWarnings("unchecked")
-public class Struct2Impl<T0,T1> extends Struct1Impl<T0> implements Struct2<T0,T1> {
+@SuppressWarnings({"unchecked", "unused"})
+public class Struct2Impl<T0, T1> extends Struct1Impl<T0> implements Struct2<T0, T1> {
 
-    private static final long serialVersionUID = -851702182710134661L;
+    private static final long serialVersionUID = 0x47114711_B5AEA69DL;
 
-    public Struct2Impl(T0 t0,T1 t1) {
-        this((Object) t0,t1);
+    public Struct2Impl(T0 t0, T1 t1) {
+        this((Object) t0, t1);
     }
 
-    protected Struct2Impl(Object...data){
+    protected Struct2Impl(Object... data){
         super(data);
     }
 

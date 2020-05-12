@@ -15,7 +15,6 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.lang.reflect.Array;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.BinaryOperator;
@@ -26,6 +25,7 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.ArrayUtil;
 import org.modelingvalue.collections.util.Mergeables;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadFunction;
@@ -36,7 +36,7 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
     private static final long                    serialVersionUID = 2424304733060404412L;
 
     @SuppressWarnings("rawtypes")
-    private static final Function<Entry, Object> KEY              = e -> e.getKey();
+    private static final Function<Entry, Object> KEY              = Entry::getKey;
 
     private SerializableFunction<K, V>           defaultFunction;
 
@@ -69,12 +69,12 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
 
     @Override
     public Spliterator<Entry<K, V>> spliterator() {
-        return new DistinctCollectionSpliterator<Entry<K, V>>(value, 0, length(value), size(value), false);
+        return new DistinctCollectionSpliterator<>(value, 0, length(value), size(value), false);
     }
 
     @Override
     public Spliterator<Entry<K, V>> reverseSpliterator() {
-        return new DistinctCollectionSpliterator<Entry<K, V>>(value, 0, length(value), size(value), true);
+        return new DistinctCollectionSpliterator<>(value, 0, length(value), size(value), true);
     }
 
     @Override
@@ -151,9 +151,9 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
         return e instanceof Entry ? removeKey(((Entry<K, V>) e).getKey()) : this;
     }
 
+    @SuppressWarnings("resource")
     @Override
     public DefaultMap<K, V> removeAll(Collection<?> e) {
-        @SuppressWarnings("resource")
         DefaultMap<K, V> result = this;
         for (Object r : e) {
             result = result.remove(r);
@@ -213,7 +213,7 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
         K key = es[0] != null ? ((Entry<K, V>) es[0]).getKey() : null;
         V def = key != null ? defaultFunction.apply(key) : null;
         V v = es[0] != null ? ((Entry<K, V>) es[0]).getValue() : def;
-        V[] vs = def != null ? (V[]) Array.newInstance(def.getClass(), el - 1) : v != null ? (V[]) Array.newInstance(v.getClass(), el - 1) : null;
+        V[] vs = null;
         V b;
         boolean noKey;
         for (int i = 1; i < el; i++) {
@@ -225,19 +225,16 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
                     v = def;
                 }
                 b = ((Entry<K, V>) es[i]).getValue();
-                if (vs == null) {
-                    vs = def != null ? (V[]) Array.newInstance(def.getClass(), el - 1) : b != null ? (V[]) Array.newInstance(b.getClass(), el - 1) : null;
-                }
                 if (def != null && noKey) {
                     for (int ii = 0; ii < i - 1; ii++) {
-                        vs[ii] = def;
+                        vs = ArrayUtil.set(vs, ii, def, el - 1);
                     }
                 }
                 if (b != null) {
-                    vs[i - 1] = b;
+                    vs = ArrayUtil.set(vs, i - 1, b, el - 1);
                 }
             } else if (def != null) {
-                vs[i - 1] = def;
+                vs = ArrayUtil.set(vs, i - 1, def, el - 1);
             }
         }
         V result = merger.apply(key, v, vs, el - 1);
@@ -255,7 +252,7 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
 
     @Override
     public Collection<Entry<K, Pair<V, V>>> diff(DefaultMap<K, V> toCompare) {
-        return compare(toCompare).<Entry<K, Pair<V, V>>> flatMap(a -> {
+        return compare(toCompare).flatMap(a -> {
             if (a[0] == null) {
                 return a[1].map(e -> Entry.of(e.getKey(), Pair.of(defaultFunction.apply(e.getKey()), a[1].get(e.getKey()))));
             } else if (a[1] == null) {
@@ -268,12 +265,12 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
 
     @Override
     public Collection<K> toKeys() {
-        return map(e -> e.getKey());
+        return map(Entry::getKey);
     }
 
     @Override
     public Collection<V> toValues() {
-        return map(e -> e.getValue());
+        return map(Entry::getValue);
     }
 
     @Override
@@ -291,7 +288,7 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
     @SuppressWarnings("rawtypes")
     @Override
     public Collection<V> getAll(Set<K> keys) {
-        return create(retain(value, key(), ((SetImpl) keys).value, identity())).map(e -> e.getValue());
+        return create(retain(value, key(), ((SetImpl) keys).value, identity())).map(Entry::getValue);
     }
 
     @SuppressWarnings("unchecked")

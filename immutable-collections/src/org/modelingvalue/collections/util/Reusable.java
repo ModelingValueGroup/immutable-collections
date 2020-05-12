@@ -54,7 +54,8 @@ public class Reusable<U, C, T, P> extends ArrayList<T> {
 
     public void close(T tx) {
         stop.accept(tx);
-        for (; level >= 0 && !isOpen.apply(get(level)); level--) {
+        while (level >= 0 && !isOpen.apply(get(level))) {
+            level--;
         }
     }
 

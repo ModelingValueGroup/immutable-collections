@@ -22,10 +22,10 @@ public interface SerializableFunction<U, V> extends Function<U, V>, LambdaReflec
 
     @Override
     default SerializableFunctionImpl<U, V> of() {
-        return this instanceof SerializableFunctionImpl ? (SerializableFunctionImpl<U, V>) this : new SerializableFunctionImpl<U, V>(this);
+        return this instanceof SerializableFunctionImpl ? (SerializableFunctionImpl<U, V>) this : new SerializableFunctionImpl<>(this);
     }
 
-    static class SerializableFunctionImpl<U, V> extends LambdaImpl<SerializableFunction<U, V>> implements SerializableFunction<U, V> {
+    class SerializableFunctionImpl<U, V> extends LambdaImpl<SerializableFunction<U, V>> implements SerializableFunction<U, V> {
 
         private static final long serialVersionUID = 5814783501752526565L;
 

@@ -17,12 +17,13 @@ package org.modelingvalue.collections.util;
 
 import org.modelingvalue.collections.struct.impl.*;
 
+@SuppressWarnings("unused")
 public class Triple<A, B, C> extends Struct3Impl<A, B, C> {
 
     private static final long serialVersionUID = -8013430990562472268L;
 
     public static <X, Y, Z> Triple<X, Y, Z> of(X a, Y b, Z c) {
-        return new Triple<X, Y, Z>(a, b, c);
+        return new Triple<>(a, b, c);
     }
 
     protected Triple(A a, B b, C c) {

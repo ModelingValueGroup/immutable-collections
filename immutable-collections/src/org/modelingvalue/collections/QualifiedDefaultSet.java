@@ -20,6 +20,7 @@ import org.modelingvalue.collections.util.*;
 
 import java.util.function.*;
 
+@SuppressWarnings("unused")
 public interface QualifiedDefaultSet<K, V> extends ContainingCollection<V>, Mergeable<QualifiedDefaultSet<K, V>> {
     @SafeVarargs
     static <K, V> QualifiedDefaultSet<K, V> of(SerializableFunction<V, K> qualifier, SerializableFunction<K, V> defaultFunction, V... e) {

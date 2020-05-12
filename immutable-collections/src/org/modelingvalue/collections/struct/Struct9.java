@@ -15,6 +15,6 @@
 
 package org.modelingvalue.collections.struct;
 
-public interface Struct9<T0,T1,T2,T3,T4,T5,T6,T7,T8> extends Struct8<T0,T1,T2,T3,T4,T5,T6,T7> {
+public interface Struct9<T0, T1, T2, T3, T4, T5, T6, T7, T8> extends Struct8<T0, T1, T2, T3, T4, T5, T6, T7> {
     T8 get8 ();
 }

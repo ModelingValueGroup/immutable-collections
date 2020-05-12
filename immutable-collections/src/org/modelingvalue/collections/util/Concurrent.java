@@ -24,15 +24,15 @@ import java.util.function.UnaryOperator;
 public class Concurrent<T> {
 
     public static <V> Concurrent<V> of(V value) {
-        return new Concurrent<V>(value);
+        return new Concurrent<>(value);
     }
 
     public static <V> Concurrent<V> of(Supplier<V> value) {
-        return new Concurrent<V>(value);
+        return new Concurrent<>(value);
     }
 
     public static <V> Concurrent<V> of() {
-        return new Concurrent<V>();
+        return new Concurrent<>();
     }
 
     private T   pre;
@@ -59,6 +59,7 @@ public class Concurrent<T> {
         }
         int i = ContextThread.getNr();
         if (i < 0) {
+            //noinspection SynchronizeOnNonFinalField
             synchronized (states) {
                 T t = states[ContextThread.POOL_SIZE];
                 T value = oper.apply(t);
@@ -95,6 +96,9 @@ public class Concurrent<T> {
         }
         int i = ContextThread.getNr();
         if (i < 0) {
+            // this is a synchronize on a non-final field and this is on purpose
+            // the states field is only assigned once in one of the init methods
+            //noinspection SynchronizeOnNonFinalField
             synchronized (states) {
                 if (states[ContextThread.POOL_SIZE] != value) {
                     if (pre == states[ContextThread.POOL_SIZE]) {
@@ -170,8 +174,8 @@ public class Concurrent<T> {
     }
 
     public boolean isChanged() {
-        for (int i = 0; i < states.length; i++) {
-            if (states[i] != pre) {
+        for (T state: states) {
+            if (state != pre) {
                 return true;
             }
         }

@@ -15,7 +15,6 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.lang.reflect.Array;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Predicate;
@@ -23,6 +22,7 @@ import java.util.function.Predicate;
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.QualifiedDefaultSet;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.ArrayUtil;
 import org.modelingvalue.collections.util.Mergeables;
 import org.modelingvalue.collections.util.QuadFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
@@ -85,12 +85,12 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
 
     @Override
     public Spliterator<V> spliterator() {
-        return new DistinctCollectionSpliterator<V>(value, 0, length(value), size(value), false);
+        return new DistinctCollectionSpliterator<>(value, 0, length(value), size(value), false);
     }
 
     @Override
     public Spliterator<V> reverseSpliterator() {
-        return new DistinctCollectionSpliterator<V>(value, 0, length(value), size(value), true);
+        return new DistinctCollectionSpliterator<>(value, 0, length(value), size(value), true);
     }
 
     @Override
@@ -185,14 +185,13 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
     private Object merge(QuadFunction<K, V, V[], Integer, V> merger, Object[] es, int el) {
         K key = es[0] != null ? qualifier.apply((V) es[0]) : null;
         V v = (V) es[0];
-        V[] vs = key != null ? (V[]) Array.newInstance(v.getClass(), el - 1) : null;
+        V[] vs = null;
         for (int i = 1; i < el; i++) {
             if (es[i] != null) {
                 if (key == null) {
                     key = qualifier.apply((V) es[i]);
-                    vs = (V[]) Array.newInstance(es[i].getClass(), el - 1);
                 }
-                vs[i - 1] = (V) es[i];
+                vs = ArrayUtil.set(vs, i - 1, (V) es[i], el - 1);
             }
         }
         V result = merger.apply(key, v, vs, el - 1);

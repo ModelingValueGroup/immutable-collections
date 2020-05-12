@@ -15,7 +15,6 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.lang.reflect.Array;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.BinaryOperator;
@@ -26,6 +25,7 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.ArrayUtil;
 import org.modelingvalue.collections.util.Mergeables;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadFunction;
@@ -35,7 +35,7 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     private static final long                    serialVersionUID = 7758359458143777562L;
 
     @SuppressWarnings("rawtypes")
-    private static final Function<Entry, Object> KEY              = e -> e.getKey();
+    private static final Function<Entry, Object> KEY              = Entry::getKey;
 
     @SuppressWarnings("rawtypes")
     public static final Map                      EMPTY            = new MapImpl((Object) null);
@@ -56,12 +56,12 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
 
     @Override
     public Spliterator<Entry<K, V>> spliterator() {
-        return new DistinctCollectionSpliterator<Entry<K, V>>(value, 0, length(value), size(value), false);
+        return new DistinctCollectionSpliterator<>(value, 0, length(value), size(value), false);
     }
 
     @Override
     public Spliterator<Entry<K, V>> reverseSpliterator() {
-        return new DistinctCollectionSpliterator<Entry<K, V>>(value, 0, length(value), size(value), true);
+        return new DistinctCollectionSpliterator<>(value, 0, length(value), size(value), true);
     }
 
     @Override
@@ -193,14 +193,13 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     private Object merge(QuadFunction<K, V, V[], Integer, V> merger, Object[] es, int el) {
         K key = es[0] != null ? ((Entry<K, V>) es[0]).getKey() : null;
         V v = key != null ? ((Entry<K, V>) es[0]).getValue() : null;
-        V[] vs = key != null ? (V[]) Array.newInstance(v.getClass(), el - 1) : null;
+        V[] vs = null;
         for (int i = 1; i < el; i++) {
             if (es[i] != null) {
                 if (key == null) {
                     key = ((Entry<K, V>) es[i]).getKey();
-                    vs = (V[]) Array.newInstance(((Entry<K, V>) es[i]).getValue().getClass(), el - 1);
                 }
-                vs[i - 1] = ((Entry<K, V>) es[i]).getValue();
+                vs = ArrayUtil.set(vs, i - 1, ((Entry<K, V>) es[i]).getValue(), el - 1);
             }
         }
         V result = merger.apply(key, v, vs, el - 1);
@@ -218,7 +217,7 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
 
     @Override
     public Collection<Entry<K, Pair<V, V>>> diff(Map<K, V> toCompare) {
-        return compare(toCompare).<Entry<K, Pair<V, V>>> flatMap(a -> {
+        return compare(toCompare).flatMap(a -> {
             if (a[0] == null) {
                 return a[1].map(e -> Entry.of(e.getKey(), Pair.of(null, a[1].get(e.getKey()))));
             } else if (a[1] == null) {
@@ -231,12 +230,12 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
 
     @Override
     public Collection<K> toKeys() {
-        return map(e -> e.getKey());
+        return map(Entry::getKey);
     }
 
     @Override
     public Collection<V> toValues() {
-        return map(e -> e.getValue());
+        return map(Entry::getValue);
     }
 
     @Override
@@ -254,13 +253,13 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     @SuppressWarnings("rawtypes")
     @Override
     public Collection<V> getAll(Set<K> keys) {
-        return create(retain(value, key(), ((SetImpl) keys).value, identity())).map(e -> e.getValue());
+        return create(retain(value, key(), ((SetImpl) keys).value, identity())).map(Entry::getValue);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     protected MapImpl<K, V> create(Object val) {
-        return val != value ? (val == null ? (MapImpl<K, V>) EMPTY : new MapImpl<K, V>(val)) : this;
+        return val != value ? (val == null ? (MapImpl<K, V>) EMPTY : new MapImpl<>(val)) : this;
     }
 
     @SuppressWarnings("unchecked")

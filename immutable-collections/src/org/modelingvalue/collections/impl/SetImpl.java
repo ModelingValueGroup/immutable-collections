@@ -15,12 +15,11 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.util.Objects;
-import java.util.Spliterator;
-import java.util.function.Function;
-
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
+
+import java.util.*;
+import java.util.function.*;
 
 public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
 
@@ -47,12 +46,12 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
 
     @Override
     public Spliterator<T> spliterator() {
-        return new DistinctCollectionSpliterator<T>(value, 0, length(value), size(value), false);
+        return new DistinctCollectionSpliterator<>(value, 0, length(value), size(value), false);
     }
 
     @Override
     public Spliterator<T> reverseSpliterator() {
-        return new DistinctCollectionSpliterator<T>(value, 0, length(value), size(value), true);
+        return new DistinctCollectionSpliterator<>(value, 0, length(value), size(value), true);
     }
 
     @Override

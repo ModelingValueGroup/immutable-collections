@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
 
 import org.modelingvalue.collections.Collection;
 
+@SuppressWarnings("unused")
 public final class ContextThread extends ForkJoinWorkerThread {
 
     public static final ForkJoinWorkerThreadFactory FACTORY   = new ContextThreadFactory();
@@ -35,7 +36,7 @@ public final class ContextThread extends ForkJoinWorkerThread {
         return new ContextPool(Collection.PARALLELISM, FACTORY, handler, false);
     }
 
-    private final static ThreadLocal<Object[]> CONTEXT = new ThreadLocal<Object[]>();
+    private final static ThreadLocal<Object[]> CONTEXT = new ThreadLocal<>();
 
     public static Object[] getContext() {
         Thread currentThread = Thread.currentThread();
@@ -143,8 +144,8 @@ public final class ContextThread extends ForkJoinWorkerThread {
         public int runningThreads() {
             int nr = running;
             if (nr < 0) {
-                for (int i = 0; i < activity.length; i++) {
-                    if (activity[i] > 0) {
+                for (int value : activity) {
+                    if (value > 0) {
                         nr++;
                     }
                 }

@@ -32,37 +32,42 @@ import org.modelingvalue.collections.util.ContextThread;
 import org.modelingvalue.collections.util.Reusable;
 import org.modelingvalue.collections.util.StringUtil;
 
+@SuppressWarnings("unused")
 public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
 
-    private static final long                     serialVersionUID             = 3453919290764033219L;
+    private static final long                      serialVersionUID             = 3453919290764033219L;
 
-    private static final int                      EQUAL_HASHCODE_WARNING_LEVEL = Integer.getInteger("EQUAL_HASHCODE_WARNING_LEVEL", 16);
-
-    @SuppressWarnings("rawtypes")
-    private static final BiFunction               RETURN_2                     = (v1, v2) -> v1.equals(v2) ? v1 : v2;
-    @SuppressWarnings("rawtypes")
-    private static final BiFunction               RETURN_1                     = (v1, v2) -> v1;
-    @SuppressWarnings("rawtypes")
-    private static final BiFunction               RETURN_NULL                  = (v1, v2) -> null;
+    private static final int                       EQUAL_HASHCODE_WARNING_LEVEL = Integer.getInteger("EQUAL_HASHCODE_WARNING_LEVEL", 16);
 
     @SuppressWarnings("rawtypes")
-    private static final BiFunction               PRUNE                        = (v1, v2) -> {
-                                                                                   v1.equals(v2);
-                                                                                   return null;
-                                                                               };
+    private static final BiFunction                RETURN_2                     = (v1, v2) -> v1.equals(v2) ? v1 : v2;
+    @SuppressWarnings("rawtypes")
+    private static final BiFunction                RETURN_1                     = (v1, v2) -> v1;
+    @SuppressWarnings("rawtypes")
+    private static final BiFunction                RETURN_NULL                  = (v1, v2) -> null;
 
-    private static final int                      PART_SIZE                    = Integer.getInteger("HASH_PARTITION_SIZE", 6);
-    private static final int                      PART_REST                    = Integer.SIZE % PART_SIZE == 0 ? 0 : PART_SIZE - Integer.SIZE % PART_SIZE;
-    private static final byte                     NR_OF_PARTS                  = (byte) (Integer.SIZE / PART_SIZE + (PART_REST == 0 ? 0 : 1));
-    private static final int[]                    PART_MASKS                   = new int[NR_OF_PARTS];
-    private static final int[]                    INDEX_MASKS                  = new int[NR_OF_PARTS];
-    private static final int[]                    PART_SHIFTS                  = new int[NR_OF_PARTS];
+    @SuppressWarnings("rawtypes")
+    private static final BiFunction                PRUNE                        = (v1, v2) -> {
+        // the result of this equals call is purposely ignored
+        // the importance is in the side-effect that sharing is discovered and accomplished in parts of v1 and v2
+        //noinspection ResultOfMethodCallIgnored
+        v1.equals(v2);
+        // null is returned here on purpose to create as little overhead as possible
+        return null;
+    };
 
-    private static final int                      COMPARE_MAX                  = Integer.getInteger("COMPARE_MAX", ContextThread.POOL_SIZE * 2);
-    private static final HashMultiValue           DUMMY                        = new HashMultiValue(new Object[0], 0, 0, (byte) 1, 0, (byte) 0, 0);
-    private static Object[][]                     SINGLES                      = new Object[COMPARE_MAX][COMPARE_MAX];
+    private static final int                       PART_SIZE                    = Integer.getInteger("HASH_PARTITION_SIZE", 6);
+    private static final int                       PART_REST                    = Integer.SIZE % PART_SIZE == 0 ? 0 : PART_SIZE - Integer.SIZE % PART_SIZE;
+    private static final byte                      NR_OF_PARTS                  = (byte) (Integer.SIZE / PART_SIZE + (PART_REST == 0 ? 0 : 1));
+    private static final int[]                     PART_MASKS                   = new int[NR_OF_PARTS];
+    private static final int[]                     INDEX_MASKS                  = new int[NR_OF_PARTS];
+    private static final int[]                     PART_SHIFTS                  = new int[NR_OF_PARTS];
 
-    private static final Concurrent<CompareSates> COMPARE_STATES               = Concurrent.of(() -> new CompareSates());
+    private static final int                       COMPARE_MAX                  = Integer.getInteger("COMPARE_MAX", ContextThread.POOL_SIZE * 2);
+    private static final HashMultiValue            DUMMY                        = new HashMultiValue(new Object[0], 0, 0, (byte) 1, 0, (byte) 0, 0);
+    private static Object[][]                      SINGLES                      = new Object[COMPARE_MAX][COMPARE_MAX];
+
+    private static final Concurrent<CompareStates> COMPARE_STATES               = Concurrent.of(CompareStates::new);
 
     static {
         int normal = Integer.MAX_VALUE << (Integer.SIZE - PART_SIZE);
@@ -233,7 +238,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
                     System.arraycopy(values, oldPos, result, newPos + 1, values.length - oldPos);
                     result[newPos] = niw;
                 } else {
-                    assert old != null;
+                    //assert old != null; // always true because old!=niw && niw==null (see above)
                     System.arraycopy(values, oldPos, result, oldPos - 1, values.length - oldPos);
                 }
                 return new HashMultiValue(result, size + size(niw) - size(old), hash + hash(niw) - hash(old), (byte) (d + 1), index, level, newMask);
@@ -705,6 +710,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     }
 
     protected static <T1, T2> void deduplicate(Object value, Function<T1, Object> key1, Object retained, Function<T2, Object> key2) {
+        //noinspection ResultOfMethodCallIgnored
         set(value, key1, nullFunction(), retained, key2, nullFunction(), PRUNE);
     }
 
@@ -712,14 +718,14 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         return set(value, key1, identity(), excl, key2, identity(), RETURN_NULL);
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({"rawtypes"})
     protected static <T1, T2> Object add(Object value, Function<T1, Object> key1, Object merged, Function<T2, Object> key2, BinaryOperator merger) {
-        return set(value, key1, identity(), merged, key2, identity(), merger::apply);
+        return set(value, key1, identity(), merged, key2, identity(), merger);
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({"rawtypes"})
     protected static <T1, T2> Object remove(Object value, Function<T1, Object> key1, Object merged, Function<T2, Object> key2, BinaryOperator merger) {
-        return set(value, key1, identity(), merged, key2, nullFunction(), merger::apply);
+        return set(value, key1, identity(), merged, key2, nullFunction(), merger);
     }
 
     @Override
@@ -733,8 +739,11 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         private static final int VISIT_CHARACTERISTICS = Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL;
 
         @SuppressWarnings("rawtypes")
-        private final Function   key1, key2;
-        private final Object     val1, val2;
+        private final Function   key1;
+        @SuppressWarnings("rawtypes")
+        private final Function   key2;
+        private final Object     val1;
+        private final Object     val2;
         private final int        total;
 
         @SuppressWarnings("rawtypes")
@@ -749,6 +758,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         @Override
         public void forEachRemaining(Consumer<? super Object[]> visitor) {
             Object[] pair = new Object[2];
+            //noinspection ResultOfMethodCallIgnored
             set(val1, key1, index(val1, key1), e1 -> {
                 pair[0] = e1;
                 pair[1] = null;
@@ -808,7 +818,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     @SuppressWarnings("unchecked")
     protected final Object visit(BiFunction<? super Object[], Integer, Object> visitor, ContainingCollection<? extends T>[] others, int len) {
         len++;
-        CompareSates css = COMPARE_STATES.get();
+        CompareStates css = COMPARE_STATES.get();
         CompareSate cs = css.open(null, len);
         try {
             cs.values[0][0] = value;
@@ -830,11 +840,11 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         }
     }
 
-    private static final class CompareSates extends Reusable<Object, Object, CompareSate, Integer> {
+    private static final class CompareStates extends Reusable<Object, Object, CompareSate, Integer> {
 
         private static final long serialVersionUID = 4743227838928248552L;
 
-        public CompareSates() {
+        public CompareStates() {
             super(null, (c, u) -> new CompareSate(), (cs, c, l) -> cs.open(l), CompareSate::close, CompareSate::isOpen);
         }
 

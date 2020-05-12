@@ -15,18 +15,18 @@
 
 package org.modelingvalue.collections.struct.impl;
 
-import org.modelingvalue.collections.struct.*;
+import org.modelingvalue.collections.struct.Struct10;
 
-@SuppressWarnings("unchecked")
-public class Struct10Impl<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9> extends Struct9Impl<T0,T1,T2,T3,T4,T5,T6,T7,T8> implements Struct10<T0,T1,T2,T3,T4,T5,T6,T7,T8,T9> {
+@SuppressWarnings({"unchecked", "unused"})
+public class Struct10Impl<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> extends Struct9Impl<T0, T1, T2, T3, T4, T5, T6, T7, T8> implements Struct10<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9> {
 
-    private static final long serialVersionUID = -8517021810710134661L;
+    private static final long serialVersionUID = 0x47114711_FD00A114L;
 
-    public Struct10Impl(T0 t0,T1 t1,T2 t2,T3 t3,T4 t4,T5 t5,T6 t6,T7 t7,T8 t8,T9 t9) {
-        this((Object) t0,t1,t2,t3,t4,t5,t6,t7,t8,t9);
+    public Struct10Impl(T0 t0, T1 t1, T2 t2, T3 t3, T4 t4, T5 t5, T6 t6, T7 t7, T8 t8, T9 t9) {
+        this((Object) t0, t1, t2, t3, t4, t5, t6, t7, t8, t9);
     }
 
-    protected Struct10Impl(Object...data){
+    protected Struct10Impl(Object... data){
         super(data);
     }
 

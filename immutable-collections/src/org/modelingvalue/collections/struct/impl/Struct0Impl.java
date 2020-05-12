@@ -15,17 +15,17 @@
 
 package org.modelingvalue.collections.struct.impl;
 
-import org.modelingvalue.collections.struct.*;
+import org.modelingvalue.collections.struct.Struct0;
 
 public class Struct0Impl extends StructImpl implements Struct0 {
 
-    private static final long serialVersionUID = -851702180710134661L;
+    private static final long serialVersionUID = 0x47114711_B592779BL;
 
     public Struct0Impl() {
         super();
     }
 
-    protected Struct0Impl(Object...data){
+    protected Struct0Impl(Object... data){
         super(data);
     }
 }

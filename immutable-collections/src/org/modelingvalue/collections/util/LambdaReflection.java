@@ -15,15 +15,14 @@
 
 package org.modelingvalue.collections.util;
 
-import java.io.Serializable;
-import java.lang.invoke.MethodHandleInfo;
-import java.lang.invoke.SerializedLambda;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
+import org.modelingvalue.collections.List;
 
-import org.modelingvalue.collections.List;;
+import java.io.*;
+import java.lang.invoke.*;
+import java.lang.reflect.*;
+import java.util.*;
 
+@SuppressWarnings("unused")
 public interface LambdaReflection extends Serializable {
 
     static List<Class<?>> in(String signature) {
@@ -85,7 +84,7 @@ public interface LambdaReflection extends Serializable {
         Class<?> cls = cls(lambda.getImplClass().replaceAll("/", "."));
         try {
             List<Class<?>> sign = in(lambda.getImplMethodSignature());
-            Method method = cls.getDeclaredMethod(lambda.getImplMethodName(), sign.toArray(l -> new Class[l]));
+            Method method = cls.getDeclaredMethod(lambda.getImplMethodName(), sign.toArray(Class[]::new));
             method.setAccessible(true);
             return method;
         } catch (NoSuchMethodException | SecurityException e) {
@@ -97,7 +96,7 @@ public interface LambdaReflection extends Serializable {
         Class<?> cls = cls(lambda.getFunctionalInterfaceClass().replaceAll("/", "."));
         try {
             List<Class<?>> sign = in(lambda.getFunctionalInterfaceMethodSignature());
-            Method method = cls.getDeclaredMethod(lambda.getFunctionalInterfaceMethodName(), sign.toArray(l -> new Class[l]));
+            Method method = cls.getDeclaredMethod(lambda.getFunctionalInterfaceMethodName(), sign.toArray(Class[]::new));
             method.setAccessible(true);
             return method;
         } catch (NoSuchMethodException | SecurityException e) {
@@ -215,7 +214,7 @@ public interface LambdaReflection extends Serializable {
         return this;
     }
 
-    static abstract class LambdaImpl<F extends LambdaReflection> implements LambdaReflection {
+    abstract class LambdaImpl<F extends LambdaReflection> implements LambdaReflection {
 
         private static final long      serialVersionUID = 5814783501752526565L;
 

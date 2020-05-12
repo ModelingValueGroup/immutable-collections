@@ -48,9 +48,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
 
     private static final int          SPLIT_START      = Integer.getInteger("SPLIT_START", 64);
 
-    private static final Predicate<?> ALL_INTERNABLE   = e -> {
-                                                           return e instanceof Internable && ((Internable) e).isInternable();
-                                                       };
+    private static final Predicate<?> ALL_INTERNABLE   = e -> e instanceof Internable && ((Internable) e).isInternable();
 
     protected static boolean split(int amount) {
         if (PARALLEL_COLLECTIONS && Thread.currentThread() instanceof ContextThread) {
@@ -70,12 +68,12 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
 
     @Override
     protected Stream<T> baseStream() {
-        return new StreamCollectionImpl<T>(spliterator(), isParallel());
+        return new StreamCollectionImpl<>(spliterator(), isParallel());
     }
 
     @Override
     public Collection<T> reverse() {
-        return new StreamCollectionImpl<T>(reverseSpliterator(), isParallel());
+        return new StreamCollectionImpl<>(reverseSpliterator(), isParallel());
     }
 
     @Override
@@ -151,9 +149,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         s.writeInt(size());
 
         // Write out all elements in the proper order.
-        Iterator<T> i = iterator();
-        while (i.hasNext()) {
-            Object e = i.next();
+        for (Object e : this) {
             s.writeObject(e);
         }
     }
@@ -178,17 +174,17 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
 
     @Override
     public Iterator<T> iterator() {
-        return new CollectionIterator<T>(value, 0);
+        return new CollectionIterator<>(value, 0);
     }
 
     @Override
     public ListIterator<T> listIterator() {
-        return new CollectionIterator<T>(value, 0);
+        return new CollectionIterator<>(value, 0);
     }
 
     @Override
     public ListIterator<T> listIteratorAtEnd() {
-        return new CollectionIterator<T>(value, length(value));
+        return new CollectionIterator<>(value, length(value));
     }
 
     protected static IntStream getIntStream(int min, int max, boolean[] stop, int total) {
@@ -321,7 +317,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
                 if (value instanceof CollectionIterator) {
                     ct = (CollectionIterator<T>) value;
                 } else {
-                    ct = new CollectionIterator<T>(value, reverse ? max : min);
+                    ct = new CollectionIterator<>(value, reverse ? max : min);
                     value = ct;
                 }
                 if (!reverse && ct.index[0] < max && ct.hasNext()) {
@@ -507,8 +503,9 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         private static final long serialVersionUID = -901414039518935454L;
 
         protected final Object[]  values;
-        protected final int       size, hash;
-        protected byte            depth;
+        protected final int       size;
+        protected final int       hash;
+        protected final byte      depth;
 
         protected MultiValue(Object[] values, int size, int hash, byte depth) {
             this.values = values;
@@ -542,8 +539,8 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         }
 
         protected <T> void visit(Consumer<? super T> visitor) {
-            for (int i = 0; i < values.length; i++) {
-                TreeCollectionImpl.visit(values[i], visitor);
+            for (Object o : values) {
+                TreeCollectionImpl.visit(o, visitor);
             }
         }
 
