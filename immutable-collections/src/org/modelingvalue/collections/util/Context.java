@@ -78,6 +78,11 @@ public class Context<T> {
         set(c, f.apply(get(c), e));
     }
 
+    public <K, V> void set(TriFunction<T, K, V, T> f, K k, V v) {
+        Object[] c = ContextThread.getContext();
+        set(c, f.apply(get(c), k, v));
+    }
+
     @SuppressWarnings("unchecked")
     private boolean set(Object[] c, T v) {
         if (v != (c != null && c.length > nr ? (T) c[nr] : (T) DEFAULTS[nr])) {
