@@ -29,7 +29,8 @@ jobs:
 
       - name: "fail if there is already a tag for this version (only on master)"
         run:  |
-          . <(java -jar ~/buildTools.jar)
+          java -jar ~/buildTools.jar | sed 's/^/||/'
+          . <(echo "set -x";java -jar ~/buildTools.jar)
           if [[ "${GITHUB_REF##*/}" == master ]]; then
             . <(catProjectSh)
             if [[ "$(git tag|fgrep -Fx "v$version")" != "" ]]; then
