@@ -27,6 +27,17 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: "fail if there is already a tag for this version (only on master)"
+        run:  |
+          . <(java -jar ~/buildTools.jar)
+          if [[ "${GITHUB_REF##*/}" == master ]]; then
+            . <(catProjectSh)
+            if [[ "$(git tag|fgrep -Fx "v$version")" != "" ]]; then
+              git tag | sed 's/^/||/'
+              echo "::error::tag for version v$version already set, can not build on master"
+            fi
+          fi
+
       - name: "prepare ant"
         run:  |
           cat <<EOF >build.properties
@@ -56,11 +67,6 @@ jobs:
 
       - name: "generate javadoc"
         run:  ant javadoc
-
-      - name: "push changes back to github"
-        run:  |
-          . <(java -jar ~/buildTools.jar)
-          pushBackToGithub "${{ secrets.GITHUB_TOKEN }}" "automation@modelingvalue.com" "adjusted files [by github actions]"
 
       - name: "publish action-artifact jar"
         uses: actions/upload-artifact@v1
@@ -105,3 +111,16 @@ jobs:
           file : "out/artifacts/immutable-collections.jar"
           token: "${{ secrets.GITHUB_TOKEN }}"
 
+      - name: "push changes back to github and tag if master"
+        run:  |
+          . <(java -jar ~/buildTools.jar)
+          pushBackToGithub "${{ secrets.GITHUB_TOKEN }}" "automation@modelingvalue.com" "adjusted files [by github actions]"
+
+          if [[ "${GITHUB_REF##*/}" == master ]]; then
+            . <(catProjectSh)
+            if [[ "$(git tag|fgrep -Fx "v$version")" != "" ]]; then
+              echo "::error::tag for version v$version already set"
+            fi
+            git tag "v$version"
+            git push origin "v$version"
+          fi
