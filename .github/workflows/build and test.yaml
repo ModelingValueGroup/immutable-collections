@@ -27,19 +27,9 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: "fail if there is already a tag for this version (only on master)"
+      - name: "if master: fail if there is already a tag for this version"
         run:  |
           . <(java -jar ~/buildTools.jar)
-          errorIfMasterAndVersionTagExists() {
-            if [[ "${GITHUB_REF##*/}" == master ]]; then
-              . <(catProjectSh)
-              local tagName="v$version"
-              if [[ "$(git tag|fgrep -Fx "$tagName")" != "" ]]; then
-                git tag | sed 's/^/||/'
-                echo "::error::tag for this version ($tagName) already set, can not build on master"
-              fi
-            fi
-          }
           errorIfMasterAndVersionTagExists
 
       - name: "prepare ant"
@@ -71,6 +61,12 @@ jobs:
 
       - name: "generate javadoc"
         run:  ant javadoc
+
+      - name: "push changes back to github and tag if master"
+        run:  |
+          . <(java -jar ~/buildTools.jar)
+          pushBackToGithub "${{ secrets.GITHUB_TOKEN }}" "automation@modelingvalue.com" "adjusted files [by github actions]"
+          setVersionTagIfMaster
 
       - name: "publish action-artifact jar"
         uses: actions/upload-artifact@v1
@@ -114,21 +110,3 @@ jobs:
         with:
           file : "out/artifacts/immutable-collections.jar"
           token: "${{ secrets.GITHUB_TOKEN }}"
-
-      - name: "push changes back to github and tag if master"
-        run:  |
-          . <(java -jar ~/buildTools.jar)
-          pushBackToGithub "${{ secrets.GITHUB_TOKEN }}" "automation@modelingvalue.com" "adjusted files [by github actions]"
-          setVersionTagIfMaster() {
-            if [[ "${GITHUB_REF##*/}" == master ]]; then
-              . <(catProjectSh)
-              local tagName="v$version"
-              if [[ "$(git tag | fgrep -Fx "$tagName")" != "" ]]; then
-                echo "::error::tag for this version ($tagName) already exists"
-              else
-                git tag "$tagName"
-                git push origin "$tagName"
-              fi
-            fi
-          }
-          setVersionTagIfMaster
