@@ -13,7 +13,7 @@
 ##     Arjan Kok, Carel Bast                                                                                           ~
 ##~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-version="1.2.2"
+version="1.2.3"
 artifacts=(
   "org.modelingvalue   immutable-collections   $version    jar jds"
 )
