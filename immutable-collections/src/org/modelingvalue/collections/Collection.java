@@ -95,6 +95,9 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
     @Override
     Collection<T> onClose(Runnable closeHandler);
 
+    @Override
+    void forEach(Consumer<? super T> action);
+
     default Set<T> toSet() {
         return reduce(Set.of(), Set::add, Set::addAll);
     }
