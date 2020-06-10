@@ -635,7 +635,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
     @Override
     public void linked(TriConsumer<T, T, T> consumer) {
         int size = size();
-        Collection.of(getIntStream(0, size, new boolean[1], size)).forEach(i -> consumer.accept(i > 0 ? get(i - 1) : null, get(i), i < size - 1 ? get(i + 1) : null));
+        Collection.of(getIntStream(0, size, new boolean[1], size)).forEachOrdered(i -> consumer.accept(i > 0 ? get(i - 1) : null, get(i), i < size - 1 ? get(i + 1) : null));
     }
 
     @Override

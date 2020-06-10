@@ -34,12 +34,12 @@ public class ListTest {
         List<String> list1 = List.of("c", "d");
         List<String> list2 = list1.prependList(List.of("a", "b"));
         List<String> list3 = list1.appendList(List.of("e", "f"));
-        list1.compareAll(list2, list3).forEach(a -> System.err.println(Arrays.toString(a)));
+        list1.compareAll(list2, list3).forEachOrdered(a -> System.err.println(Arrays.toString(a)));
         System.err.println("...");
         List<String> lista = List.of("a", "b");
         List<String> listb = List.of("x", "y");
         List<String> listc = List.of("p", "q");
-        lista.compareAll(listb, listc).forEach(a -> System.err.println(Arrays.toString(a)));
+        lista.compareAll(listb, listc).forEachOrdered(a -> System.err.println(Arrays.toString(a)));
     }
 
     @Test

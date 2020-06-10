@@ -15,14 +15,25 @@
 
 package org.modelingvalue.collections;
 
-import org.modelingvalue.collections.impl.*;
-import org.modelingvalue.collections.util.*;
+import java.io.Serializable;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.concurrent.ForkJoinPool;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.BaseStream;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-import java.io.*;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.*;
-import java.util.stream.*;
+import org.modelingvalue.collections.impl.StreamCollectionImpl;
+import org.modelingvalue.collections.util.Mergeable;
+import org.modelingvalue.collections.util.SerializableFunction;
+import org.modelingvalue.collections.util.TriConsumer;
+import org.modelingvalue.collections.util.TriFunction;
 
 @SuppressWarnings("unused")
 public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
@@ -83,9 +94,6 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
 
     @Override
     Collection<T> onClose(Runnable closeHandler);
-
-    @Override
-    void forEach(Consumer<? super T> action);
 
     default Set<T> toSet() {
         return reduce(Set.of(), Set::add, Set::addAll);

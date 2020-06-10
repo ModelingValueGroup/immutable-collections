@@ -15,13 +15,32 @@
 
 package org.modelingvalue.collections.impl;
 
-import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.util.*;
+import java.util.Comparator;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.IntFunction;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.function.ToDoubleFunction;
+import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
+import java.util.stream.Collector;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+import java.util.stream.Stream;
 
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.*;
-import java.util.stream.*;
+import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.util.ContextThread;
+import org.modelingvalue.collections.util.Mergeable;
+import org.modelingvalue.collections.util.StringUtil;
 
 public abstract class CollectionImpl<T> implements Collection<T> {
 
@@ -282,10 +301,10 @@ public abstract class CollectionImpl<T> implements Collection<T> {
         if (parallel) {
             return new Collector<>() {
 
-                private final BiConsumer<A, T> accumulator = wrap(true, func.accumulator());
-                private final BinaryOperator<A> combiner = wrap(true, func.combiner());
-                private final Function<A, R> finisher = wrap(true, func.finisher());
-                private final Supplier<A> supplier = wrap(true, func.supplier());
+                private final BiConsumer<A, T>  accumulator = wrap(true, func.accumulator());
+                private final BinaryOperator<A> combiner    = wrap(true, func.combiner());
+                private final Function<A, R>    finisher    = wrap(true, func.finisher());
+                private final Supplier<A>       supplier    = wrap(true, func.supplier());
 
                 @Override
                 public BiConsumer<A, T> accumulator() {
@@ -349,7 +368,7 @@ public abstract class CollectionImpl<T> implements Collection<T> {
 
     @Override
     public void forEach(Consumer<? super T> action) {
-        baseStream().sequential().forEachOrdered(action);
+        baseStream().forEach(wrap(isParallel(), action));
     }
 
     @Override
