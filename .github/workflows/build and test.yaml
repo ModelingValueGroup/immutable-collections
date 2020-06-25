@@ -43,6 +43,11 @@ jobs:
           correctEols
           correctHeaders header
 
+      - name: "push changes back to github"
+        run:  |
+          . <(java -jar ~/buildTools.jar)
+          pushBackToGithub "${{ secrets.GITHUB_TOKEN }}" "automation@modelingvalue.com" "adjusted files [by github actions]"
+
       - name: "download dependencies (as mentioned in pom)"
         run:  |
           . <(java -jar ~/buildTools.jar)
@@ -63,11 +68,6 @@ jobs:
 
       - name: "generate javadoc"
         run:  ant javadoc
-
-      - name: "push changes back to github"
-        run:  |
-          . <(java -jar ~/buildTools.jar)
-          pushBackToGithub "${{ secrets.GITHUB_TOKEN }}" "automation@modelingvalue.com" "adjusted files [by github actions]"
 
       - name: "publish action-artifact jar"
         uses: actions/upload-artifact@v1
