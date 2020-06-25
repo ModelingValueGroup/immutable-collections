@@ -8,7 +8,7 @@
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="library" scope="TEST" name="gen: hamcrest-core" level="project" />
     <orderEntry type="library" scope="TEST" name="gen: junit" level="project" />
+    <orderEntry type="library" scope="TEST" name="gen: hamcrest-all" level="project" />
   </component>
 </module>
