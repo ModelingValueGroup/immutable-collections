@@ -28,5 +28,5 @@ artifacts=(
 )
 dependencies=(
   "junit               junit                   4.13        jar jdst"
-  "org.hamcrest        hamcrest                2.2         jar jdst"
+  "org.hamcrest        hamcrest-all            1.3         jar jdst"
 )
