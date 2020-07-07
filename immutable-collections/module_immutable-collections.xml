@@ -1,30 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="module_immutable-collections" default="compile.module.immutable-collections">
   <dirname property="module.immutable-collections.basedir" file="${ant.file.module_immutable-collections}"/>
-  
   <property name="module.jdk.home.immutable-collections" value="${project.jdk.home}"/>
   <property name="module.jdk.bin.immutable-collections" value="${project.jdk.bin}"/>
   <property name="module.jdk.classpath.immutable-collections" value="${project.jdk.classpath}"/>
-  
   <property name="compiler.args.immutable-collections" value="-encoding UTF-8 -source 11 -target 11 ${compiler.args}"/>
-  
   <property name="immutable-collections.output.dir" value="${module.immutable-collections.basedir}/../out/production/immutable-collections"/>
   <property name="immutable-collections.testoutput.dir" value="${module.immutable-collections.basedir}/../out/test/immutable-collections"/>
-  
   <path id="immutable-collections.module.bootclasspath">
     <!-- Paths to be included in compilation bootclasspath -->
   </path>
-  
   <path id="immutable-collections.module.production.classpath">
     <path refid="${module.jdk.classpath.immutable-collections}"/>
     <path refid="library.gen:_apiguardian-api.classpath"/>
   </path>
-  
   <path id="immutable-collections.runtime.production.module.classpath">
     <pathelement location="${immutable-collections.output.dir}"/>
     <path refid="library.gen:_apiguardian-api.classpath"/>
   </path>
-  
   <path id="immutable-collections.module.classpath">
     <pathelement location="${immutable-collections.output.dir}"/>
     <path refid="${module.jdk.classpath.immutable-collections}"/>
@@ -34,7 +27,6 @@
     <path refid="library.gen:_opentest4j.classpath"/>
     <path refid="library.gen:_apiguardian-api.classpath"/>
   </path>
-  
   <path id="immutable-collections.runtime.module.classpath">
     <pathelement location="${immutable-collections.testoutput.dir}"/>
     <pathelement location="${immutable-collections.output.dir}"/>
@@ -44,41 +36,32 @@
     <path refid="library.gen:_opentest4j.classpath"/>
     <path refid="library.gen:_apiguardian-api.classpath"/>
   </path>
-  
-  
   <patternset id="excluded.from.module.immutable-collections">
     <patternset refid="ignored.files"/>
   </patternset>
-  
   <patternset id="excluded.from.compilation.immutable-collections">
     <patternset refid="excluded.from.module.immutable-collections"/>
   </patternset>
-  
   <path id="immutable-collections.module.sourcepath">
     <dirset dir="${module.immutable-collections.basedir}">
       <include name="src"/>
     </dirset>
   </path>
-  
   <path id="immutable-collections.module.test.sourcepath">
     <dirset dir="${module.immutable-collections.basedir}">
       <include name="tst"/>
     </dirset>
   </path>
-  
-  
   <target name="compile.module.immutable-collections" depends="compile.module.immutable-collections.production,compile.module.immutable-collections.tests" description="Compile module immutable-collections"/>
-  
   <target name="compile.module.immutable-collections.production" description="Compile module immutable-collections; production classes">
     <mkdir dir="${immutable-collections.output.dir}"/>
-    <javac destdir="${immutable-collections.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.immutable-collections}/javac">
+    <javac includeantruntime="false" destdir="${immutable-collections.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.immutable-collections}/javac">
       <compilerarg line="${compiler.args.immutable-collections}"/>
       <bootclasspath refid="immutable-collections.module.bootclasspath"/>
       <classpath refid="immutable-collections.module.production.classpath"/>
       <src refid="immutable-collections.module.sourcepath"/>
       <patternset refid="excluded.from.compilation.immutable-collections"/>
     </javac>
-    
     <copy todir="${immutable-collections.output.dir}">
       <fileset dir="${module.immutable-collections.basedir}/src">
         <patternset refid="compiler.resources"/>
@@ -86,17 +69,15 @@
       </fileset>
     </copy>
   </target>
-  
   <target name="compile.module.immutable-collections.tests" depends="compile.module.immutable-collections.production" description="compile module immutable-collections; test classes" unless="skip.tests">
     <mkdir dir="${immutable-collections.testoutput.dir}"/>
-    <javac destdir="${immutable-collections.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.immutable-collections}/javac">
+    <javac includeantruntime="false" destdir="${immutable-collections.testoutput.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.immutable-collections}/javac">
       <compilerarg line="${compiler.args.immutable-collections}"/>
       <bootclasspath refid="immutable-collections.module.bootclasspath"/>
       <classpath refid="immutable-collections.module.classpath"/>
       <src refid="immutable-collections.module.test.sourcepath"/>
       <patternset refid="excluded.from.compilation.immutable-collections"/>
     </javac>
-    
     <copy todir="${immutable-collections.testoutput.dir}">
       <fileset dir="${module.immutable-collections.basedir}/tst">
         <patternset refid="compiler.resources"/>
@@ -104,9 +85,37 @@
       </fileset>
     </copy>
   </target>
-  
   <target name="clean.module.immutable-collections" description="cleanup module">
     <delete dir="${immutable-collections.output.dir}"/>
     <delete dir="${immutable-collections.testoutput.dir}"/>
+  </target>
+  <target name="test.module.immutable-collections">
+    <junit haltonfailure="on" logfailedtests="on" fork="on" forkmode="once">
+      <!-- fork="on" forkmode="perTest" threads="8" -->
+      <classpath refid="immutable-collections.runtime.module.classpath"/>
+      <batchtest todir=".">
+        <fileset dir="${immutable-collections.testoutput.dir}">
+          <include name="**/*Test.*"/>
+          <include name="**/*Tests.*"/>
+        </fileset>
+        <formatter type="xml"/>
+      </batchtest>
+    </junit>
+  </target>
+  <target name="testresults.module.immutable-collections" depends="test.module.immutable-collections">
+    <mkdir dir="${basedir}/out/artifacts"/>
+    <jar destfile="${basedir}/out/artifacts/immutable-collections-testresults.jar" filesetmanifest="skip">
+      <zipfileset file="${basedir}/TEST-*.xml"/>
+    </jar>
+  </target>
+  <target name="javadoc.module.immutable-collections">
+    <property name="immutable-collections.javadoc.dir" value="${basedir}/out/artifacts"/>
+    <property name="immutable-collections.javadoc.tmp" value="${immutable-collections.javadoc.dir}/tmp"/>
+    <property name="immutable-collections.javadoc.jar" value="${immutable-collections.javadoc.dir}/immutable-collections-javadoc.jar"/>
+    <javadoc sourcepathref="immutable-collections.module.sourcepath" destdir="${immutable-collections.javadoc.tmp}" classpathref="immutable-collections.module.classpath"/>
+    <jar destfile="${immutable-collections.javadoc.jar}" filesetmanifest="skip">
+      <zipfileset dir="${immutable-collections.javadoc.tmp}"/>
+    </jar>
+    <delete dir="${immutable-collections.javadoc.tmp}"/>
   </target>
 </project>
