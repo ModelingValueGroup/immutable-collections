@@ -15,11 +15,13 @@
 
 package org.modelingvalue.collections.test;
 
-import org.junit.*;
-import org.modelingvalue.collections.*;
-import org.modelingvalue.collections.util.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+import org.modelingvalue.collections.Entry;
+import org.modelingvalue.collections.Map;
+import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.Pair;
 
 public class MapTest {
 
@@ -91,10 +93,7 @@ public class MapTest {
         //Test map uses equals...
         //noinspection StringOperationCanBeSimplified
         String newAA = new String("AA");
-        //noinspection StringEquality
-        if (newAA != "AA") {
-            map1 = map1.put(newAA, "bb");
-        }
+        map1 = map1.put(newAA, "bb");
         assertEquals(1, map1.size());
         assertEquals("bb", map1.get(newAA));
 

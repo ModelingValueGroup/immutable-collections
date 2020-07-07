@@ -15,10 +15,10 @@
 
 package org.modelingvalue.collections.test;
 
-import org.junit.*;
-import org.modelingvalue.collections.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+import org.modelingvalue.collections.DefaultMap;
 
 public class DefaultMapTest {
 

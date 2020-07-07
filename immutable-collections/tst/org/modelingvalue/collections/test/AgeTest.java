@@ -15,31 +15,45 @@
 
 package org.modelingvalue.collections.test;
 
-import org.junit.*;
-import org.modelingvalue.collections.util.*;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.modelingvalue.collections.util.Age.*;
 
-import static org.junit.Assert.*;
+import java.util.function.Consumer;
+
+import org.junit.jupiter.api.Test;
 
 public class AgeTest {
+    public static final int LOOPS = 100_000_000;
 
     @Test
-    public void age() {
-        Object[] a = new Object[1];
-        Object o = new Object();
-        a[0] = o;
-        assertEquals("pre age = " + Age.age(a), 0, Age.age(a));
-        assertEquals("pre age = " + Age.age(o), 0, Age.age(o));
-        Object cg;
-        @SuppressWarnings("unused")
-        int h = 0;
-        for (int i = 0; i < 100_000_000; i++) {
-            cg = new Object();
-            h += cg.hashCode();
-        }
-        //noinspection UnusedAssignment
-        cg = null;
-        assertTrue("post age = " + Age.age(a), Age.age(a) > 0);
-        assertTrue("post age = " + Age.age(o), Age.age(o) > 0);
+    public void ageCheck() {
+        Object[] arr = new Object[]{new Object()};
+
+        int age_arr_pre = age(arr);
+        int age_sub_pre = age(arr[0]);
+        assertAll(
+                () -> assertEquals(0, age_arr_pre, "age was " + age_arr_pre),
+                () -> assertEquals(0, age_sub_pre, "age was " + age_sub_pre)
+        );
+
+        useLotsOfMemory(i -> System.out.printf("... i=%2d    age=%2d    age=%2d\n", i, age(arr), age(arr[0])));
+
+        int age_arr_post = age(arr);
+        int age_sub_post = age(arr[0]);
+        assertAll(
+                () -> assertTrue(0 < age_arr_post, "age was " + age_arr_post),
+                () -> assertTrue(0 < age_sub_post, "age was " + age_sub_post)
+        );
     }
 
+    private void useLotsOfMemory(Consumer<Integer> r) {
+        r.accept(0);
+        for (int j = 1; j <= 10; j++) {
+            for (int i = 0; i < LOOPS / 10; i++) {
+                @SuppressWarnings("unused")
+                int h = new Object().hashCode();
+            }
+            r.accept(j);
+        }
+    }
 }

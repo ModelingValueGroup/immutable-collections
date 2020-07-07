@@ -1,6 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="org.modelingvalue.collections.test in immutable-collections" type="JUnit" factoryName="JUnit" nameIsGenerated="true">
     <module name="immutable-collections" />
+    <useClassPathOnly />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="org.modelingvalue.collections.test.*" />
@@ -17,9 +18,6 @@
     <option name="TEST_SEARCH_SCOPE">
       <value defaultName="moduleWithDependencies" />
     </option>
-    <envs>
-      <env name="aaa" value="TOMTOMTOM" />
-    </envs>
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

@@ -15,17 +15,29 @@
 
 package org.modelingvalue.collections.test;
 
-import org.junit.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.NotSerializableException;
+import java.io.ObjectInput;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashMap;
+
+import org.junit.jupiter.api.Test;
+import org.modelingvalue.collections.DefaultMap;
+import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
+import org.modelingvalue.collections.QualifiedSet;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.*;
-import org.modelingvalue.collections.impl.*;
-
-import java.io.*;
-import java.util.*;
-
-import static org.junit.Assert.*;
+import org.modelingvalue.collections.impl.ListImpl;
+import org.modelingvalue.collections.impl.SetImpl;
 
 public class SerializeTest {
 
@@ -160,7 +172,7 @@ public class SerializeTest {
             fail();
         }
 
-        for (AnObject a: deserializedSet) {
+        for (AnObject a : deserializedSet) {
             if (elements.remove(a.i) == null) {
                 fail("Failed: " + a.i + " not found?");
             }

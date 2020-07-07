@@ -15,14 +15,16 @@
 
 package org.modelingvalue.collections.test;
 
-import org.junit.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.stream.IntStream;
+
+import org.junit.jupiter.api.Test;
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.List;
-
-import java.util.*;
-import java.util.stream.*;
-
-import static org.junit.Assert.*;
 
 public class ListTest {
 
@@ -47,7 +49,7 @@ public class ListTest {
         List<String[]> ab1 = List.of(new String[]{"a"}, new String[]{"b"});
         System.err.println(ab1);
         System.err.println(ab1.map(Object::hashCode).toList());
-        List<String> axb = List.of("b", "b");
+        List<String>   axb = List.of("b", "b");
         List<String[]> ab2 = axb.reuse(ab1, (t, s) -> t[0].equals(s), (t, s) -> t[0] = s, t -> 0L, (t, s) -> true, (s, i) -> new String[1]);
         System.err.println(ab2);
         System.err.println(ab2.map(Object::hashCode).toList());
@@ -65,36 +67,36 @@ public class ListTest {
     public void basicListOperations() {
         List<String> list1 = List.of("a", "b");
         List<String> list2 = List.of("a", "b");
-        assertEquals("list1 should contains one 'a'", 1, list1.filter(a -> a.equals("a")).size());
+        assertEquals(1, list1.filter(a -> a.equals("a")).size(), "list1 should contains one 'a'");
 
         List<String> list3 = list1.appendList(list2);
-        assertEquals("list3 should contains two 'a' ", 2, list3.filter(a -> a.equals("a")).size());
+        assertEquals(2, list3.filter(a -> a.equals("a")).size(), "list3 should contains two 'a' ");
 
         Collection<String> list4 = list3.distinct();
-        assertEquals("list4 should contains one 'a' ", 1, list4.filter(a -> a.equals("a")).size());
+        assertEquals(1, list4.filter(a -> a.equals("a")).size(), "list4 should contains one 'a' ");
 
-        MyClass c1 = new MyClass(1);
-        MyClass c2 = new MyClass(2);
+        MyClass       c1    = new MyClass(1);
+        MyClass       c2    = new MyClass(2);
         List<MyClass> list5 = List.of(c1, c2);
-        assertEquals("list5 should contains c1 ", 1, list5.filter(a -> a.equals(c1)).size());
+        assertEquals(1, list5.filter(a -> a.equals(c1)).size(), "list5 should contains c1 ");
 
-        MyClass c3 = new MyClass(3);
+        MyClass       c3    = new MyClass(3);
         List<MyClass> list6 = list5.insert(1, c3);
-        assertEquals("list6 should have c3 at index 1 ", c3, list6.get(1));
+        assertEquals(c3, list6.get(1), "list6 should have c3 at index 1 ");
         Collection<MyClass> list7 = list6.appendList(list5).distinct();
-        assertEquals("list7 should have 3 elements ", 3, list7.size());
+        assertEquals(3, list7.size(), "list7 should have 3 elements ");
 
-        assertEquals("list1 should 'a' at index 0 ", "a", list1.get(0));
+        assertEquals("a", list1.get(0), "list1 should 'a' at index 0 ");
         List<String> list8 = list1.replaceList(0, 0, List.of("c"));
-        assertEquals("list8 should be ['c', 'a', 'b']", List.of("c", "a", "b"), list8);
+        assertEquals(List.of("c", "a", "b"), list8, "list8 should be ['c', 'a', 'b']");
         List<String> list9 = list8.replaceList(1, 1, List.of("z"));
-        assertEquals("list9 should be ['c' 'z','a','b']", List.of("c", "z", "a", "b"), list9);
+        assertEquals(List.of("c", "z", "a", "b"), list9, "list9 should be ['c' 'z','a','b']");
         List<String> list10 = list9.replaceList(1, 2, List.of("y"));
-        assertEquals("list10 should be ['c' 'y','a','b']", List.of("c", "y", "a", "b"), list10);
+        assertEquals(List.of("c", "y", "a", "b"), list10, "list10 should be ['c' 'y','a','b']");
 
-        Collection<Integer> list = List.of(2);
+        Collection<Integer> list    = List.of(2);
         Collection<Integer> indexes = list10.indexesOfList(List.of("a")).toList();
-        assertEquals("list10 indexesOfList should be [2]", list, indexes);
+        assertEquals(list, indexes, "list10 indexesOfList should be [2]");
 
     }
 
@@ -161,12 +163,12 @@ public class ListTest {
         assertEquals(12, list8.size());
         assertEquals(list7, list8);
 
-        List<String> empty = List.of();
-        List<String> a = empty.append("a");
-        List<String> ab = a.append("b");
-        List<String> abc = ab.append("c");
-        List<String> abcd = abc.append("d");
-        List<String> abcde = abcd.append("e");
+        List<String> empty  = List.of();
+        List<String> a      = empty.append("a");
+        List<String> ab     = a.append("b");
+        List<String> abc    = ab.append("c");
+        List<String> abcd   = abc.append("d");
+        List<String> abcde  = abcd.append("e");
         List<String> abcdef = abcde.append("f");
         assertEquals(abcdef, list4);
 
@@ -219,11 +221,11 @@ public class ListTest {
         for (int i = LONG - 1; i >= 0; i--) {
             longList2 = longList2.prepend(i);
         }
-        List<Integer> longList3 = List.of();
-        Random random = new Random();
-        HashSet<Integer> hashSet = new HashSet<>();
+        List<Integer>    longList3 = List.of();
+        Random           random    = new Random();
+        HashSet<Integer> hashSet   = new HashSet<>();
         for (int i1 = 0; i1 < LONG; i1++) {
-            int v = nextInt(random, hashSet);
+            int     v           = nextInt(random, hashSet);
             boolean higherFound = false;
             for (int i2 = 0; i2 < longList3.size(); i2++) {
                 if (longList3.get(i2) > v) {
@@ -250,7 +252,7 @@ public class ListTest {
         }
 
         for (int t = 0; t < 100; t++) {
-            int shift = random.nextInt(LONG / 10);
+            int           shift     = random.nextInt(LONG / 10);
             List<Integer> longList4 = longList1.sublist(LONG / 4 + shift, LONG - (LONG / 4) - shift);
             assertEquals(longList4.size(), LONG / 2 - 2 * shift);
             for (int i = 0; i < LONG / 2 - 2 * shift; i++) {

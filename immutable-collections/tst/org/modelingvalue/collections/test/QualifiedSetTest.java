@@ -15,14 +15,20 @@
 
 package org.modelingvalue.collections.test;
 
-import org.junit.*;
-import org.modelingvalue.collections.*;
-import org.modelingvalue.collections.util.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.concurrent.*;
-import java.util.stream.*;
+import java.util.concurrent.RecursiveAction;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.QualifiedSet;
+import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.Context;
+import org.modelingvalue.collections.util.ContextThread;
+import org.modelingvalue.collections.util.SerializableFunction;
 
 public class QualifiedSetTest {
 

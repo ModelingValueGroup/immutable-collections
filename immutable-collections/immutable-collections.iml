@@ -8,7 +8,10 @@
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="inheritedJdk" />
-    <orderEntry type="library" scope="TEST" name="gen: junit" level="project" />
-    <orderEntry type="library" scope="TEST" name="gen: hamcrest-all" level="project" />
+    <orderEntry type="library" scope="TEST" name="gen: junit-jupiter-api" level="project" />
+    <orderEntry type="library" scope="TEST" name="gen: junit-platform-launcher" level="project" />
+    <orderEntry type="library" scope="TEST" name="gen: junit-platform-commons" level="project" />
+    <orderEntry type="library" scope="TEST" name="gen: opentest4j" level="project" />
+    <orderEntry type="library" name="gen: apiguardian-api" level="project" />
   </component>
 </module>

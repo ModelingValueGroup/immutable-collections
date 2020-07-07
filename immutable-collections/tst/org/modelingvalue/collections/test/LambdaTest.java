@@ -15,13 +15,13 @@
 
 package org.modelingvalue.collections.test;
 
-import org.junit.*;
-import org.modelingvalue.collections.*;
-import org.modelingvalue.collections.util.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Method;
 
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+import org.modelingvalue.collections.List;
+import org.modelingvalue.collections.util.SerializableBiFunction;
 
 public class LambdaTest {
 
