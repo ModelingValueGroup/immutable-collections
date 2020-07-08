@@ -58,13 +58,6 @@ jobs:
 
       - name: "test"
         run:  |
-          which ant
-          echo "ANT_HOME=$ANT_HOME"
-          ls -la "$ANT_HOME"
-          ls -la "$ANT_HOME/lib"
-          jar tvf "$ANT_HOME/lib/ant-junitlauncher.jar"
-
-
           if ! ant test; then
             for i in TEST-*.xml; do
               echo "=============== $i"
