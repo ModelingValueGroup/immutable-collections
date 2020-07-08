@@ -30,4 +30,6 @@ hs_err_pid*
 /out
 /buildTools.sh
 /TEST-*.xml
+/TEST-*.txt
 /header
+*.swp
