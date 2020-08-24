@@ -24,12 +24,15 @@ import org.modelingvalue.collections.Collection;
 
 @SuppressWarnings("unused")
 public final class ContextThread extends ForkJoinWorkerThread {
-
     public static final ForkJoinWorkerThreadFactory FACTORY   = new ContextThreadFactory();
     public static final int                         POOL_SIZE = Integer.getInteger("POOL_SIZE", Collection.PARALLELISM * 2);
 
     public static ContextPool createPool() {
         return new ContextPool(Collection.PARALLELISM, FACTORY, null, false);
+    }
+
+    public static ContextPool createPool(int parallelism) {
+        return new ContextPool(parallelism, FACTORY, null, false);
     }
 
     public static ContextPool createPool(UncaughtExceptionHandler handler) {
