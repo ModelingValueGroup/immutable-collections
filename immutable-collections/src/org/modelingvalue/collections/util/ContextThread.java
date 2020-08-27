@@ -35,6 +35,10 @@ public final class ContextThread extends ForkJoinWorkerThread {
         return new ContextPool(parallelism, FACTORY, null, false);
     }
 
+    public static ContextPool createPool(int parallelism, UncaughtExceptionHandler handler) {
+        return new ContextPool(parallelism, FACTORY, handler, false);
+    }
+
     public static ContextPool createPool(UncaughtExceptionHandler handler) {
         return new ContextPool(Collection.PARALLELISM, FACTORY, handler, false);
     }

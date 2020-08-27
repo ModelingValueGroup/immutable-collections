@@ -30,24 +30,25 @@ import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
 public final class TraceTimer {
-    private static final String  REST                     = "<REST>";
-    private static final int     MIL                      = 1000000;
-    private static final boolean TRACE_TIME               = Boolean.getBoolean("TRACE_TIME");
-    private static final boolean TRACE_LOG                = Boolean.getBoolean("TRACE_LOG");
-    private static final boolean TRACE_TIME_STEP          = Boolean.getBoolean("TRACE_TIME_STEP");
-    private static final int     TRACE_TIME_DUMP_INTERVAL = Integer.getInteger("TRACE_TIME_DUMP_INTERVAL", 10) * 1000;
-    private static final int     TRACE_TIME_DUMP_NR       = Integer.getInteger("TRACE_TIME_DUMP_NR", 100);
-    private static final boolean TRACE_TIME_CLEAR         = Boolean.getBoolean("TRACE_TIME_CLEAR");
-    private static final String  TRACE_TIME_TOTAL         = System.getProperties().getProperty("TRACE_TIME_TOTAL");
-    private static final Pattern TRACE_TIME_TOTAL_PATTERN = TRACE_TIME_TOTAL != null ? Pattern.compile(TRACE_TIME_TOTAL) : null;
-    private static final String  TRACE_PATTERN            = System.getProperties().getProperty("TRACE_PATTERN");
-    private static final Pattern TRACE_PATTERN_PATTERN    = TRACE_PATTERN != null ? Pattern.compile(TRACE_PATTERN) : null;
-
-    private static final Comparator<Map.Entry<String, Long>> COMPARATOR = (o1, o2) -> o2.getValue().compareTo(o1.getValue());
-
-    private static final List<TraceTimer>        ALL_TIMERS = new ArrayList<>();
-    private static final List<TraceLog>          ALL_LOGS   = new ArrayList<>();
-    private static final ThreadLocal<TraceTimer> TIMER      = ThreadLocal.withInitial(() -> {
+    private static final String                              REST                     = "<REST>";
+    private static final int                                 MIL                      = 1000000;
+    private static final boolean                             TRACE_TIME               = Boolean.getBoolean("TRACE_TIME");
+    private static final int                                 TRACE_TIME_DUMP_INTERVAL = Integer.getInteger("TRACE_TIME_DUMP_INTERVAL", 10) * 1000;
+    private static final boolean                             TRACE_LOG                = Boolean.getBoolean("TRACE_LOG");
+    private static final boolean                             TRACE_LOG_DT             = Boolean.getBoolean("TRACE_LOG_DT");
+    private static final int                                 TRACE_LOG_DUMP_INTERVAL  = Integer.getInteger("TRACE_LOG_DUMP_INTERVAL", 100);
+    private static final boolean                             TRACE_TIME_STEP          = Boolean.getBoolean("TRACE_TIME_STEP");
+    private static final int                                 TRACE_TIME_DUMP_NR       = Integer.getInteger("TRACE_TIME_DUMP_NR", 100);
+    private static final boolean                             TRACE_TIME_CLEAR         = Boolean.getBoolean("TRACE_TIME_CLEAR");
+    private static final String                              TRACE_TIME_TOTAL         = System.getProperties().getProperty("TRACE_TIME_TOTAL");
+    private static final Pattern                             TRACE_TIME_TOTAL_PATTERN = TRACE_TIME_TOTAL != null ? Pattern.compile(TRACE_TIME_TOTAL) : null;
+    private static final String                              TRACE_PATTERN            = System.getProperties().getProperty("TRACE_PATTERN");
+    private static final Pattern                             TRACE_PATTERN_PATTERN    = TRACE_PATTERN != null ? Pattern.compile(TRACE_PATTERN) : null;
+    private static final Comparator<Map.Entry<String, Long>> COMPARATOR               = (o1, o2) -> o2.getValue().compareTo(o1.getValue());
+    //
+    private static final List<TraceTimer>                    ALL_TIMERS               = new ArrayList<>();
+    private static final List<TraceLog>                      ALL_LOGS                 = new ArrayList<>();
+    private static final ThreadLocal<TraceTimer>             TIMER                    = ThreadLocal.withInitial(() -> {
         TraceTimer tt = new TraceTimer(Thread.currentThread());
         synchronized (ALL_TIMERS) {
             ALL_TIMERS.add(tt);
@@ -56,10 +57,10 @@ public final class TraceTimer {
         tt.init();
         return tt;
     });
-
-    private static Timer   dumpTimer;
-    private static boolean timersChanged;
-    private static boolean logsChanged;
+    //
+    private static final Timer                               DUMP_TIMER               = new Timer("TraceTimer", true);
+    private static       boolean                             timersChanged;
+    private static       boolean                             logsChanged;
 
     static {
         if (TRACE_TIME || TRACE_LOG) {
@@ -68,18 +69,28 @@ public final class TraceTimer {
     }
 
     private static void initTimer() {
-        dumpTimer = new Timer("Timer#TraceTimer", true);
-        dumpTimer.scheduleAtFixedRate(new TimerTask() {
+        DUMP_TIMER.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 try {
-                    dumpAll();
+                    dumpTimers();
                 } catch (Throwable t) {
-                    System.err.println("Throwable in TraceTimer:");
+                    System.err.println("Throwable in TraceTimer.time:");
                     t.printStackTrace();
                 }
             }
         }, TRACE_TIME_DUMP_INTERVAL, TRACE_TIME_DUMP_INTERVAL);
+        DUMP_TIMER.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    dumpLogs();
+                } catch (Throwable t) {
+                    System.err.println("Throwable in TraceTimer.log:");
+                    t.printStackTrace();
+                }
+            }
+        }, TRACE_LOG_DUMP_INTERVAL, TRACE_LOG_DUMP_INTERVAL);
     }
 
     private long                       time;
@@ -213,7 +224,7 @@ public final class TraceTimer {
     public static void clearAll() {
         if (TRACE_TIME) {
             synchronized (ALL_TIMERS) {
-                dumpTimer.cancel();
+                DUMP_TIMER.cancel();
             }
             timersChanged = false;
             TraceTimer[] all;
@@ -229,10 +240,10 @@ public final class TraceTimer {
         }
     }
 
-    public static void dumpAll() {
-        List<String> log = new ArrayList<>();
+    public static void dumpTimers() {
         if (TRACE_TIME && timersChanged) {
             timersChanged = false;
+            List<String> lines = new ArrayList<>();
             TraceTimer[] all;
             synchronized (ALL_TIMERS) {
                 all = ALL_TIMERS.toArray(new TraceTimer[0]);
@@ -247,32 +258,39 @@ public final class TraceTimer {
                         grandTotal += tt.sum(total, count);
                         nrOfThreads++;
                     } else {
-                        tt.dump(log);
+                        tt.dump(lines);
                     }
                 }
-                dump(log, "Total of " + nrOfThreads + " " + TRACE_TIME_TOTAL + " threads", grandTotal, total, count, nrOfThreads);
+                dump(lines, "Total of " + nrOfThreads + " " + TRACE_TIME_TOTAL + " threads", grandTotal, total, count, nrOfThreads);
             } else {
                 for (final TraceTimer tt : all) {
-                    tt.dump(log);
+                    tt.dump(lines);
                 }
             }
             if (TRACE_TIME_CLEAR) {
                 clearAll();
             }
+            if (!lines.isEmpty()) {
+                lines.forEach(System.err::println);
+            }
         }
+    }
+
+    public static void dumpLogs() {
         if (TRACE_LOG && logsChanged) {
-            TraceLog[] allLogs;
+            logsChanged = false;
+            List<String> lines = new ArrayList<>();
+            TraceLog[]   allLogs;
             synchronized (ALL_LOGS) {
                 allLogs = ALL_LOGS.toArray(new TraceLog[0]);
-                logsChanged = false;
                 ALL_LOGS.clear();
             }
             for (TraceLog l : allLogs) {
-                l.dump(log);
+                l.dump(lines);
             }
-        }
-        if (!log.isEmpty()) {
-            log.forEach(System.err::println);
+            if (!lines.isEmpty()) {
+                lines.forEach(System.err::println);
+            }
         }
     }
 
@@ -291,10 +309,12 @@ public final class TraceTimer {
         private final long     nanoDelta;
         private final Thread   thread;
 
-        private static final String PRE_FORMAT = "%-30s %,15d|";
-        private static final String SHIFT      = String.format("\n%" + (String.format(PRE_FORMAT, "", 0).length() - 1) + "s|", "");
-        private static final long   T0_NANO    = System.nanoTime();
-        private static       long   last       = System.nanoTime();
+        private static final String PRE_FORMAT_DT = "%-30s %,15d|";
+        private static final String PRE_FORMAT    = "%-30s|";
+        public static final  int    SHIFT_LEN     = (TRACE_LOG_DT ? String.format(PRE_FORMAT_DT, "", 0) : String.format(PRE_FORMAT, "")).length() - 1;
+        private static final String SHIFT         = String.format("\n%" + SHIFT_LEN + "s|", "");
+        private static final long   T0_NANO       = System.nanoTime();
+        private static       long   last          = System.nanoTime();
 
         public TraceLog(String format, Object... args) {
             this.format = format;
@@ -307,7 +327,7 @@ public final class TraceTimer {
 
         public void dump(List<String> log) {
             try {
-                String pre = String.format(PRE_FORMAT, thread.getName(), nanoDelta);
+                String pre = TRACE_LOG_DT ? String.format(PRE_FORMAT_DT, thread.getName(), nanoDelta) : String.format(PRE_FORMAT, thread.getName());
                 String msg = String.format(format, args).replace("\n", SHIFT);
                 log.add(pre + msg);
             } catch (MissingFormatArgumentException e) {
