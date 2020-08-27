@@ -212,6 +212,12 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
         return create(null);
     }
 
+    @Override
+    public QualifiedDefaultSet<K, V> replace(Object pre, V post) {
+        QualifiedDefaultSet<K, V> rem = remove(pre);
+        return rem != this ? rem.add(post) : this;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public QualifiedDefaultSet<K, V> remove(Object e) {

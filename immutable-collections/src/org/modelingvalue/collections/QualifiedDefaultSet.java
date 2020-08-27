@@ -15,10 +15,12 @@
 
 package org.modelingvalue.collections;
 
-import org.modelingvalue.collections.impl.*;
-import org.modelingvalue.collections.util.*;
+import java.util.function.Predicate;
 
-import java.util.function.*;
+import org.modelingvalue.collections.impl.QualifiedDefaultSetImpl;
+import org.modelingvalue.collections.util.Mergeable;
+import org.modelingvalue.collections.util.QuadFunction;
+import org.modelingvalue.collections.util.SerializableFunction;
 
 @SuppressWarnings("unused")
 public interface QualifiedDefaultSet<K, V> extends ContainingCollection<V>, Mergeable<QualifiedDefaultSet<K, V>> {
@@ -42,6 +44,9 @@ public interface QualifiedDefaultSet<K, V> extends ContainingCollection<V>, Merg
     V get(K key);
 
     Collection<V> getAll(Set<K> keys);
+
+    @Override
+    QualifiedDefaultSet<K, V> replace(Object pre, V post);
 
     @Override
     QualifiedDefaultSet<K, V> add(V value);

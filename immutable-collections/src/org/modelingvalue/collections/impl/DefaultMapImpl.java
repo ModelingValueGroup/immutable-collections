@@ -139,6 +139,12 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
         return Objects.equals(entry.getValue(), defaultFunction.apply(entry.getKey())) ? removeKey(entry.getKey()) : put(entry);
     }
 
+    @Override
+    public DefaultMap<K, V> replace(Object pre, Entry<K, V> post) {
+        DefaultMap<K, V> rem = remove(pre);
+        return rem != this ? rem.add(post) : this;
+    }
+
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public DefaultMap<K, V> addAll(Collection<? extends Entry<K, V>> es) {

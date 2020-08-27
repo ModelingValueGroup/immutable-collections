@@ -211,6 +211,12 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
     }
 
     @Override
+    public QualifiedSet<K, V> replace(Object pre, V post) {
+        QualifiedSet<K, V> rem = remove(pre);
+        return rem != this ? rem.add(post) : this;
+    }
+
+    @Override
     public QualifiedSet<K, V> removeAll(Collection<?> e) {
         @SuppressWarnings("resource")
         QualifiedSet<K, V> result = this;

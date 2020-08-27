@@ -15,11 +15,12 @@
 
 package org.modelingvalue.collections.impl;
 
+import java.util.Objects;
+import java.util.Spliterator;
+import java.util.function.Function;
+
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
-
-import java.util.*;
-import java.util.function.*;
 
 public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
 
@@ -64,6 +65,12 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
         return create(remove(value, key(), e, identity()));
     }
 
+    @Override
+    public Set<T> replace(Object pre, T post) {
+        Object rem = remove(value, key(), pre, identity());
+        return rem != value ? create(add(rem, key(), post, identity())) : this;
+    }
+
     @SuppressWarnings("rawtypes")
     @Override
     public void deduplicate(Set<T> other) {
@@ -94,7 +101,7 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
     @Override
     public Set<T> addAll(Collection<? extends T> c) {
         if (c instanceof SetImpl) {
-            return create(add(value, key(), ((SetImpl) c).value, key()));
+            return c.isEmpty() ? this : create(add(value, key(), ((SetImpl) c).value, key()));
         } else {
             return addAll(c.toSet());
         }

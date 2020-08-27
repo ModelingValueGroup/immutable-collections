@@ -15,10 +15,13 @@
 
 package org.modelingvalue.collections;
 
-import org.modelingvalue.collections.impl.*;
-import org.modelingvalue.collections.util.*;
+import java.util.function.BinaryOperator;
+import java.util.function.Predicate;
 
-import java.util.function.*;
+import org.modelingvalue.collections.impl.MapImpl;
+import org.modelingvalue.collections.util.Mergeable;
+import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.QuadFunction;
 
 @SuppressWarnings("unused")
 public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<Map<K, V>> {
@@ -78,6 +81,9 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
 
     @Override
     Map<K, V> add(Entry<K, V> e);
+
+    @Override
+    Map<K, V> replace(Object pre, Entry<K, V> post);
 
     @Override
     Map<K, V> addAll(Collection<? extends Entry<K, V>> es);

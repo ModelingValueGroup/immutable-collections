@@ -18,6 +18,7 @@ package org.modelingvalue.collections.util;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory;
 import java.util.concurrent.ForkJoinWorkerThread;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
 import org.modelingvalue.collections.Collection;
@@ -25,8 +26,9 @@ import org.modelingvalue.collections.Collection;
 @SuppressWarnings("unused")
 public final class ContextThread extends ForkJoinWorkerThread {
 
-    public static final ForkJoinWorkerThreadFactory FACTORY   = new ContextThreadFactory();
-    public static final int                         POOL_SIZE = Integer.getInteger("POOL_SIZE", Collection.PARALLELISM * 2);
+    public static final ForkJoinWorkerThreadFactory FACTORY      = new ContextThreadFactory();
+    public static final int                         POOL_SIZE    = Integer.getInteger("POOL_SIZE", Collection.PARALLELISM * 2);
+    private static final AtomicInteger              POOL_COUNTER = new AtomicInteger(0);
 
     public static ContextPool createPool() {
         return new ContextPool(Collection.PARALLELISM, FACTORY, null, false);
@@ -133,12 +135,13 @@ public final class ContextThread extends ForkJoinWorkerThread {
     public static final class ContextPool extends ForkJoinPool {
 
         private final AtomicIntegerArray counter  = new AtomicIntegerArray(POOL_SIZE);
-
+        private final int                poolNr;
         private final int[]              activity = new int[POOL_SIZE];
         private int                      running  = -1;
 
         private ContextPool(int parallelism, ForkJoinWorkerThreadFactory factory, UncaughtExceptionHandler handler, boolean asyncMode) {
             super(parallelism, factory, handler, asyncMode);
+            poolNr = POOL_COUNTER.getAndIncrement();
         }
 
         public int runningThreads() {
@@ -152,6 +155,10 @@ public final class ContextThread extends ForkJoinWorkerThread {
                 running = nr;
             }
             return nr;
+        }
+
+        public int poolNr() {
+            return poolNr;
         }
     }
 
