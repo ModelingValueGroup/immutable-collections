@@ -15,34 +15,25 @@
 
 package org.modelingvalue.collections.util;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Deque;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.MissingFormatArgumentException;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.regex.Pattern;
+import java.util.*;
+import java.util.Map.*;
+import java.util.regex.*;
 
 @SuppressWarnings("unused")
 public final class TraceTimer {
-    private static final String                              REST                     = "<REST>";
-    private static final int                                 MIL                      = 1000000;
-    private static final boolean                             TRACE_TIME               = Boolean.getBoolean("TRACE_TIME");
-    private static final int                                 TRACE_TIME_DUMP_INTERVAL = Integer.getInteger("TRACE_TIME_DUMP_INTERVAL", 10) * 1000;
-    private static final boolean                             TRACE_LOG                = Boolean.getBoolean("TRACE_LOG");
-    private static final boolean                             TRACE_LOG_DT             = Boolean.getBoolean("TRACE_LOG_DT");
-    private static final int                                 TRACE_LOG_DUMP_INTERVAL  = Integer.getInteger("TRACE_LOG_DUMP_INTERVAL", 100);
-    private static final boolean                             TRACE_TIME_STEP          = Boolean.getBoolean("TRACE_TIME_STEP");
-    private static final int                                 TRACE_TIME_DUMP_NR       = Integer.getInteger("TRACE_TIME_DUMP_NR", 100);
-    private static final boolean                             TRACE_TIME_CLEAR         = Boolean.getBoolean("TRACE_TIME_CLEAR");
-    private static final String                              TRACE_TIME_TOTAL         = System.getProperties().getProperty("TRACE_TIME_TOTAL");
-    private static final Pattern                             TRACE_TIME_TOTAL_PATTERN = TRACE_TIME_TOTAL != null ? Pattern.compile(TRACE_TIME_TOTAL) : null;
-    private static final String                              TRACE_PATTERN            = System.getProperties().getProperty("TRACE_PATTERN");
+    private static final String  REST                     = "<REST>";
+    private static final int     MIL                      = 1_000_000;
+    private static final boolean TRACE_TIME               = Boolean.getBoolean("TRACE_TIME");
+    private static final int     TRACE_TIME_DUMP_INTERVAL = Integer.getInteger("TRACE_TIME_DUMP_INTERVAL", 10) * 1000;
+    private static final boolean TRACE_LOG                = Boolean.getBoolean("TRACE_LOG");
+    private static final boolean TRACE_LOG_DT             = Boolean.getBoolean("TRACE_LOG_DT");
+    private static final int     TRACE_LOG_DUMP_INTERVAL  = Integer.getInteger("TRACE_LOG_DUMP_INTERVAL", 100);
+    private static final boolean TRACE_TIME_STEP          = Boolean.getBoolean("TRACE_TIME_STEP");
+    private static final int     TRACE_TIME_DUMP_NR       = Integer.getInteger("TRACE_TIME_DUMP_NR", 100);
+    private static final boolean TRACE_TIME_CLEAR         = Boolean.getBoolean("TRACE_TIME_CLEAR");
+    private static final String  TRACE_TIME_TOTAL         = System.getProperties().getProperty("TRACE_TIME_TOTAL");
+    private static final Pattern TRACE_TIME_TOTAL_PATTERN = TRACE_TIME_TOTAL != null ? Pattern.compile(TRACE_TIME_TOTAL) : null;
+    private static final String  TRACE_PATTERN            = System.getProperties().getProperty("TRACE_PATTERN");
     private static final Pattern                             TRACE_PATTERN_PATTERN    = TRACE_PATTERN != null ? Pattern.compile(TRACE_PATTERN) : null;
     private static final Comparator<Map.Entry<String, Long>> COMPARATOR               = (o1, o2) -> o2.getValue().compareTo(o1.getValue());
     //

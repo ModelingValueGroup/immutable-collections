@@ -15,10 +15,10 @@
 
 package org.modelingvalue.collections;
 
+import java.util.function.*;
+
 import org.modelingvalue.collections.impl.*;
 import org.modelingvalue.collections.util.*;
-
-import java.util.function.*;
 
 @SuppressWarnings("unused")
 public interface List<T> extends ContainingCollection<T>, Mergeable<List<T>> {

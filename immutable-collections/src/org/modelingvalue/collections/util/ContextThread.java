@@ -15,12 +15,11 @@
 
 package org.modelingvalue.collections.util;
 
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory;
-import java.util.concurrent.ForkJoinWorkerThread;
-import java.util.concurrent.atomic.AtomicIntegerArray;
+import java.util.concurrent.*;
+import java.util.concurrent.ForkJoinPool.*;
+import java.util.concurrent.atomic.*;
 
-import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.*;
 
 @SuppressWarnings("unused")
 public final class ContextThread extends ForkJoinWorkerThread {
@@ -172,7 +171,7 @@ public final class ContextThread extends ForkJoinWorkerThread {
                     return new ContextThread(pool, i);
                 }
             }
-            System.err.println("WARNING: Overflow ForkJoinWorkerThread created, considder increasing POOL_SIZE (" + POOL_SIZE + ")");
+            System.err.println("WARNING: Overflow ForkJoinWorkerThread created, consider increasing POOL_SIZE (" + POOL_SIZE + ")");
             return ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
         }
 
