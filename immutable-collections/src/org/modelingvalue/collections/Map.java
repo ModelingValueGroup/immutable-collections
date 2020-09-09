@@ -15,10 +15,10 @@
 
 package org.modelingvalue.collections;
 
+import java.util.function.*;
+
 import org.modelingvalue.collections.impl.*;
 import org.modelingvalue.collections.util.*;
-
-import java.util.function.*;
 
 @SuppressWarnings("unused")
 public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<Map<K, V>> {
@@ -84,4 +84,5 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
 
     Collection<Entry<K, Pair<V, V>>> diff(Map<K, V> other);
 
+    void forEach(BiConsumer<K, V> action);
 }

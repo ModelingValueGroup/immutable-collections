@@ -15,10 +15,10 @@
 
 package org.modelingvalue.collections;
 
+import java.util.function.*;
+
 import org.modelingvalue.collections.impl.*;
 import org.modelingvalue.collections.util.*;
-
-import java.util.function.*;
 
 @SuppressWarnings("unused")
 public interface DefaultMap<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<DefaultMap<K, V>> {
@@ -81,4 +81,5 @@ public interface DefaultMap<K, V> extends ContainingCollection<Entry<K, V>>, Mer
 
     SerializableFunction<K, V> defaultFunction();
 
+    void forEach(BiConsumer<K, V> action);
 }
