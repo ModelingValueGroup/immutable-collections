@@ -15,6 +15,7 @@
 
 package org.modelingvalue.collections.impl;
 
+import java.io.*;
 import java.util.*;
 import java.util.function.*;
 
@@ -294,18 +295,6 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
         return create(null);
     }
 
-    private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
-        s.writeObject(defaultFunction.original());
-        doSerialize(s);
-    }
-
-    @SuppressWarnings("unchecked")
-    private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
-        defaultFunction = (SerializableFunction<K, V>) s.readObject();
-        defaultFunction = defaultFunction.of();
-        doDeserialize(s);
-    }
-
     @Override
     public DefaultMap<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate) {
         return filter(e -> keyPredicate.test(e.getKey()) && valuePredicate.test(e.getValue())).toDefaultMap(defaultFunction, Function.identity());
@@ -319,5 +308,26 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
     @Override
     public void forEach(BiConsumer<K, V> action) {
         forEach(e -> action.accept(e.getKey(), e.getValue()));
+    }
+
+    private void writeObject(ObjectOutputStream s) throws IOException {
+        Serializer.wrap(s, this::doSerialize);
+    }
+
+    private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+        Deserializer.wrap(s, this::doDeserialize);
+    }
+
+    @SuppressWarnings("unused")
+    public void doSerialize(Serializer s) {
+        s.writeObject(defaultFunction.original());
+        super.doSerialize(s);
+    }
+
+    @SuppressWarnings({"unused", "unchecked"})
+    public void doDeserialize(Deserializer s) {
+        defaultFunction = (SerializableFunction<K, V>) s.readObject();
+        defaultFunction = defaultFunction.of();
+        super.doDeserialize(s);
     }
 }

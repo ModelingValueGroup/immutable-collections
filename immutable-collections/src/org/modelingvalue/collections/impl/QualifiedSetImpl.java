@@ -15,17 +15,14 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.util.Objects;
-import java.util.Spliterator;
-import java.util.function.Predicate;
+import java.io.*;
+import java.util.*;
+import java.util.function.*;
 
 import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.QualifiedSet;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.util.ArrayUtil;
-import org.modelingvalue.collections.util.Mergeables;
-import org.modelingvalue.collections.util.QuadFunction;
-import org.modelingvalue.collections.util.SerializableFunction;
+import org.modelingvalue.collections.*;
+import org.modelingvalue.collections.util.*;
 
 @SuppressWarnings("serial")
 public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements QualifiedSet<K, V> {
@@ -61,18 +58,6 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
     @Override
     protected final SerializableFunction<V, Object> key() {
         return (SerializableFunction) qualifier;
-    }
-
-    private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
-        s.writeObject(qualifier.original());
-        doSerialize(s);
-    }
-
-    @SuppressWarnings("unchecked")
-    private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
-        qualifier = (SerializableFunction<V, K>) s.readObject();
-        qualifier = qualifier.of();
-        doDeserialize(s);
     }
 
     @Override
@@ -260,4 +245,23 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
         }
     }
 
+    private void writeObject(ObjectOutputStream s) throws IOException {
+        Serializer.wrap(s, this::doSerialize);
+    }
+
+    private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+        Deserializer.wrap(s, this::doDeserialize);
+    }
+
+    public void doSerialize(Serializer s) {
+        s.writeObject(qualifier.original());
+        super.doSerialize(s);
+    }
+
+    @SuppressWarnings({"unchecked"})
+    public void doDeserialize(Deserializer s) {
+        qualifier = (SerializableFunction<V, K>) s.readObject();
+        qualifier = qualifier.of();
+        super.doDeserialize(s);
+    }
 }

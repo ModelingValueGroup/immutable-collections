@@ -15,6 +15,7 @@
 
 package org.modelingvalue.collections.impl;
 
+import java.io.*;
 import java.util.*;
 import java.util.function.*;
 
@@ -262,14 +263,6 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
         return EMPTY;
     }
 
-    private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
-        doSerialize(s);
-    }
-
-    private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
-        doDeserialize(s);
-    }
-
     @Override
     public Map<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate) {
         return filter(e -> keyPredicate.test(e.getKey()) && valuePredicate.test(e.getValue())).toMap(Function.identity());
@@ -278,5 +271,13 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     @Override
     public void forEach(BiConsumer<K, V> action) {
         forEach(e -> action.accept(e.getKey(), e.getValue()));
+    }
+
+    private void writeObject(ObjectOutputStream s) throws IOException {
+        Serializer.wrap(s, this::doSerialize);
+    }
+
+    private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+        Deserializer.wrap(s, this::doDeserialize);
     }
 }

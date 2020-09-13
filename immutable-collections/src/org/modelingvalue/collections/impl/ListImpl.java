@@ -15,13 +15,14 @@
 
 package org.modelingvalue.collections.impl;
 
+import java.io.*;
+import java.util.*;
+import java.util.function.*;
+
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.*;
 import org.modelingvalue.collections.util.*;
-
-import java.util.*;
-import java.util.function.*;
 
 public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
 
@@ -322,7 +323,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
             }
         } else {
             Object[] es = coll.toArray();
-            value = es.length == 1 ? es[0] : ListMultivalue.of(es);
+            value = /*TODO WIM as.length==0?EMPTY : */ es.length == 1 ? es[0] : ListMultivalue.of(es);
         }
     }
 
@@ -737,14 +738,6 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
         return firstIndexOf(e) >= 0;
     }
 
-    private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
-        doSerialize(s);
-    }
-
-    private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
-        doDeserialize(s);
-    }
-
     @Override
     public T next(T e) {
         int i = firstIndexOf(e) + 1;
@@ -832,4 +825,11 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
         return result;
     }
 
+    private void writeObject(ObjectOutputStream s) throws IOException {
+        Serializer.wrap(s, this::doSerialize);
+    }
+
+    private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+        Deserializer.wrap(s, this::doDeserialize);
+    }
 }

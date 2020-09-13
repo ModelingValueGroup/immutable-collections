@@ -15,9 +15,9 @@
 
 package org.modelingvalue.collections;
 
-import org.modelingvalue.collections.util.*;
-
 import java.util.*;
+
+import org.modelingvalue.collections.util.*;
 
 @SuppressWarnings("unused")
 public interface ContainingCollection<T> extends Collection<T>, Internable {
@@ -48,4 +48,7 @@ public interface ContainingCollection<T> extends Collection<T>, Internable {
 
     ListIterator<T> listIteratorAtEnd();
 
+    void doSerialize(Serializer s);
+
+    void doDeserialize(Deserializer s);
 }

@@ -15,31 +15,16 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.io.Serializable;
-import java.lang.reflect.Array;
-import java.util.Iterator;
-import java.util.ListIterator;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Spliterator;
-import java.util.Spliterator.OfInt;
-import java.util.function.BiFunction;
-import java.util.function.Consumer;
-import java.util.function.IntConsumer;
-import java.util.function.Predicate;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.io.*;
+import java.lang.reflect.*;
+import java.util.*;
+import java.util.Spliterator.*;
+import java.util.function.*;
+import java.util.stream.*;
 
 import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.ContainingCollection;
-import org.modelingvalue.collections.StreamCollection;
-import org.modelingvalue.collections.util.Age;
-import org.modelingvalue.collections.util.ContextThread;
-import org.modelingvalue.collections.util.Internable;
-import org.modelingvalue.collections.util.StringUtil;
-import org.modelingvalue.collections.util.TriConsumer;
-import org.modelingvalue.collections.util.TriFunction;
+import org.modelingvalue.collections.*;
+import org.modelingvalue.collections.util.*;
 
 public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements ContainingCollection<T> {
     private static final long         serialVersionUID = 7999808719969099597L;
@@ -142,25 +127,6 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         } else {
             value = other.value;
             return true;
-        }
-    }
-
-    protected void doSerialize(java.io.ObjectOutputStream s) throws java.io.IOException {
-        s.writeInt(size());
-
-        // Write out all elements in the proper order.
-        for (Object e : this) {
-            s.writeObject(e);
-        }
-    }
-
-    protected void doDeserialize(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
-        int size = s.readInt();
-        for (int i = 0; i < size; i++) {
-            @SuppressWarnings("unchecked")
-            T e = (T) s.readObject();
-            TreeCollectionImpl<T> newSet = (TreeCollectionImpl<T>) add(e);
-            this.value = newSet.value;
         }
     }
 
@@ -650,4 +616,22 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         return allMatch((Predicate<? super T>) ALL_INTERNABLE);
     }
 
+    public void doSerialize(Serializer s) {
+        s.writeInt(size());
+
+        // Write out all elements in the proper order.
+        for (Object e : this) {
+            s.writeObject(e);
+        }
+    }
+
+    public void doDeserialize(Deserializer s) {
+        int size = s.readInt();
+        for (int i = 0; i < size; i++) {
+            @SuppressWarnings("unchecked")
+            T e = (T) s.readObject();
+            TreeCollectionImpl<T> newSet = (TreeCollectionImpl<T>) add(e);
+            this.value = newSet.value;
+        }
+    }
 }

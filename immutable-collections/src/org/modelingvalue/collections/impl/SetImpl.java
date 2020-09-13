@@ -15,11 +15,13 @@
 
 package org.modelingvalue.collections.impl;
 
-import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.Set;
-
+import java.io.*;
 import java.util.*;
 import java.util.function.*;
+
+import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.*;
 
 public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
 
@@ -144,12 +146,11 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
         return EMPTY;
     }
 
-    private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
-        doSerialize(s);
+    private void writeObject(ObjectOutputStream s) throws IOException {
+        Serializer.wrap(s, this::doSerialize);
     }
 
-    private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
-        doDeserialize(s);
+    private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+        Deserializer.wrap(s, this::doDeserialize);
     }
-
 }
