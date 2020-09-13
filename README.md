@@ -7,7 +7,7 @@ a heavily optimised immutable collections framework for java
 - thread safe by design without synchronisation
 - fast updating and comparing
 - optimised compare and merge (n-way)
-- Set, Map, List, QualifiedSet.
+- Set, Map, List, DefaultMap, QualifiedSet.
 
 ## maven dependencies
 To get all the dependencies in your ```lib``` folder: use the following commands:
