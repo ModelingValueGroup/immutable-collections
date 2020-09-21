@@ -74,7 +74,7 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
 
     @SuppressWarnings("rawtypes")
     @Override
-    public Set<T> retainAll(Collection<?> c) {
+    public Set<T> retainAll(org.modelingvalue.collections.Collection<?> c) {
         if (c instanceof SetImpl) {
             return create(retain(value, key(), ((SetImpl) c).value, key()));
         } else {
@@ -84,7 +84,7 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
 
     @SuppressWarnings("rawtypes")
     @Override
-    public Set<T> exclusiveAll(Collection<? extends T> c) {
+    public Set<T> exclusiveAll(org.modelingvalue.collections.Collection<? extends T> c) {
         if (c instanceof SetImpl) {
             return create(exclusive(value, key(), ((SetImpl) c).value, key()));
         } else {
@@ -147,10 +147,24 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
     }
 
     private void writeObject(ObjectOutputStream s) throws IOException {
-        Serializer.wrap(s, this::doSerialize);
+        Serializer.wrap(s, this::javaSerialize);
     }
 
     private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
-        Deserializer.wrap(s, this::doDeserialize);
+        Deserializer.wrap(s, this::javaDeserialize);
+    }
+
+    @SuppressWarnings("unused")
+    private void serialize(Serializer s) {
+        s.writeInt(size());
+        for (T e : this) {
+            s.writeObject(e);
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "unused"})
+    private static <T> SetImpl<T> deserialize(Deserializer s) {
+        T[] entries = (T[]) s.readArray(new Object[]{});
+        return entries.length == 0 ? (SetImpl<T>) SetImpl.EMPTY : new SetImpl<>(entries);
     }
 }

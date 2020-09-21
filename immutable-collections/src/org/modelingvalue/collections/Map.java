@@ -25,11 +25,11 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
 
     @SafeVarargs
     @SuppressWarnings("unchecked")
-    static <K, V> Map<K, V> of(Entry<K, V>... e) {
-        if (e.length == 0) {
+    static <K, V> Map<K, V> of(Entry<K, V>... entries) {
+        if (entries.length == 0) {
             return MapImpl.EMPTY;
         } else {
-            return new MapImpl<>(e);
+            return new MapImpl<>(entries);
         }
     }
 

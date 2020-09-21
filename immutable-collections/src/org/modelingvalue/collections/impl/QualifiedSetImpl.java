@@ -246,22 +246,37 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
     }
 
     private void writeObject(ObjectOutputStream s) throws IOException {
-        Serializer.wrap(s, this::doSerialize);
+        Serializer.wrap(s, this::javaSerialize);
     }
 
     private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
-        Deserializer.wrap(s, this::doDeserialize);
+        Deserializer.wrap(s, this::javaDeserialize);
     }
 
-    public void doSerialize(Serializer s) {
+    public void javaSerialize(Serializer s) {
         s.writeObject(qualifier.original());
-        super.doSerialize(s);
+        super.javaSerialize(s);
     }
 
     @SuppressWarnings({"unchecked"})
-    public void doDeserialize(Deserializer s) {
-        qualifier = (SerializableFunction<V, K>) s.readObject();
-        qualifier = qualifier.of();
-        super.doDeserialize(s);
+    public void javaDeserialize(Deserializer s) {
+        qualifier = ((SerializableFunction<V, K>) s.readObject()).of();
+        super.javaDeserialize(s);
+    }
+
+    @SuppressWarnings("unused")
+    private void serialize(Serializer s) {
+        s.writeObject(qualifier.original());
+        s.writeInt(size());
+        for (V e : this) {
+            s.writeObject(e);
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "unused"})
+    private static <K, V> QualifiedSetImpl<K, V> deserialize(Deserializer s) {
+        SerializableFunction<V, K> f       = (SerializableFunction<V, K>) ((SerializableFunction<V, K>) s.readObject()).original();
+        V[]                        entries = (V[]) s.readArray(new Object[]{});
+        return new QualifiedSetImpl<>(f, entries);
     }
 }

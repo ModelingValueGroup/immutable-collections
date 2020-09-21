@@ -27,20 +27,23 @@ import org.modelingvalue.collections.util.*;
 
 public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Map<K, V> {
 
-    private static final long                    serialVersionUID = 7758359458143777562L;
+    private static final long serialVersionUID = 7758359458143777562L;
 
     @SuppressWarnings("rawtypes")
-    private static final Function<Entry, Object> KEY              = Entry::getKey;
-
+    private static final Function<Entry, Object> KEY   = Entry::getKey;
     @SuppressWarnings("rawtypes")
-    public static final Map                      EMPTY            = new MapImpl((Object) null);
+    public static final  Map                     EMPTY = new MapImpl((Object) null);
 
-    public MapImpl(Entry<K, V>[] es) {
-        this.value = es.length == 1 ? es[0] : putAll(null, key(), es);
+    public MapImpl(Entry<K, V>[] entries) {
+        this.value = entries.length == 1 ? entries[0] : putAll(null, key(), entries);
     }
 
     protected MapImpl(Object value) {
         this.value = value;
+    }
+
+    public MapImpl(Deserializer s) {
+        javaDeserialize(s);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -239,10 +242,9 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
         return result != null ? result.getValue() : null;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Entry<K, V> getEntry(K key) {
-        return (Entry<K, V>) get(value, key(), key);
+        return get(value, key(), key);
     }
 
     @SuppressWarnings("rawtypes")
@@ -274,10 +276,25 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     }
 
     private void writeObject(ObjectOutputStream s) throws IOException {
-        Serializer.wrap(s, this::doSerialize);
+        Serializer.wrap(s, this::javaSerialize);
     }
 
     private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
-        Deserializer.wrap(s, this::doDeserialize);
+        Deserializer.wrap(s, this::javaDeserialize);
+    }
+
+    @SuppressWarnings("unused")
+    private void serialize(Serializer s) {
+        s.writeInt(size());
+        for (Entry<K, V> e : this) {
+            s.writeObject(e);
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "unused", "rawtypes"})
+    private static <K, V> MapImpl<K, V> deserialize(Deserializer s) {
+        Entry[] entries = s.readArray(new Entry[]{});
+        //Collection.of(stream).toMap(e->e);
+        return entries.length == 0 ? (MapImpl<K, V>) MapImpl.EMPTY : new MapImpl<K, V>(entries);
     }
 }

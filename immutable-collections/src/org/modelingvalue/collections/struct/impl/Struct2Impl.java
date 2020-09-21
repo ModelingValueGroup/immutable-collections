@@ -15,7 +15,7 @@
 
 package org.modelingvalue.collections.struct.impl;
 
-import org.modelingvalue.collections.struct.Struct2;
+import org.modelingvalue.collections.struct.*;
 
 @SuppressWarnings({"unchecked", "unused"})
 public class Struct2Impl<T0, T1> extends Struct1Impl<T0> implements Struct2<T0, T1> {
@@ -26,7 +26,7 @@ public class Struct2Impl<T0, T1> extends Struct1Impl<T0> implements Struct2<T0, 
         this((Object) t0, t1);
     }
 
-    protected Struct2Impl(Object... data){
+    public Struct2Impl(Object... data) {
         super(data);
     }
 

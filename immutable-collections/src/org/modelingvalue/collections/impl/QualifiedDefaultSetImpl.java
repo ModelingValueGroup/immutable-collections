@@ -256,25 +256,41 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
     }
 
     private void writeObject(ObjectOutputStream s) throws IOException {
-        Serializer.wrap(s, this::doSerialize);
+        Serializer.wrap(s, this::javaSerialize);
     }
 
     private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
-        Deserializer.wrap(s, this::doDeserialize);
+        Deserializer.wrap(s, this::javaDeserialize);
     }
 
-    public void doSerialize(Serializer s) {
+    public void javaSerialize(Serializer s) {
         s.writeObject(qualifier.original());
         s.writeObject(defaultFunction.original());
-        super.doSerialize(s);
+        super.javaSerialize(s);
     }
 
     @SuppressWarnings({"unchecked"})
-    public void doDeserialize(Deserializer s) {
-        qualifier = (SerializableFunction<V, K>) s.readObject();
-        qualifier = qualifier.of();
-        defaultFunction = (SerializableFunction<K, V>) s.readObject();
-        defaultFunction = defaultFunction.of();
-        super.doDeserialize(s);
+    public void javaDeserialize(Deserializer s) {
+        qualifier = ((SerializableFunction<V, K>) s.readObject()).of();
+        defaultFunction = ((SerializableFunction<K, V>) s.readObject()).of();
+        super.javaDeserialize(s);
+    }
+
+    @SuppressWarnings("unused")
+    private void serialize(Serializer s) {
+        s.writeObject(qualifier.original());
+        s.writeObject(defaultFunction.original());
+        s.writeInt(size());
+        for (V e : this) {
+            s.writeObject(e);
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "unused"})
+    private static <K, V> QualifiedDefaultSetImpl<K, V> deserialize(Deserializer s) {
+        SerializableFunction<V, K> f1      = (SerializableFunction<V, K>) ((SerializableFunction<V, K>) s.readObject()).original();
+        SerializableFunction<K, V> f2      = (SerializableFunction<K, V>) ((SerializableFunction<K, V>) s.readObject()).original();
+        V[]                        entries = (V[]) s.readArray(new Object[]{});
+        return new QualifiedDefaultSetImpl<>(f1, f2, entries);
     }
 }

@@ -23,6 +23,13 @@ public interface Serializer {
 
     void writeInt(int i);
 
+    default void writeArray(Object[] a) {
+        writeInt(a.length);
+        for (Object o : a) {
+            writeObject(o);
+        }
+    }
+
     /**
      * Just a wrapper for ObjectOutputStream to act as a Serializer
      */

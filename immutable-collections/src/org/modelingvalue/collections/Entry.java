@@ -15,10 +15,10 @@
 
 package org.modelingvalue.collections;
 
+import java.io.*;
+
 import org.modelingvalue.collections.impl.*;
 import org.modelingvalue.collections.util.*;
-
-import java.io.*;
 
 public interface Entry<K, V> extends Serializable, Internable {
 

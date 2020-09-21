@@ -15,20 +15,20 @@
 
 package org.modelingvalue.collections.util;
 
-import org.modelingvalue.collections.List;
-
 import java.io.*;
 import java.lang.invoke.*;
 import java.lang.reflect.*;
 import java.util.*;
 
+import org.modelingvalue.collections.List;
+
 @SuppressWarnings("unused")
 public interface LambdaReflection extends Serializable {
 
     static List<Class<?>> in(String signature) {
-        String in = signature.substring(1, signature.lastIndexOf(')'));
+        String         in   = signature.substring(1, signature.lastIndexOf(')'));
         List<Class<?>> list = List.of();
-        int i = 0;
+        int            i    = 0;
         while (i < in.length()) {
             char charAt = in.charAt(i++);
             if (charAt == 'L') {

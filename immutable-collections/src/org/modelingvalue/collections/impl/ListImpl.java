@@ -826,10 +826,27 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     }
 
     private void writeObject(ObjectOutputStream s) throws IOException {
-        Serializer.wrap(s, this::doSerialize);
+        Serializer.wrap(s, this::javaSerialize);
     }
 
     private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
-        Deserializer.wrap(s, this::doDeserialize);
+        Deserializer.wrap(s, this::javaDeserialize);
+    }
+
+    @SuppressWarnings("unused")
+    private void serialize(Serializer s) {
+        s.writeInt(size());
+        for (T e : this) {
+            s.writeObject(e);
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "unused"})
+    private static <T> ListImpl<T> deserialize(Deserializer s) {
+        T[] entries = (T[]) s.readArray(new Object[]{});
+        if (entries.length == 0) {
+            return (ListImpl<T>) ListImpl.EMPTY;
+        }
+        return new ListImpl<>(entries);
     }
 }

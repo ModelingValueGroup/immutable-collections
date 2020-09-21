@@ -15,12 +15,10 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.util.Objects;
+import java.util.*;
 
-import org.modelingvalue.collections.Entry;
-import org.modelingvalue.collections.util.Age;
-import org.modelingvalue.collections.util.Internable;
-import org.modelingvalue.collections.util.StringUtil;
+import org.modelingvalue.collections.*;
+import org.modelingvalue.collections.util.*;
 
 public final class EntryImpl<K, V> implements Entry<K, V> {
 
@@ -92,4 +90,14 @@ public final class EntryImpl<K, V> implements Entry<K, V> {
         return Internable.isInternable(key) && Internable.isInternable(value);
     }
 
+    private void serialize(Serializer s) {
+        s.writeObject(getKey());
+        s.writeObject(getValue());
+    }
+
+    private static <K, V> EntryImpl<K, V> deserialize(Deserializer s) {
+        K k = s.readObject();
+        V v = s.readObject();
+        return new EntryImpl<>(k, v);
+    }
 }

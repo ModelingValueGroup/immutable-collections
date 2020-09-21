@@ -21,8 +21,6 @@ import java.util.regex.*;
 
 @SuppressWarnings("unused")
 public final class TraceTimer {
-    private static final String                              REST                     = "<REST>";
-    private static final int                                 MIL                      = 1_000_000;
     private static final boolean                             TRACE_TIME               = Boolean.getBoolean("TRACE_TIME");
     private static final int                                 TRACE_TIME_DUMP_INTERVAL = Integer.getInteger("TRACE_TIME_DUMP_INTERVAL", 10) * 1000;
     private static final boolean                             TRACE_LOG                = Boolean.getBoolean("TRACE_LOG");
@@ -32,9 +30,11 @@ public final class TraceTimer {
     private static final int                                 TRACE_TIME_DUMP_NR       = Integer.getInteger("TRACE_TIME_DUMP_NR", 100);
     private static final boolean                             TRACE_TIME_CLEAR         = Boolean.getBoolean("TRACE_TIME_CLEAR");
     private static final String                              TRACE_TIME_TOTAL         = System.getProperties().getProperty("TRACE_TIME_TOTAL");
-    private static final Pattern                             TRACE_TIME_TOTAL_PATTERN = TRACE_TIME_TOTAL != null ? Pattern.compile(TRACE_TIME_TOTAL) : null;
     private static final String                              TRACE_PATTERN            = System.getProperties().getProperty("TRACE_PATTERN");
+    private static final Pattern                             TRACE_TIME_TOTAL_PATTERN = TRACE_TIME_TOTAL != null ? Pattern.compile(TRACE_TIME_TOTAL) : null;
     private static final Pattern                             TRACE_PATTERN_PATTERN    = TRACE_PATTERN != null ? Pattern.compile(TRACE_PATTERN) : null;
+    private static final String                              REST                     = "<REST>";
+    private static final int                                 MIL                      = 1_000_000;
     private static final Comparator<Map.Entry<String, Long>> COMPARATOR               = (o1, o2) -> o2.getValue().compareTo(o1.getValue());
     //
     private static final List<TraceTimer>                    ALL_TIMERS               = new ArrayList<>();
@@ -137,7 +137,7 @@ public final class TraceTimer {
                     System.out.printf("%-32s   END %-44s at %16dns\n", thread.getName(), name, now);
                 }
                 if (!name.equals(last)) {
-                    System.err.println("Trace Timer begin/end mis match: '" + last + "' <> '" + name + "'");
+                    System.err.println("Trace Timer begin/end mismatch: '" + last + "' <> '" + name + "'");
                 }
             }
             timersChanged = true;
@@ -286,10 +286,11 @@ public final class TraceTimer {
     }
 
     public static void dumpStacks() {
+        System.err.println("all Threads and their stacks:");
         Thread.getAllStackTraces().keySet().forEach(t -> {
-            System.err.println("  Thread " + t.getName());
+            System.err.println(t.getName() + " (" + t.getState() + (t.isDaemon() ? " DAEMON" : "") + (t.isInterrupted() ? " INTERRUPTED" : "") + ")");
             for (StackTraceElement stackTraceElement : Thread.getAllStackTraces().get(t)) {
-                System.err.println("       - " + stackTraceElement);
+                System.err.println("       at " + stackTraceElement);
             }
         });
     }

@@ -15,10 +15,10 @@
 
 package org.modelingvalue.collections;
 
+import java.util.function.*;
+
 import org.modelingvalue.collections.impl.*;
 import org.modelingvalue.collections.util.*;
-
-import java.util.function.*;
 
 public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
     @SuppressWarnings("unchecked")
@@ -28,8 +28,8 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
 
     @SafeVarargs
     @SuppressWarnings("unchecked")
-    static <T> Set<T> of(T... e) {
-        return e.length == 0 ? SetImpl.EMPTY : new SetImpl<>(e);
+    static <T> Set<T> of(T... entries) {
+        return entries.length == 0 ? SetImpl.EMPTY : new SetImpl<>(entries);
     }
 
     @SuppressWarnings("unchecked")

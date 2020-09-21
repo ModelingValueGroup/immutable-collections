@@ -48,7 +48,7 @@ public interface ContainingCollection<T> extends Collection<T>, Internable {
 
     ListIterator<T> listIteratorAtEnd();
 
-    void doSerialize(Serializer s);
+    void javaSerialize(Serializer s);
 
-    void doDeserialize(Deserializer s);
+    void javaDeserialize(Deserializer s);
 }

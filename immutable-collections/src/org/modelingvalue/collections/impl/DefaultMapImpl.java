@@ -25,13 +25,11 @@ import org.modelingvalue.collections.*;
 import org.modelingvalue.collections.util.*;
 
 public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements DefaultMap<K, V> {
-
     private static final long                    serialVersionUID = 2424304733060404412L;
-
     @SuppressWarnings("rawtypes")
     private static final Function<Entry, Object> KEY              = Entry::getKey;
 
-    private SerializableFunction<K, V>           defaultFunction;
+    private SerializableFunction<K, V> defaultFunction;
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public DefaultMapImpl(Entry[] es, SerializableFunction<K, V> defaultFunction) {
@@ -272,10 +270,9 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
         return result != null ? result.getValue() : defaultFunction.apply(key);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Entry<K, V> getEntry(K key) {
-        return (Entry<K, V>) get(value, key(), key);
+        return get(value, key(), key);
     }
 
     @SuppressWarnings("rawtypes")
@@ -311,23 +308,38 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
     }
 
     private void writeObject(ObjectOutputStream s) throws IOException {
-        Serializer.wrap(s, this::doSerialize);
+        Serializer.wrap(s, this::javaSerialize);
     }
 
     private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
-        Deserializer.wrap(s, this::doDeserialize);
+        Deserializer.wrap(s, this::javaDeserialize);
     }
 
     @SuppressWarnings("unused")
-    public void doSerialize(Serializer s) {
+    public void javaSerialize(Serializer s) {
         s.writeObject(defaultFunction.original());
-        super.doSerialize(s);
+        super.javaSerialize(s);
     }
 
     @SuppressWarnings({"unused", "unchecked"})
-    public void doDeserialize(Deserializer s) {
-        defaultFunction = (SerializableFunction<K, V>) s.readObject();
-        defaultFunction = defaultFunction.of();
-        super.doDeserialize(s);
+    public void javaDeserialize(Deserializer s) {
+        defaultFunction = ((SerializableFunction<K, V>) s.readObject()).of();
+        super.javaDeserialize(s);
+    }
+
+    @SuppressWarnings("unused")
+    private void serialize(Serializer s) {
+        s.writeObject(defaultFunction.original());
+        s.writeInt(size());
+        for (Entry<K, V> e : this) {
+            s.writeObject(e);
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "unused"})
+    private static <K, V> DefaultMapImpl<K, V> deserialize(Deserializer s) {
+        SerializableFunction<K, V> defaultFunction = ((SerializableFunction<K, V>) s.readObject()).of();
+        Entry<K, V>[]              entries         = s.readArray(new Entry[]{});
+        return new DefaultMapImpl<>(entries, defaultFunction);
     }
 }

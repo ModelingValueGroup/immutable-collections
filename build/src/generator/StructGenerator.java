@@ -15,17 +15,10 @@
 
 package generator;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
+import java.io.*;
+import java.nio.file.*;
+import java.util.*;
+import java.util.stream.*;
 
 public class StructGenerator {
     private static final String IMPL = "impl";
@@ -66,7 +59,7 @@ public class StructGenerator {
             throw new Error("could not create dir: " + implementSrcGenDir);
         }
         Stream.concat(Files.list(interfaceSrcGenDir), Files.list(implementSrcGenDir))//
-                .filter(f -> Files.isRegularFile(f))//
+                .filter(Files::isRegularFile)//
                 .filter(f -> f.getFileName().toString().matches("^Struct[0-9][0-9]*(Impl)?\\.java$"))//
                 .forEach(f1 -> previouslyGenerated.add(f1));
         return this;

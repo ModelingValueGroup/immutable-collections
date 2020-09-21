@@ -16,12 +16,37 @@
 package org.modelingvalue.collections.util;
 
 import java.io.*;
+import java.util.*;
 import java.util.function.*;
 
 public interface Deserializer {
-    Object readObject();
+    <X> X readObject();
 
     int readInt();
+
+    default <T> T[] readArray() {
+        //noinspection unchecked
+        return readArray((T[]) new Object[]{});
+    }
+
+    default <T> T[] readArray(T[] arg) {
+        int n = readInt();
+        if (arg.length == 0) {
+            @SuppressWarnings("unchecked")
+            T[] a = (T[]) Arrays.copyOf(arg, n, arg.getClass());
+            for (int i = 0; i < n; i++) {
+                a[i] = readObject();
+            }
+            return a;
+        } else if (arg.length == n) {
+            for (int i = 0; i < n; i++) {
+                arg[i] = readObject();
+            }
+            return arg;
+        } else {
+            throw new NotDeserializableError("was expecting array of size " + arg.length + " but found array of size " + n);
+        }
+    }
 
     /**
      * Just a wrapper for ObjectInputStream to act as a Deserializer
@@ -34,9 +59,10 @@ public interface Deserializer {
         }
 
         @Override
-        public Object readObject() {
+        public <X> X readObject() {
             try {
-                return s.readObject();
+                //noinspection unchecked
+                return (X) s.readObject();
             } catch (IOException e) {
                 throw new WrappedIOException(e);
             } catch (ClassNotFoundException e) {
