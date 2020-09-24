@@ -15,21 +15,27 @@
 
 package org.modelingvalue.collections.util;
 
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory;
-import java.util.concurrent.ForkJoinWorkerThread;
-import java.util.concurrent.atomic.AtomicIntegerArray;
+import java.util.concurrent.*;
+import java.util.concurrent.ForkJoinPool.*;
+import java.util.concurrent.atomic.*;
 
-import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.*;
 
 @SuppressWarnings("unused")
 public final class ContextThread extends ForkJoinWorkerThread {
-
     public static final ForkJoinWorkerThreadFactory FACTORY   = new ContextThreadFactory();
     public static final int                         POOL_SIZE = Integer.getInteger("POOL_SIZE", Collection.PARALLELISM * 2);
 
     public static ContextPool createPool() {
         return new ContextPool(Collection.PARALLELISM, FACTORY, null, false);
+    }
+
+    public static ContextPool createPool(int parallelism) {
+        return new ContextPool(parallelism, FACTORY, null, false);
+    }
+
+    public static ContextPool createPool(int parallelism, UncaughtExceptionHandler handler) {
+        return new ContextPool(parallelism, FACTORY, handler, false);
     }
 
     public static ContextPool createPool(UncaughtExceptionHandler handler) {
@@ -165,7 +171,7 @@ public final class ContextThread extends ForkJoinWorkerThread {
                     return new ContextThread(pool, i);
                 }
             }
-            System.err.println("WARNING: Overflow ForkJoinWorkerThread created, considder increasing POOL_SIZE (" + POOL_SIZE + ")");
+            System.err.println("WARNING: Overflow ForkJoinWorkerThread created, consider increasing POOL_SIZE (" + POOL_SIZE + ")");
             return ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
         }
 

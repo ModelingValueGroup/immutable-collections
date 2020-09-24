@@ -15,24 +15,27 @@
 
 package org.modelingvalue.collections.test;
 
-import org.junit.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.concurrent.RecursiveAction;
+import java.util.function.Supplier;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
+
+import org.junit.jupiter.api.Test;
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.impl.*;
-import org.modelingvalue.collections.util.*;
-
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.*;
-import java.util.stream.*;
-
-import static org.junit.Assert.*;
+import org.modelingvalue.collections.impl.HashCollectionImpl;
+import org.modelingvalue.collections.util.Context;
+import org.modelingvalue.collections.util.ContextThread;
 
 public class SetTest {
-
     private static final Context<Object> CONTEXT = Context.of();
-
-    private static final long SEED = 267835244387707587L;
+    private static final long            SEED    = 267835244387707587L;
 
     @Test
     public void test() {
@@ -46,8 +49,8 @@ public class SetTest {
         assertEquals(set1, set2);
         assertTrue(set1.containsAll(set2));
         assertTrue(set2.containsAll(set1));
-        set1.forEach(obj -> assertTrue(set2.contains(obj)));
-        set2.forEach(obj -> assertTrue(set1.contains(obj)));
+        set1.forEachOrdered(obj -> assertTrue(set2.contains(obj)));
+        set2.forEachOrdered(obj -> assertTrue(set1.contains(obj)));
         String expected = "aap" + "jet" + "mies" + "noot" + "teun";
         String reduce1  = set1.sequential().reduce("", (a, b) -> a + b);
         String reduce2  = set2.sequential().reduce("", (a, b) -> a + b);
@@ -111,8 +114,8 @@ public class SetTest {
             }
             return r;
         }).limit(max).toSet();
-        set1.forEach(obj -> assertTrue(set2.contains(obj)));
-        set1.forEach(obj -> assertTrue(set3.contains(obj)));
+        set1.forEachOrdered(obj -> assertTrue(set2.contains(obj)));
+        set1.forEachOrdered(obj -> assertTrue(set3.contains(obj)));
         long start = System.currentTimeMillis();
         assertEquals(set1, set2);
         System.err.println("1st equals run = " + (System.currentTimeMillis() - start));
@@ -196,7 +199,7 @@ public class SetTest {
         }
         assertEquals(100, set1.size());
         Set<HashSharingInteger> test2 = set2;
-        set1.forEach(obj -> assertTrue(test2.contains(obj)));
+        set1.forEachOrdered(obj -> assertTrue(test2.contains(obj)));
         assertEquals(set1, set2);
     }
 
@@ -206,22 +209,22 @@ public class SetTest {
         Set<Integer> setx = Set.of(-2000, -1900, -1800);
         Set<Integer> sety = Set.of(2000, 1900, 1800);
         System.err.println();
-        setx.compare(sety).forEach(c -> System.err.println(Arrays.deepToString(c)));
+        setx.compare(sety).forEachOrdered(c -> System.err.println(Arrays.deepToString(c)));
 
         Set<Integer> seta = Set.of(-20, -19, 20);
         Set<Integer> setb = Set.of(-20, -19);
         System.err.println();
-        seta.compare(setb).forEach(c -> System.err.println(Arrays.deepToString(c)));
+        seta.compare(setb).forEachOrdered(c -> System.err.println(Arrays.deepToString(c)));
 
         Set<Integer> set0 = Set.of(-20, -19, 0, 30, 40);
         Set<Integer> set1 = Set.of(-100, -99, -98, -70, -20, -19, 10);
         Set<Integer> set2 = Set.of(-20, -19, 10, 40, 70, 98, 99, 100);
 
         System.err.println();
-        set0.compare(set1).forEach(c -> System.err.println(Arrays.deepToString(c)));
+        set0.compare(set1).forEachOrdered(c -> System.err.println(Arrays.deepToString(c)));
 
         System.err.println();
-        set0.compare(set2).forEach(c -> System.err.println(Arrays.deepToString(c)));
+        set0.compare(set2).forEachOrdered(c -> System.err.println(Arrays.deepToString(c)));
 
         Set<Integer> merged = set0.merge(set1, set2);
 
@@ -235,12 +238,12 @@ public class SetTest {
         Set<Long> lset1 = Collection.of(LongStream.range(40, 120)).toSet();
 
         System.err.println();
-        lset0.compare(lset1).forEach(c -> System.err.println(Arrays.deepToString(c)));
+        lset0.compare(lset1).forEachOrdered(c -> System.err.println(Arrays.deepToString(c)));
 
         Set<Integer> setA = Set.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 0);
         Set<Integer> setB = Set.of(10);
         System.err.println();
-        setA.compare(setB).forEach(c -> System.err.println(Arrays.deepToString(c)));
+        setA.compare(setB).forEachOrdered(c -> System.err.println(Arrays.deepToString(c)));
     }
 
     @Test
@@ -258,7 +261,7 @@ public class SetTest {
         int          half = step / 2;
         Set<Integer> set1 = Collection.of(IntStream.range(-max, max).map(i -> i * step)).toSet();
         Set<Integer> set2 = Collection.of(IntStream.range(-max, max).map(i -> i * step + half)).toSet();
-        Set<Integer> set3 = Set.<Integer>of().merge(set1, set2);
+        Set<Integer> set3 = Set.<Integer> of().merge(set1, set2);
         assertTrue(IntStream.range(-max, max).map(i -> i * step).allMatch(i -> set3.contains(i) && set3.contains(i + half)));
     }
 
@@ -270,7 +273,7 @@ public class SetTest {
         int          half = step / 2;
         Set<Integer> set1 = Collection.of(IntStream.range(-min, min).map(i -> i * step)).toSet();
         Set<Integer> set2 = Collection.of(IntStream.range(-max, max).map(i -> i * step + half)).toSet();
-        Set<Integer> set3 = Set.<Integer>of().merge(set1, set2);
+        Set<Integer> set3 = Set.<Integer> of().merge(set1, set2);
         assertTrue(IntStream.range(-min, min).map(i -> i * step).allMatch(set3::contains));
         assertTrue(IntStream.range(-max, max).map(i -> i * step + half).allMatch(set3::contains));
     }

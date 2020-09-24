@@ -15,34 +15,120 @@
 
 package org.modelingvalue.collections.test;
 
-import org.junit.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.io.*;
+import java.util.*;
+import java.util.stream.*;
+
+import org.junit.jupiter.api.*;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.*;
-import org.modelingvalue.collections.impl.*;
-
-import java.io.*;
-import java.util.*;
-
-import static org.junit.Assert.*;
 
 public class SerializeTest {
-
-    static class NotSerializable {
-        @SuppressWarnings("unused")
-        public String nonsense;
-
-        public NotSerializable() {
-        }
+    @Test
+    public void serializeSetOfNotSerializable() {
+        assertThrows(NotSerializableException.class, () -> serialize(Set.of(new Object())));
     }
 
-    static class AnObject implements Serializable {
+    @Test
+    public void serializeShortList() throws IOException, ClassNotFoundException {
+        List<Integer> list = List.of(1, 2, 3, 4, 5);
+        assertEquals(5, list.size());
+        assertEquals(list, deserialize(serialize(list)));
+    }
 
-        private static final long serialVersionUID = 1636023751463490430L;
-        private final        int  i;
+    @Test
+    public void serializeLongList() throws IOException, ClassNotFoundException {
+        List<Integer> list = List.of(x -> x, IntStream.range(0, 1000).boxed().toArray(Integer[]::new));
+        assertEquals(1000, list.size());
+        assertEquals(list, deserialize(serialize(list)));
+    }
 
-        public AnObject(int i) {
+    @Test
+    public void serializeSmallSet() throws IOException, ClassNotFoundException {
+        Set<Integer> set = Set.of(1, 2, 3, 4, 5);
+        assertEquals(5, set.size());
+        assertEquals(set, deserialize(serialize(set)));
+    }
+
+    @Test
+    public void serializeLargeSet() throws IOException, ClassNotFoundException {
+        Set<Integer> set = Set.of(x -> x, IntStream.range(0, 1000).boxed().toArray(Integer[]::new));
+        assertEquals(1000, set.size());
+        assertEquals(set, deserialize(serialize(set)));
+    }
+
+    @Test
+    public void serializeQualifiedSet() throws IOException, ClassNotFoundException {
+        QualifiedSet<String, String> qset = QualifiedSet.of(s -> s, "a", "b", "c", "d", "e");
+        assertEquals(5, qset.size());
+        assertEquals(qset, deserialize(serialize(qset)));
+    }
+
+    @Test
+    public void serializeMap() throws IOException, ClassNotFoundException {
+        Map<String, String> map = Map.of(
+                Entry.of("a", "0"),
+                Entry.of("b", "1"),
+                Entry.of("c", "2"),
+                Entry.of("d", "3"),
+                Entry.of("e", "4")
+        );
+        assertEquals(5, map.size());
+        assertEquals(map, deserialize(serialize(map)));
+    }
+
+    @Test
+    public void serializeDefaultMap() throws IOException, ClassNotFoundException {
+        DefaultMap<String, String> dmap = DefaultMap.of(s -> s,
+                Entry.of("a", "0"),
+                Entry.of("b", "1"),
+                Entry.of("c", "2"),
+                Entry.of("d", "3"),
+                Entry.of("e", "4")
+        );
+        assertEquals(5, dmap.size());
+        assertEquals(dmap, deserialize(serialize(dmap)));
+    }
+
+    @Test
+    public void serializeSetOfObjectsWithEquals() throws IOException, ClassNotFoundException {
+        Set<TestObjectWithEquals> set = Set.of(TestObjectWithEquals::new, IntStream.range(0, 1000).boxed().toArray(Integer[]::new));
+        assertEquals(1000, set.size());
+        assertEquals(set, deserialize(serialize(set)));
+    }
+
+    @Test
+    public void serializeSetOfObjectsWithoutEquals() throws IOException, ClassNotFoundException {
+        Set<TestObjectWithoutEquals> orig = Set.of(TestObjectWithoutEquals::new, IntStream.range(0, 1000).boxed().toArray(Integer[]::new));
+        assertEquals(1000, orig.size());
+
+        Set<TestObjectWithoutEquals> copy = deserialize(serialize(orig));
+        assertEquals(1000, copy.size());
+        assertNotEquals(orig, copy); // should not be equal because two TestObjectWithoutEquals are never equal!
+
+        // verify that all are represented in the original and in the copy:
+        Boolean[] inOrig = new Boolean[orig.size()];
+        Boolean[] inCopy = new Boolean[copy.size()];
+
+        orig.forEach(e -> inOrig[e.i] = true);
+        copy.forEach(e -> inCopy[e.i] = true);
+
+        assertTrue(Stream.of(inOrig).allMatch(x -> x));
+        assertTrue(Stream.of(inCopy).allMatch(x -> x));
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    static class TestObjectWithoutEquals implements Serializable {
+        public static final long serialVersionUID = 1636023751463490430L;
+        public final        int  i;
+
+        public TestObjectWithoutEquals(int i) {
             this.i = i;
         }
 
@@ -52,159 +138,51 @@ public class SerializeTest {
         }
     }
 
-    static class AnObjectWithEquals implements Serializable {
+    static class TestObjectWithEquals extends TestObjectWithoutEquals {
+        public static final long serialVersionUID = 1636023751463490431L;
 
-        private static final long   serialVersionUID = 1636023751463490430L;
-        private final        String s;
-
-        public AnObjectWithEquals(int i) {
-            this.s = Integer.toString(i);
-        }
-
-        @Override
-        public int hashCode() {
-            return s.hashCode();
+        public TestObjectWithEquals(int i) {
+            super(i);
         }
 
         @Override
         public boolean equals(Object o) {
-            if (o instanceof AnObjectWithEquals) {
-                return ((AnObjectWithEquals) o).s.equals(s);
+            if (this == o) {
+                return true;
             }
-            return false;
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            TestObjectWithoutEquals that = (TestObjectWithoutEquals) o;
+            return i == that.i;
         }
 
         @Override
-        public String toString() {
-            return "#" + s + "#";
+        public int hashCode() {
+            return Objects.hash(i);
         }
     }
 
-    @Test
-    public void serializeQualifiedSet() {
-        QualifiedSet<String, String> qset = QualifiedSet.of(s -> s);
-        Set<String>                  set  = Set.of("a", "b", "c", "d", "e");
-        qset = qset.addAll(set);
-        testSerializability(qset);
-    }
-
-    @Test
-    public void serializeDefaultMap() {
-        DefaultMap<String, String> dmap = DefaultMap.of(s -> s);
-        Set<String>                set  = Set.of("a", "b", "c", "d", "e");
-        dmap = dmap.addAll(set.map(s -> Entry.of(s, s)));
-        testSerializability(dmap);
-    }
-
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     @SuppressWarnings("unchecked")
-    @Test
-    public void serializeList() {
-        List<Integer> listOfInt = List.of(1, 2, 3, 4, 5);
-        testSerializability(listOfInt);
-
-        List<Integer> listOfInt1000 = ListImpl.EMPTY;
-        for (int i = 0; i < 1000; i++) {
-            listOfInt1000 = listOfInt1000.add(i);
+    private <T extends Serializable> T deserialize(String encoded) throws IOException, ClassNotFoundException {
+        byte[] decoded = Base64.getDecoder().decode(encoded);
+        try (ObjectInput in = new ObjectInputStream(new ByteArrayInputStream(decoded))) {
+            return (T) in.readObject();
         }
-        testSerializability(listOfInt);
     }
 
-    @Test
-    public void serializeMap() {
-        Map<String, String> i = Map.of();
-
-        i = i.put("a", "0");
-        i = i.put("b", "1");
-        i = i.put("c", "2");
-        i = i.put("d", "3");
-        i = i.put("e", "4");
-
-        testSerializability(i);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Test
-    public void serializeSet() {
-        Set<Integer> setOfInt = Set.of(1, 2, 3, 4, 5);
-        testSerializability(setOfInt);
-
-        Set<Integer> setOfInt1000 = SetImpl.EMPTY;
-        for (int i = 0; i < 1000; i++) {
-            setOfInt1000 = setOfInt1000.add(i);
-        }
-        testSerializability(setOfInt1000);
-
-        try {
-            NotSerializable      not       = new NotSerializable();
-            Set<NotSerializable> setOfNots = Set.of(not);
-            byte[]               bytes     = writeObject(setOfNots);
-            fail("should not be reached: bytes=" + Arrays.toString(bytes));
-        } catch (Error err) {
-            if (!(err.getCause() instanceof NotSerializableException)) {
-                fail();
-            }
-        }
-
-        Set<AnObject> setOfAnObjects = SetImpl.EMPTY;
-
-        java.util.Map<Integer, AnObject> elements = new HashMap<>();
-        for (int i = 0; i < 100; i++) {
-            AnObject e = new AnObject(i);
-            setOfAnObjects = setOfAnObjects.add(e);
-            elements.put(i, e);
-        }
-        byte[]        bytes           = writeObject(setOfAnObjects);
-        Set<AnObject> deserializedSet = (Set<AnObject>) readObject(bytes);
-
-        if (deserializedSet == null || deserializedSet.size() != setOfAnObjects.size()) {
-            fail();
-        }
-
-        for (AnObject a: deserializedSet) {
-            if (elements.remove(a.i) == null) {
-                fail("Failed: " + a.i + " not found?");
-            }
-        }
-        if (elements.size() > 0) {
-            fail();
-        }
-
-        Set<AnObjectWithEquals> setOfAnObjectsWE = SetImpl.EMPTY;
-        for (int i = 0; i < 100; i++) {
-            AnObjectWithEquals e = new AnObjectWithEquals(i);
-            setOfAnObjectsWE = setOfAnObjectsWE.add(e);
-        }
-        testSerializability(setOfAnObjectsWE);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T extends Serializable> void testSerializability(T toTest) {
-        byte[] bytes = writeObject(toTest);
-        assertNotNull(bytes);
-
-        T t = (T) readObject(bytes);
-        assertNotNull(t);
-        assertEquals(toTest, t);
-    }
-
-    private static byte[] writeObject(Serializable s) {
+    private <T extends Serializable> String serialize(T toTest) throws IOException {
         try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
             ObjectOutput out;
             out = new ObjectOutputStream(bos);
-            out.writeObject(s);
-            out.flush();
-            return bos.toByteArray();
-        } catch (IOException ex) {
-            throw new Error(ex);
-        }
-    }
-
-    private static Object readObject(byte[] bytes) {
-        ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-        try (ObjectInput in = new ObjectInputStream(bis)) {
-            return in.readObject();
-        } catch (ClassNotFoundException | IOException e) {
-            throw new Error(e);
+            out.writeObject(toTest);
+            out.close();
+            String s = Base64.getEncoder().encodeToString(bos.toByteArray());
+            System.err.printf("serialization yielded %d length string\n", s.length());
+            return s;
         }
     }
 }

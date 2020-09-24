@@ -15,14 +15,20 @@
 
 package org.modelingvalue.collections.test;
 
-import org.junit.*;
-import org.modelingvalue.collections.*;
-import org.modelingvalue.collections.util.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.concurrent.*;
-import java.util.stream.*;
+import java.util.concurrent.RecursiveAction;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.Test;
+import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.QualifiedSet;
+import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.Context;
+import org.modelingvalue.collections.util.ContextThread;
+import org.modelingvalue.collections.util.SerializableFunction;
 
 public class QualifiedSetTest {
 
@@ -73,10 +79,10 @@ public class QualifiedSetTest {
         assertTrue(qset1.containsAll(qset2));
         assertTrue(qset2.containsAll(qset1));
         //TODO: see DCL-151
-        //qset2.forEach(obj -> assertTrue("qset1 does not contain " + obj, qset1.contains(obj)));
-        //qset1.forEach(obj -> assertTrue("qset2 does not contain " + obj, qset2.contains(obj)));
-        qset1.forEach(obj -> assertTrue(qset2keys.contains(obj.v)));
-        qset2.forEach(obj -> assertTrue(qset1keys.contains(obj.v)));
+        //qset2.forEachOrdered(obj -> assertTrue("qset1 does not contain " + obj, qset1.contains(obj)));
+        //qset1.forEachOrdered(obj -> assertTrue("qset2 does not contain " + obj, qset2.contains(obj)));
+        qset1.forEachOrdered(obj -> assertTrue(qset2keys.contains(obj.v)));
+        qset2.forEachOrdered(obj -> assertTrue(qset1keys.contains(obj.v)));
     }
 
     @Test
@@ -179,22 +185,22 @@ public class QualifiedSetTest {
     //        Set<Integer> setx = Set.of(-2000, -1900, -1800);
     //        Set<Integer> sety = Set.of(2000, 1900, 1800);
     //        System.err.println();
-    //        setx.compare(sety).forEach(c -> System.err.println(Arrays.deepToString(c)));
+    //        setx.compare(sety).forEachOrdered(c -> System.err.println(Arrays.deepToString(c)));
     //
     //        Set<Integer> seta = Set.of(-20, -19, 20);
     //        Set<Integer> setb = Set.of(-20, -19);
     //        System.err.println();
-    //        seta.compare(setb).forEach(c -> System.err.println(Arrays.deepToString(c)));
+    //        seta.compare(setb).forEachOrdered(c -> System.err.println(Arrays.deepToString(c)));
     //
     //        Set<Integer> set0 = Set.of(-20, -19, 0, 30, 40);
     //        Set<Integer> set1 = Set.of(-100, -99, -98, -70, -20, -19, 10);
     //        Set<Integer> set2 = Set.of(-20, -19, 10, 40, 70, 98, 99, 100);
     //
     //        System.err.println();
-    //        set0.compare(set1).forEach(c -> System.err.println(Arrays.deepToString(c)));
+    //        set0.compare(set1).forEachOrdered(c -> System.err.println(Arrays.deepToString(c)));
     //
     //        System.err.println();
-    //        set0.compare(set2).forEach(c -> System.err.println(Arrays.deepToString(c)));
+    //        set0.compare(set2).forEachOrdered(c -> System.err.println(Arrays.deepToString(c)));
     //
     //        Set<Integer> merged = set0.merge2(set1, set2);
     //
@@ -208,12 +214,12 @@ public class QualifiedSetTest {
     //        Set<Long> lset1 = Collection.of(LongStream.range(40, 120)).toSet();
     //
     //        System.err.println();
-    //        lset0.compare(lset1).forEach(c -> System.err.println(Arrays.deepToString(c)));
+    //        lset0.compare(lset1).forEachOrdered(c -> System.err.println(Arrays.deepToString(c)));
     //
     //        Set<Integer> setA = Set.of(1, 2, 3, 4, 5, 6, 7, 8, 9, 0);
     //        Set<Integer> setB = Set.of(10);
     //        System.err.println();
-    //        setA.compare(setB).forEach(c -> System.err.println(Arrays.deepToString(c)));
+    //        setA.compare(setB).forEachOrdered(c -> System.err.println(Arrays.deepToString(c)));
     //    }
 
 }
