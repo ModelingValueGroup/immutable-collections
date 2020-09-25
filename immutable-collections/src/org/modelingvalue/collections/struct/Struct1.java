@@ -15,13 +15,6 @@
 
 package org.modelingvalue.collections.struct;
 
-import org.modelingvalue.collections.struct.impl.*;
-import org.modelingvalue.collections.util.*;
-
 public interface Struct1<T0> extends Struct0 {
-    T0 get0();
-
-    static <T0> Struct1Impl<T0> of(Deserializer s) {
-        return new Struct1Impl<>(s.readArray(new Object[1]));
-    }
+    T0 get0 ();
 }
