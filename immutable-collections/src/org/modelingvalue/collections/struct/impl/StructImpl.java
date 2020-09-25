@@ -15,10 +15,11 @@
 
 package org.modelingvalue.collections.struct.impl;
 
+import java.util.*;
+import java.util.function.*;
+
 import org.modelingvalue.collections.struct.*;
 import org.modelingvalue.collections.util.*;
-
-import java.util.*;
 
 public abstract class StructImpl implements Struct {
     private static final long serialVersionUID = -1849579252791770119L;
@@ -86,5 +87,22 @@ public abstract class StructImpl implements Struct {
             }
         }
         return true;
+    }
+
+    @Override
+    public Iterator<Object> iterator() {
+        return Arrays.stream(data).iterator();
+    }
+
+    @Override
+    public void forEach(Consumer<? super Object> action) {
+        for (Object o : data) {
+            action.accept(o);
+        }
+    }
+
+    @Override
+    public Spliterator<Object> spliterator() {
+        return Arrays.spliterator(data);
     }
 }

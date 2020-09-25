@@ -20,7 +20,7 @@ import java.io.*;
 import org.modelingvalue.collections.impl.*;
 import org.modelingvalue.collections.util.*;
 
-public interface Entry<K, V> extends Serializable, Internable {
+public interface Entry<K, V> extends Serializable, Internable, Iterable<Object> {
 
     K getKey();
 

@@ -16,6 +16,7 @@
 package org.modelingvalue.collections.impl;
 
 import java.util.*;
+import java.util.stream.*;
 
 import org.modelingvalue.collections.*;
 import org.modelingvalue.collections.util.*;
@@ -99,5 +100,10 @@ public final class EntryImpl<K, V> implements Entry<K, V> {
         K k = s.readObject();
         V v = s.readObject();
         return new EntryImpl<>(k, v);
+    }
+
+    @Override
+    public Iterator<Object> iterator() {
+        return Stream.of(key, value).iterator();
     }
 }

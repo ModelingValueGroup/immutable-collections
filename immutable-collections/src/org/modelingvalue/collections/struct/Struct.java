@@ -15,11 +15,11 @@
 
 package org.modelingvalue.collections.struct;
 
-import org.modelingvalue.collections.util.*;
-
 import java.io.*;
 
-public interface Struct extends Serializable, Internable {
+import org.modelingvalue.collections.util.*;
+
+public interface Struct extends Serializable, Internable, Iterable<Object> {
     Object get(int i);
 
     int length();
