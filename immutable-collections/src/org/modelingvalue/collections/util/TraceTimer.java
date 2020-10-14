@@ -297,25 +297,32 @@ public final class TraceTimer {
 
     public static void traceLog(String format, Object... args) {
         if (TRACE_LOG) {
-            synchronized (ALL_LOGS) {
-                logsChanged = true;
-                ALL_LOGS.add(new TraceLog(format, args));
+            try {
+                synchronized (ALL_LOGS) {
+                    logsChanged = true;
+                    ALL_LOGS.add(new TraceLog(format, args));
+                }
+            } catch (Throwable t) {
+                System.err.println("problem during traceLog():");
+                t.printStackTrace();
             }
         }
     }
 
     private static class TraceLog {
-        private final String   format;
-        private final Object[] args;
-        private final long     nanoDelta;
-        private final Thread   thread;
+        private static final String PRE_FORMAT_NAME = "%-30s| ";
+        private static final String PRE_FORMAT_DT   = "%,15d| ";
+        private static final String PRE_FORMAT_HERE = "%-30s| ";
+        private static final int    INDENT_LEN      = String.format(PRE_FORMAT_NAME, "").length() + (TRACE_LOG_DT ? String.format(PRE_FORMAT_DT, 0).length() : 0) - 1;
+        private static final String INDENT_STR      = String.format("\n%" + INDENT_LEN + "s|", "");
+        private static final long   T0_NANO         = System.nanoTime();
+        private static       long   last            = System.nanoTime();
 
-        private static final String PRE_FORMAT_DT = "%-30s %,15d|";
-        private static final String PRE_FORMAT    = "%-30s|";
-        public static final  int    SHIFT_LEN     = (TRACE_LOG_DT ? String.format(PRE_FORMAT_DT, "", 0) : String.format(PRE_FORMAT, "")).length() - 1;
-        private static final String SHIFT         = String.format("\n%" + SHIFT_LEN + "s|", "");
-        private static final long   T0_NANO       = System.nanoTime();
-        private static       long   last          = System.nanoTime();
+        private final String            format;
+        private final Object[]          args;
+        private final long              nanoDelta;
+        private final Thread            thread;
+        private final StackTraceElement here;
 
         public TraceLog(String format, Object... args) {
             this.format = format;
@@ -324,13 +331,16 @@ public final class TraceTimer {
             nanoDelta = t - last;
             last = t;
             thread = Thread.currentThread();
+            here = format.startsWith("@") ? new Throwable().getStackTrace()[2] : null;
         }
 
         public void dump(List<String> log) {
             try {
-                String pre = TRACE_LOG_DT ? String.format(PRE_FORMAT_DT, thread.getName(), nanoDelta) : String.format(PRE_FORMAT, thread.getName());
-                String msg = String.format(format, args).replace("\n", SHIFT);
-                log.add(pre + msg);
+                String preName = String.format(PRE_FORMAT_NAME, thread.getName());
+                String preTime = TRACE_LOG_DT ? String.format(PRE_FORMAT_DT, nanoDelta) : "";
+                String preHere = here != null ? String.format(PRE_FORMAT_HERE, here.toString().replaceFirst("^[^(]*", "x.x")) : "";
+                String msg     = String.format(format, args).replace("\n", INDENT_STR);
+                log.add(preName + preTime + preHere + msg);
             } catch (MissingFormatArgumentException e) {
                 log.add("OOPS bad format: " + format);
             }
