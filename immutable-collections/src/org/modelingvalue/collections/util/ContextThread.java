@@ -180,7 +180,7 @@ public final class ContextThread extends ForkJoinWorkerThread {
                     return new ContextThread(pool, i);
                 }
             }
-            System.err.println("WARNING: Overflow ForkJoinWorkerThread created, considder increasing POOL_SIZE (" + POOL_SIZE + ")");
+            System.err.println("WARNING: Overflow ForkJoinWorkerThread created, consider increasing POOL_SIZE (" + POOL_SIZE + ")");
             return ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
         }
 
