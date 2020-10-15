@@ -5,7 +5,7 @@ on: [push]
 jobs:
   build-and-test:
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-20.04 # use preview for now, on 18.04 errors will occur
 
     steps:
       - name: "checkout"
@@ -22,10 +22,15 @@ jobs:
       - name: "get generic mvg-info"
         uses: ModelingValueGroup/generic-info@master
 
-      - name: "get buildTools"
-        uses: ModelingValueGroup/buildTools@master
+      - name: "get buildtools"
+        uses: ModelingValueGroup/buildtools@master
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: "if master: fail if there is already a tag for this version"
+        run:  |
+          . <(java -jar ~/buildtools.jar)
+          errorIfMasterAndVersionTagExists
 
       - name: "prepare ant"
         run:  |
@@ -36,7 +41,7 @@ jobs:
 
       - name: "(re)generate some files"
         run:  |
-          . <(java -jar ~/buildTools.jar)
+          . <(java -jar ~/buildtools.jar)
           generateAll
           ant compile.module.build
           java -cp out/production/build generator.StructGenerator "25" "immutable-collections/src" "org.modelingvalue.collections.struct"
@@ -45,13 +50,13 @@ jobs:
 
       - name: "push changes back to github"
         run:  |
-          . <(java -jar ~/buildTools.jar)
+          . <(java -jar ~/buildtools.jar)
           pushBackToGithub "${{ secrets.GITHUB_TOKEN }}" "automation@modelingvalue.com" "adjusted files [by github actions]"
 
       - name: "download dependencies (as mentioned in pom)"
         run:  |
-          . <(java -jar ~/buildTools.jar)
-          getAllDependencies ${{ secrets.GITHUB_TOKEN }}
+          . <(java -jar ~/buildtools.jar)
+          getAllDependencies "${{ secrets.GITHUB_TOKEN }}" "${{ secrets.SCALEWAY_ACCESS_KEY }}" "${{ secrets.SCALEWAY_SECRET_KEY }}"
 
       - name: "build"
         run:  ant
@@ -68,6 +73,11 @@ jobs:
 
       - name: "generate javadoc"
         run:  ant javadoc
+
+      - name: "if master: tag with version"
+        run:  |
+          . <(java -jar ~/buildtools.jar)
+          setVersionTagIfMaster "${{ secrets.GITHUB_TOKEN }}" "automation@modelingvalue.com"
 
       - name: "publish action-artifact jar"
         uses: actions/upload-artifact@v1
@@ -111,4 +121,3 @@ jobs:
         with:
           file : "out/artifacts/immutable-collections.jar"
           token: "${{ secrets.GITHUB_TOKEN }}"
-

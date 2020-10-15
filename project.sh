@@ -23,8 +23,9 @@
 #       s = sources
 #       t = test
 #===================================================================
+version=1.4.0
 artifacts=(
-  "org.modelingvalue   immutable-collections   1.3.0       jar jds"
+  "org.modelingvalue   immutable-collections   $version    jar jds"
 )
 dependencies=(
   "org.junit.jupiter   junit-jupiter-api       5.6.2       jar jdst"
