@@ -55,7 +55,7 @@ jobs:
       - name: "test"
         run:  |
           . <(java -jar ~/buildtools.jar)
-          #installJunitlauncher
+          installJunitlauncher
           if ! ant test; then
             for i in TEST-*.xml; do
               echo "=============== $i"
