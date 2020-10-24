@@ -105,13 +105,12 @@ jobs:
         uses: ModelingValueGroup/buildtools@master
 
       - name: "get downloads"
-        uses: actions/download-artifact@v2
-        with:
-          path: "out/artifacts"
 
       - name: "saving snapshots for other projects on this branch"
         run: |
           . <(java -jar ~/buildtools.jar)
+          mkdir -p out/artifacts
+          mv immutable-collections*.jar out/artifacts
           storeMyBranchSnapshots
 
   publish:
@@ -124,8 +123,6 @@ jobs:
 
       - name: "get downloads"
         uses: actions/download-artifact@v2
-        with:
-          path: "out/artifacts"
 
       - name: "tag with version"
         run: |
@@ -135,4 +132,4 @@ jobs:
       - name: "publish maven-artifacts (jar/pom/sources/javadoc)"
         uses: ModelingValueGroup/upload-maven-package-action@master
         with:
-          file : "out/artifacts/immutable-collections.jar"
+          file : "immutable-collections.jar"
