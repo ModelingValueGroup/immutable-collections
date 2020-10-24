@@ -2,12 +2,13 @@ name: build
 
 on: [push]
 
+env:
+  GITHUB_TOKEN: "${{secrets.GITHUB_TOKEN}}"
+  ALLREP_TOKEN: "${{secrets.ALLREP_TOKEN}}"
+
 jobs:
   build:
     runs-on: ubuntu-20.04
-    env:
-      GITHUB_TOKEN: "${{secrets.GITHUB_TOKEN}}"
-      ALLREP_TOKEN: "${{secrets.ALLREP_TOKEN}}"
     steps:
       - name: "checkout"
         uses: actions/checkout@v1
@@ -92,21 +93,43 @@ jobs:
           name: immutable-collections-testresults.jar
           path: out/artifacts/immutable-collections-testresults.jar
 
-      - name: "if NOT master: saving snapshots for other projects on this branch"
-        if: github.ref != 'refs/heads/master'
+  snapshots:
+    runs-on: ubuntu-20.04
+    if: github.ref != 'refs/heads/master'
+    needs: build
+    steps:
+      - name: "get buildtools"
+        uses: ModelingValueGroup/buildtools@master
+
+      - name: "get downloads"
+        uses: actions/download-artifact@v2
+        with:
+          path: "out/artifacts"
+
+      - name: "saving snapshots for other projects on this branch"
         run: |
           . <(java -jar ~/buildtools.jar)
           storeMyBranchSnapshots
 
-      #=========== only if master: ==============================================================
-      - name: "if master: tag with version"
-        if: github.ref == 'refs/heads/master'
+  publish artifact:
+    runs-on: ubuntu-20.04
+    if: github.ref == 'refs/heads/master'
+    needs: build
+    steps:
+      - name: "get buildtools"
+        uses: ModelingValueGroup/buildtools@master
+
+      - name: "get downloads"
+        uses: actions/download-artifact@v2
+        with:
+          path: "out/artifacts"
+
+      - name: "tag with version"
         run: |
           . <(java -jar ~/buildtools.jar)
           setVersionTag
 
-      - name: "if master: publish maven-artifacts (jar/pom/sources/javadoc)"
+      - name: "publish maven-artifacts (jar/pom/sources/javadoc)"
         uses: ModelingValueGroup/upload-maven-package-action@master
-        if  : github.ref == 'refs/heads/master'
         with:
           file : "out/artifacts/immutable-collections.jar"
