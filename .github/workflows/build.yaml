@@ -110,8 +110,9 @@ jobs:
       - name: "saving snapshots for other projects on this branch"
         run: |
           . <(java -jar ~/buildtools.jar)
+          ls -lR
           mkdir -p out/artifacts
-          mv immutable-collections*.jar out/artifacts
+          mv */immutable-collections*.jar out/artifacts
           storeMyBranchSnapshots
 
   publish:
