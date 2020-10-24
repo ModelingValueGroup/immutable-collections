@@ -105,6 +105,7 @@ jobs:
         uses: ModelingValueGroup/buildtools@master
 
       - name: "get downloads"
+        uses: actions/download-artifact@v2
 
       - name: "saving snapshots for other projects on this branch"
         run: |
