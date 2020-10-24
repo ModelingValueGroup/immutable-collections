@@ -137,4 +137,4 @@ jobs:
       - name: "publish maven-artifacts (jar/pom/sources/javadoc)"
         uses: ModelingValueGroup/upload-maven-package-action@master
         with:
-          file : "immutable-collections.jar"
+          file : "immutable-collections.jar/immutable-collections.jar"
