@@ -112,6 +112,7 @@ jobs:
       - name: "saving snapshots for other projects on this branch"
         run: |
           . <(java -jar ~/buildtools.jar)
+          find out -type f 
           mv out/artifact/*/* out/artifact
           rmdir out/artifact/* 2>/dev/null
           find out -exec -l -l {} +
