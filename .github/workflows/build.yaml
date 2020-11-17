@@ -112,8 +112,11 @@ jobs:
       - name: "saving snapshots for other projects on this branch"
         run: |
           . <(java -jar ~/buildtools.jar)
-          mv out/artifacts/*/* out/artifacts
+          find out -exec ls -l {} +
+          mkdir out/temp
+          mv out/artifacts/*/* out/tmp
           rmdir out/artifacts/* 2>/dev/null
+          mv out/tmp/* out/artifacts
           find out -exec ls -l {} +
           storeMyBranchSnapshots
 
@@ -137,8 +140,11 @@ jobs:
         run: |
           . <(java -jar ~/buildtools.jar)
           setVersionTag
-          mv out/artifacts/*/* out/artifacts
+          find out -exec ls -l {} +
+          mkdir out/temp
+          mv out/artifacts/*/* out/tmp
           rmdir out/artifacts/* 2>/dev/null
+          mv out/tmp/* out/artifacts
           find out -exec ls -l {} +
 
       - name: "publish maven-artifacts (jar/pom/sources/javadoc)"
