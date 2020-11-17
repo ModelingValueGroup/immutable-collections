@@ -112,10 +112,9 @@ jobs:
       - name: "saving snapshots for other projects on this branch"
         run: |
           . <(java -jar ~/buildtools.jar)
-          find out -type f 
-          mv out/artifact/*/* out/artifact
-          rmdir out/artifact/* 2>/dev/null
-          find out -exec -l -l {} +
+          mv out/artifacts/*/* out/artifacts
+          rmdir out/artifacts/* 2>/dev/null
+          find out -exec ls -l {} +
           storeMyBranchSnapshots
 
   publish:
@@ -138,11 +137,11 @@ jobs:
         run: |
           . <(java -jar ~/buildtools.jar)
           setVersionTag
-          mv out/artifact/*/* out/artifact
-          rmdir out/artifact/* 2>/dev/null
-          find out -exec -l -l {} +
+          mv out/artifacts/*/* out/artifacts
+          rmdir out/artifacts/* 2>/dev/null
+          find out -exec ls -l {} +
 
       - name: "publish maven-artifacts (jar/pom/sources/javadoc)"
         uses: ModelingValueGroup/upload-maven-package-action@master
         with:
-          file : "out/artifact/immutable-collections.jar"
+          file : "out/artifacts/immutable-collections.jar"
