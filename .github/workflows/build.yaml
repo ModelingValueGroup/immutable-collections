@@ -107,17 +107,14 @@ jobs:
       - name: "get downloads"
         uses: actions/download-artifact@v2
         with:
-          path: out/artifacts
+          path: tmp
 
       - name: "saving snapshots for other projects on this branch"
         run: |
           . <(java -jar ~/buildtools.jar)
-          find out -exec ls -l {} +
-          mkdir out/temp
-          mv out/artifacts/*/* out/tmp
-          rmdir out/artifacts/* 2>/dev/null
-          mv out/tmp/* out/artifacts
-          find out -exec ls -l {} +
+          find tmp out -type f
+          mv tmp/*/* out/artifacts
+          find tmp out -type f
           storeMyBranchSnapshots
 
   publish:
@@ -134,18 +131,15 @@ jobs:
       - name: "get downloads"
         uses: actions/download-artifact@v2
         with:
-          path: out/artifacts
+          path: tmp
 
       - name: "tag with version"
         run: |
           . <(java -jar ~/buildtools.jar)
           setVersionTag
-          find out -exec ls -l {} +
-          mkdir out/temp
-          mv out/artifacts/*/* out/tmp
-          rmdir out/artifacts/* 2>/dev/null
-          mv out/tmp/* out/artifacts
-          find out -exec ls -l {} +
+          find tmp out -type f
+          mv tmp/*/* out/artifacts
+          find tmp out -type f
 
       - name: "publish maven-artifacts (jar/pom/sources/javadoc)"
         uses: ModelingValueGroup/upload-maven-package-action@master
