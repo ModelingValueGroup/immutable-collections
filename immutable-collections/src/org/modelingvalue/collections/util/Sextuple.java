@@ -13,44 +13,45 @@
 //     Arjan Kok, Carel Bast                                                                                           ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-package org.modelingvalue.collections;
+package org.modelingvalue.collections.util;
 
-import java.util.*;
-
-import org.modelingvalue.collections.util.*;
+import org.modelingvalue.collections.struct.impl.Struct6Impl;
 
 @SuppressWarnings("unused")
-public interface ContainingCollection<T> extends Collection<T>, Internable {
+public class Sextuple<A, B, C, D, E, F> extends Struct6Impl<A, B, C, D, E, F> {
 
-    <R extends ContainingCollection<T>> StreamCollection<R[]> compare(R other);
+    private static final long serialVersionUID = 4261851930218225793L;
 
-    T get(int index);
+    public static <X, Y, Z, Q, R, S> Sextuple<X, Y, Z, Q, R, S> of(X a, Y b, Z c, Q d, R e, S f) {
+        return new Sextuple<>(a, b, c, d, e, f);
+    }
 
-    ContainingCollection<T> remove(Object e);
+    protected Sextuple(A a, B b, C c, D d, E e, F f) {
+        super(a, b, c, d, e, f);
+    }
 
-    ContainingCollection<T> removeAll(Collection<?> e);
+    public A a() {
+        return get0();
+    }
 
-    ContainingCollection<T> add(T e);
+    public B b() {
+        return get1();
+    }
 
-    ContainingCollection<T> addAll(Collection<? extends T> e);
+    public C c() {
+        return get2();
+    }
 
-    ContainingCollection<T> addUnique(T e);
+    public D d() {
+        return get3();
+    }
 
-    ContainingCollection<T> addAllUnique(Collection<? extends T> e);
+    public E e() {
+        return get4();
+    }
 
-    ContainingCollection<T> replace(Object pre, T post);
+    public F f() {
+        return get5();
+    }
 
-    boolean contains(Object e);
-
-    Collection<T> reverse();
-
-    Spliterator<T> reverseSpliterator();
-
-    ListIterator<T> listIterator();
-
-    ListIterator<T> listIteratorAtEnd();
-
-    void javaSerialize(Serializer s);
-
-    void javaDeserialize(Deserializer s);
 }

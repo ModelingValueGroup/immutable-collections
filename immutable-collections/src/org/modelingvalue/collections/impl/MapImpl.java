@@ -134,6 +134,12 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
         return e instanceof Entry ? remove((Entry) e, (a, b) -> Mergeables.merge(b, null, a)) : this;
     }
 
+    @Override
+    public Map<K, V> replace(Object pre, Entry<K, V> post) {
+        Map<K, V> rem = remove(pre);
+        return rem != this ? rem.add(post) : this;
+    }
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public Map<K, V> removeAll(Collection<?> es) {

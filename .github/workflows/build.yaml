@@ -49,7 +49,7 @@ jobs:
       - name: "download dependencies (as mentioned in pom)"
         run:  |
           . <(java -jar ~/buildtools.jar)
-          getAllDependencies "${{secrets.SCALEWAY_ACCESS_KEY}}" "${{secrets.SCALEWAY_SECRET_KEY}}"
+          getAllDependencies
           installJunitlauncher
 
       - name: "build"
@@ -106,13 +106,16 @@ jobs:
 
       - name: "get downloads"
         uses: actions/download-artifact@v2
+        with:
+          path: tmp
 
       - name: "saving snapshots for other projects on this branch"
         run: |
           . <(java -jar ~/buildtools.jar)
-          ls -lR
           mkdir -p out/artifacts
-          mv */immutable-collections*.jar out/artifacts
+          find tmp out
+          mv tmp/*/* out/artifacts
+          find tmp out
           storeMyBranchSnapshots
 
   publish:
@@ -120,18 +123,27 @@ jobs:
     if: github.ref == 'refs/heads/master'
     needs: build
     steps:
+      - name: "checkout"
+        uses: actions/checkout@v1
+
       - name: "get buildtools"
         uses: ModelingValueGroup/buildtools@master
 
       - name: "get downloads"
         uses: actions/download-artifact@v2
+        with:
+          path: tmp
 
       - name: "tag with version"
         run: |
           . <(java -jar ~/buildtools.jar)
           setVersionTag
+          mkdir -p out/artifacts
+          find tmp out
+          mv tmp/*/* out/artifacts
+          find tmp out
 
       - name: "publish maven-artifacts (jar/pom/sources/javadoc)"
         uses: ModelingValueGroup/upload-maven-package-action@master
         with:
-          file : "immutable-collections.jar"
+          file : "out/artifacts/immutable-collections.jar"

@@ -15,10 +15,12 @@
 
 package org.modelingvalue.collections;
 
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
-import org.modelingvalue.collections.impl.*;
-import org.modelingvalue.collections.util.*;
+import org.modelingvalue.collections.impl.ListImpl;
+import org.modelingvalue.collections.util.Mergeable;
 
 @SuppressWarnings("unused")
 public interface List<T> extends ContainingCollection<T>, Mergeable<List<T>> {
@@ -115,6 +117,9 @@ public interface List<T> extends ContainingCollection<T>, Mergeable<List<T>> {
     default List<T> toList() {
         return this;
     }
+
+    @Override
+    List<T> replace(Object pre, T post);
 
     @Override
     List<T> remove(Object e);

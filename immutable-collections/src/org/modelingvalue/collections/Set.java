@@ -49,6 +49,9 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
     boolean containsAll(Collection<?> c);
 
     @Override
+    Set<T> replace(Object pre, T post);
+
+    @Override
     Set<T> add(T e);
 
     @Override
