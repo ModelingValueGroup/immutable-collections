@@ -26,11 +26,10 @@ public class Struct4Impl<T0, T1, T2, T3> extends Struct3Impl<T0, T1, T2> impleme
         this((Object) t0, t1, t2, t3);
     }
 
-    protected Struct4Impl(Object... data) {
+    protected Struct4Impl(Object... data){
         super(data);
     }
 
-    @Override
     public T3 get3() {
         return (T3) get(3);
     }

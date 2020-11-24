@@ -26,11 +26,10 @@ public class Struct5Impl<T0, T1, T2, T3, T4> extends Struct4Impl<T0, T1, T2, T3>
         this((Object) t0, t1, t2, t3, t4);
     }
 
-    protected Struct5Impl(Object... data) {
+    protected Struct5Impl(Object... data){
         super(data);
     }
 
-    @Override
     public T4 get4() {
         return (T4) get(4);
     }

@@ -26,11 +26,10 @@ public class Struct11Impl<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> extends S
         this((Object) t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10);
     }
 
-    protected Struct11Impl(Object... data) {
+    protected Struct11Impl(Object... data){
         super(data);
     }
 
-    @Override
     public T10 get10() {
         return (T10) get(10);
     }

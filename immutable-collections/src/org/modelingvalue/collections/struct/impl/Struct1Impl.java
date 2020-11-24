@@ -26,11 +26,10 @@ public class Struct1Impl<T0> extends Struct0Impl implements Struct1<T0> {
         this((Object) t0);
     }
 
-    protected Struct1Impl(Object... data) {
+    protected Struct1Impl(Object... data){
         super(data);
     }
 
-    @Override
     public T0 get0() {
         return (T0) get(0);
     }
