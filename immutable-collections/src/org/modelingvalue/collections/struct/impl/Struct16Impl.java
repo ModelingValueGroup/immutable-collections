@@ -26,10 +26,11 @@ public class Struct16Impl<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
         this((Object) t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15);
     }
 
-    protected Struct16Impl(Object... data){
+    protected Struct16Impl(Object... data) {
         super(data);
     }
 
+    @Override
     public T15 get15() {
         return (T15) get(15);
     }

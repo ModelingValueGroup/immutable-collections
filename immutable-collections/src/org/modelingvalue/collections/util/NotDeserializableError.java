@@ -17,6 +17,9 @@ package org.modelingvalue.collections.util;
 
 @SuppressWarnings("unused")
 public class NotDeserializableError extends RuntimeException {
+
+    private static final long serialVersionUID = -2389883038039057768L;
+
     public NotDeserializableError() {
     }
 

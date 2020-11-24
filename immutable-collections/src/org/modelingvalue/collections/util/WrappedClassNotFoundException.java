@@ -16,6 +16,9 @@
 package org.modelingvalue.collections.util;
 
 public class WrappedClassNotFoundException extends Error {
+
+    private static final long serialVersionUID = -7092785240215348686L;
+
     public WrappedClassNotFoundException(ClassNotFoundException cause) {
         super(cause);
     }

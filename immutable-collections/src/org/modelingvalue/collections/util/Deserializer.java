@@ -15,15 +15,17 @@
 
 package org.modelingvalue.collections.util;
 
-import java.io.*;
-import java.util.*;
-import java.util.function.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.Arrays;
+import java.util.function.Consumer;
 
 public interface Deserializer {
     <X> X readObject();
 
     int readInt();
 
+    @SuppressWarnings("unchecked")
     default <T> T[] readArray() {
         //noinspection unchecked
         return readArray((T[]) new Object[]{});
@@ -58,6 +60,7 @@ public interface Deserializer {
             this.s = s;
         }
 
+        @SuppressWarnings("unchecked")
         @Override
         public <X> X readObject() {
             try {

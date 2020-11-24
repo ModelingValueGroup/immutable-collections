@@ -26,10 +26,11 @@ public class Struct23Impl<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
         this((Object) t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12, t13, t14, t15, t16, t17, t18, t19, t20, t21, t22);
     }
 
-    protected Struct23Impl(Object... data){
+    protected Struct23Impl(Object... data) {
         super(data);
     }
 
+    @Override
     public T22 get22() {
         return (T22) get(22);
     }
