@@ -30,6 +30,7 @@ public class Struct22Impl<T0, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12,
         super(data);
     }
 
+    @Override
     public T21 get21() {
         return (T21) get(21);
     }
