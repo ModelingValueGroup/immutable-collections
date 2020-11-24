@@ -15,20 +15,27 @@
 
 package generator;
 
-import java.io.*;
-import java.nio.file.*;
-import java.util.*;
-import java.util.stream.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class StructGenerator {
-    private static final String IMPL = "impl";
+    private static final String IMPL                = "impl";
 
-    private int        maxNumTypeArgs;
-    private Path       interfaceSrcGenDir;
-    private Path       implementSrcGenDir;
-    private String     interfaceJavaPackage;
-    private String     implementJavaPackage;
-    private List<Path> previouslyGenerated = new ArrayList<>();
+    private int                 maxNumTypeArgs;
+    private Path                interfaceSrcGenDir;
+    private Path                implementSrcGenDir;
+    private String              interfaceJavaPackage;
+    private String              implementJavaPackage;
+    private List<Path>          previouslyGenerated = new ArrayList<>();
 
     public static void main(String[] args) throws IOException {
         new StructGenerator().prepare(Arrays.asList(args)).generate();
@@ -41,7 +48,7 @@ public class StructGenerator {
         }
         maxNumTypeArgs = Integer.parseInt(args.get(0));
 
-        Path genDir           = Paths.get(args.get(1));
+        Path genDir = Paths.get(args.get(1));
         Path interfaceGenPack = Paths.get(args.get(2).replace('.', '/'));
         Path implementGenPack = interfaceGenPack.resolve(IMPL);
 
@@ -97,8 +104,8 @@ public class StructGenerator {
     }
 
     private List<String> generateStructInterface(int i) {
-        List<String> f    = new ArrayList<>();
-        int          prev = i - 1;
+        List<String> f = new ArrayList<>();
+        int prev = i - 1;
         f.add("package " + interfaceJavaPackage + ";");
         f.add("");
         f.add("public interface " + structNameWithTypeArgs(i) + " extends " + structNameWithTypeArgs(prev) + " {");
@@ -110,8 +117,8 @@ public class StructGenerator {
     }
 
     private List<String> generateStructImplementation(int i) {
-        List<String> f    = new ArrayList<>();
-        int          prev = i - 1;
+        List<String> f = new ArrayList<>();
+        int prev = i - 1;
         f.add("package " + implementJavaPackage + ";");
         f.add("");
         f.add("import " + interfaceJavaPackage + "." + structName(i, false) + ";");
@@ -137,6 +144,7 @@ public class StructGenerator {
 
         if (0 != i) {
             f.add("");
+            f.add("    @Override");
             f.add("    public T" + prev + " get" + prev + "() {");
             f.add("        return (T" + prev + ") get(" + prev + ");");
             f.add("    }");
