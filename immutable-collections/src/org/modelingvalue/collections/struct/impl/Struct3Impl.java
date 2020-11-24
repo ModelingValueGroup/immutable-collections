@@ -30,6 +30,7 @@ public class Struct3Impl<T0, T1, T2> extends Struct2Impl<T0, T1> implements Stru
         super(data);
     }
 
+    @Override
     public T2 get2() {
         return (T2) get(2);
     }
