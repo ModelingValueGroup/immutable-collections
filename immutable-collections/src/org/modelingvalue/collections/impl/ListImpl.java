@@ -280,7 +280,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
             return getIntStream(0, values.length, stop, size).allMatch(i -> {
                 if (!stop[0]) {
                     Object val = values[i];
-                    int    pos = min + prev(len, i);
+                    int pos = min + prev(len, i);
                     if (val instanceof ListMultivalue ? ((ListMultivalue) val).equalsWithStop(other, pos, stop) : val.equals(TreeCollectionImpl.getDeep(other, pos))) {
                         return true;
                     }
@@ -407,6 +407,15 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     @Override
     public List<T> removeList(int begin, int end) {
         return end - begin == 0 ? this : new ListImpl<>(removeAllDeep(value, begin, end));
+    }
+
+    @Override
+    public List<T> replace(Object pre, T post) {
+        List<T> result = this;
+        for (int i = firstIndexOf(pre); i >= 0; i = result.firstIndexOf(pre)) {
+            result = result.replace(i, post);
+        }
+        return result;
     }
 
     @Override

@@ -17,7 +17,6 @@ package org.modelingvalue.collections.util;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 public class Context<T> {
@@ -69,18 +68,8 @@ public class Context<T> {
         }
     }
 
-    public void set(T v) {
+    public void setOnThread(T v) {
         set(ContextThread.getContext(), v);
-    }
-
-    public <E> void set(BiFunction<T, E, T> f, E e) {
-        Object[] c = ContextThread.getContext();
-        set(c, f.apply(get(c), e));
-    }
-
-    public <K, V> void set(TriFunction<T, K, V, T> f, K k, V v) {
-        Object[] c = ContextThread.getContext();
-        set(c, f.apply(get(c), k, v));
     }
 
     @SuppressWarnings("unchecked")

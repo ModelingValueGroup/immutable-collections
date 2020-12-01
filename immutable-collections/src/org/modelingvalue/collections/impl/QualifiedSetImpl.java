@@ -15,14 +15,22 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.io.*;
-import java.util.*;
-import java.util.function.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Objects;
+import java.util.Spliterator;
+import java.util.function.Predicate;
 
 import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.QualifiedSet;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.*;
-import org.modelingvalue.collections.util.*;
+import org.modelingvalue.collections.util.ArrayUtil;
+import org.modelingvalue.collections.util.Deserializer;
+import org.modelingvalue.collections.util.Mergeables;
+import org.modelingvalue.collections.util.QuadFunction;
+import org.modelingvalue.collections.util.SerializableFunction;
+import org.modelingvalue.collections.util.Serializer;
 
 @SuppressWarnings("serial")
 public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements QualifiedSet<K, V> {
@@ -196,6 +204,12 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
     }
 
     @Override
+    public QualifiedSet<K, V> replace(Object pre, V post) {
+        QualifiedSet<K, V> rem = remove(pre);
+        return rem != this ? rem.add(post) : this;
+    }
+
+    @Override
     public QualifiedSet<K, V> removeAll(Collection<?> e) {
         @SuppressWarnings("resource")
         QualifiedSet<K, V> result = this;
@@ -253,11 +267,13 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
         Deserializer.wrap(s, this::javaDeserialize);
     }
 
+    @Override
     public void javaSerialize(Serializer s) {
         s.writeObject(qualifier.original());
         super.javaSerialize(s);
     }
 
+    @Override
     @SuppressWarnings({"unchecked"})
     public void javaDeserialize(Deserializer s) {
         qualifier = ((SerializableFunction<V, K>) s.readObject()).of();
@@ -275,8 +291,8 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
 
     @SuppressWarnings({"unchecked", "unused"})
     private static <K, V> QualifiedSetImpl<K, V> deserialize(Deserializer s) {
-        SerializableFunction<V, K> f       = (SerializableFunction<V, K>) ((SerializableFunction<V, K>) s.readObject()).original();
-        V[]                        entries = (V[]) s.readArray(new Object[]{});
+        SerializableFunction<V, K> f = (SerializableFunction<V, K>) ((SerializableFunction<V, K>) s.readObject()).original();
+        V[] entries = (V[]) s.readArray(new Object[]{});
         return new QualifiedSetImpl<>(f, entries);
     }
 }

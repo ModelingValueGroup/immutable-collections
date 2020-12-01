@@ -15,22 +15,39 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.io.*;
-import java.lang.reflect.*;
-import java.util.*;
-import java.util.Spliterator.*;
-import java.util.function.*;
-import java.util.stream.*;
+import java.io.Serializable;
+import java.lang.reflect.Array;
+import java.util.Iterator;
+import java.util.ListIterator;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Spliterator;
+import java.util.Spliterator.OfInt;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.IntConsumer;
+import java.util.function.Predicate;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.*;
-import org.modelingvalue.collections.util.*;
+import org.modelingvalue.collections.ContainingCollection;
+import org.modelingvalue.collections.StreamCollection;
+import org.modelingvalue.collections.util.Age;
+import org.modelingvalue.collections.util.ContextThread;
+import org.modelingvalue.collections.util.Deserializer;
+import org.modelingvalue.collections.util.Internable;
+import org.modelingvalue.collections.util.Serializer;
+import org.modelingvalue.collections.util.StringUtil;
+import org.modelingvalue.collections.util.TriConsumer;
+import org.modelingvalue.collections.util.TriFunction;
 
 public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements ContainingCollection<T> {
-    private static final   long         serialVersionUID = 7999808719969099597L;
-    protected static final int          CHARACTERISTICS  = Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL;
-    private static final   int          SPLIT_START      = Integer.getInteger("SPLIT_START", 64);
-    private static final   Predicate<?> ALL_INTERNABLE   = e -> e instanceof Internable && ((Internable) e).isInternable();
+    private static final long         serialVersionUID = 7999808719969099597L;
+    protected static final int        CHARACTERISTICS  = Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL;
+    private static final int          SPLIT_START      = Integer.getInteger("SPLIT_START", 64);
+    private static final Predicate<?> ALL_INTERNABLE   = e -> e instanceof Internable && ((Internable) e).isInternable();
 
     protected static boolean split(int amount) {
         if (!PARALLEL_COLLECTIONS) {
@@ -160,10 +177,10 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
     private static final class IntSpliterator implements OfInt {
         private static final int INT_CHARACTERISTICS = Spliterator.DISTINCT | Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL;
 
-        private final boolean[] stop;
-        private       int       min, total;
+        private final boolean[]  stop;
+        private int              min, total;
 
-        private final int max;
+        private final int        max;
 
         private IntSpliterator(int min, int max, boolean[] stop, int total) {
             this.stop = stop;
@@ -263,8 +280,8 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
 
     protected static abstract class CollectionSpliterator<T> implements Spliterator<T> {
 
-        private Object value;
-        private int    min, max, size;
+        private Object        value;
+        private int           min, max, size;
         private final boolean reverse;
 
         protected CollectionSpliterator(Object value, int min, int max, int size, boolean reverse) {
@@ -313,10 +330,10 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         @Override
         public Spliterator<T> trySplit() {
             if (max - min > 1 && TreeCollectionImpl.split(size)) {
-                MultiValue multi  = (MultiValue) value;
-                int        half   = size / 2;
-                int        amount = 0;
-                for (int i = min; i < max - 1; ) {
+                MultiValue multi = (MultiValue) value;
+                int half = size / 2;
+                int amount = 0;
+                for (int i = min; i < max - 1;) {
                     amount += size(multi.values[i++]);
                     if (amount >= half && amount < size) {
                         Spliterator<T> prefix;
@@ -370,7 +387,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
 
         private final int[]    index;
         private final Object[] stack;
-        private       int      level;
+        private int            level;
 
         private CollectionIterator(Object value, int cursor) {
             index = new int[depth(value)];
@@ -468,10 +485,10 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
 
         private static final long serialVersionUID = -901414039518935454L;
 
-        protected final Object[] values;
-        protected final int      size;
-        protected final int      hash;
-        protected final byte     depth;
+        protected final Object[]  values;
+        protected final int       size;
+        protected final int       hash;
+        protected final byte      depth;
 
         protected MultiValue(Object[] values, int size, int hash, byte depth) {
             this.values = values;
@@ -616,6 +633,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         return allMatch((Predicate<? super T>) ALL_INTERNABLE);
     }
 
+    @Override
     public void javaSerialize(Serializer s) {
         s.writeInt(size());
         for (Object e : this) {
@@ -623,6 +641,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         }
     }
 
+    @Override
     public void javaDeserialize(Deserializer s) {
         int size = s.readInt();
         for (int i = 0; i < size; i++) {

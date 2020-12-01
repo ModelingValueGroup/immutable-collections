@@ -15,9 +15,12 @@
 
 package org.modelingvalue.collections.util;
 
-import java.io.*;
+import java.io.IOException;
 
 public class WrappedIOException extends Error {
+
+    private static final long serialVersionUID = -6174032071092455977L;
+
     public WrappedIOException(IOException cause) {
         super(cause);
     }

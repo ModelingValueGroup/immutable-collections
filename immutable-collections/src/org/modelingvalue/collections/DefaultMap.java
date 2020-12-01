@@ -75,6 +75,9 @@ public interface DefaultMap<K, V> extends ContainingCollection<Entry<K, V>>, Mer
     DefaultMap<K, V> add(Entry<K, V> e);
 
     @Override
+    DefaultMap<K, V> replace(Object pre, Entry<K, V> post);
+
+    @Override
     DefaultMap<K, V> addAll(Collection<? extends Entry<K, V>> es);
 
     Collection<Entry<K, Pair<V, V>>> diff(DefaultMap<K, V> other);

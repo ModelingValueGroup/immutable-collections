@@ -24,7 +24,7 @@ import org.modelingvalue.collections.util.*;
 public abstract class StructImpl implements Struct {
     private static final long serialVersionUID = -1849579252791770119L;
 
-    private Object[] data;
+    private Object[]          data;
 
     protected StructImpl(Object... data) {
         this.data = postCreate(data);
@@ -74,8 +74,8 @@ public abstract class StructImpl implements Struct {
 
     @Override
     public String toString() {
-        Class<? extends StructImpl> clazz      = getClass();
-        Class<?>[]                  interfaces = clazz.getInterfaces();
+        Class<? extends StructImpl> clazz = getClass();
+        Class<?>[] interfaces = clazz.getInterfaces();
         return (interfaces.length == 0 ? clazz : interfaces[0]).getSimpleName() + StringUtil.toString(data);
     }
 

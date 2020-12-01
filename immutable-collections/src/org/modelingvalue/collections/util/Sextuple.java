@@ -15,15 +15,43 @@
 
 package org.modelingvalue.collections.util;
 
-public class WrappedClassNotFoundException extends Error {
+import org.modelingvalue.collections.struct.impl.Struct6Impl;
 
-    private static final long serialVersionUID = -7092785240215348686L;
+@SuppressWarnings("unused")
+public class Sextuple<A, B, C, D, E, F> extends Struct6Impl<A, B, C, D, E, F> {
 
-    public WrappedClassNotFoundException(ClassNotFoundException cause) {
-        super(cause);
+    private static final long serialVersionUID = 4261851930218225793L;
+
+    public static <X, Y, Z, Q, R, S> Sextuple<X, Y, Z, Q, R, S> of(X a, Y b, Z c, Q d, R e, S f) {
+        return new Sextuple<>(a, b, c, d, e, f);
     }
 
-    public void throwOriginal() throws ClassNotFoundException {
-        throw (ClassNotFoundException) getCause();
+    protected Sextuple(A a, B b, C c, D d, E e, F f) {
+        super(a, b, c, d, e, f);
     }
+
+    public A a() {
+        return get0();
+    }
+
+    public B b() {
+        return get1();
+    }
+
+    public C c() {
+        return get2();
+    }
+
+    public D d() {
+        return get3();
+    }
+
+    public E e() {
+        return get4();
+    }
+
+    public F f() {
+        return get5();
+    }
+
 }

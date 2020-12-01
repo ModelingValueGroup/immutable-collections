@@ -15,15 +15,39 @@
 
 package org.modelingvalue.collections.util;
 
-public class WrappedClassNotFoundException extends Error {
+import org.modelingvalue.collections.struct.impl.Struct5Impl;
 
-    private static final long serialVersionUID = -7092785240215348686L;
+@SuppressWarnings("unused")
+public class Quintuple<A, B, C, D, E> extends Struct5Impl<A, B, C, D, E> {
 
-    public WrappedClassNotFoundException(ClassNotFoundException cause) {
-        super(cause);
+    private static final long serialVersionUID = -7572717838812193661L;
+
+    public static <X, Y, Z, Q, R> Quintuple<X, Y, Z, Q, R> of(X a, Y b, Z c, Q d, R e) {
+        return new Quintuple<>(a, b, c, d, e);
     }
 
-    public void throwOriginal() throws ClassNotFoundException {
-        throw (ClassNotFoundException) getCause();
+    protected Quintuple(A a, B b, C c, D d, E e) {
+        super(a, b, c, d, e);
     }
+
+    public A a() {
+        return get0();
+    }
+
+    public B b() {
+        return get1();
+    }
+
+    public C c() {
+        return get2();
+    }
+
+    public D d() {
+        return get3();
+    }
+
+    public E e() {
+        return get4();
+    }
+
 }

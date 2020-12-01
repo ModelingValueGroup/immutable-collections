@@ -15,10 +15,12 @@
 
 package org.modelingvalue.collections;
 
-import org.modelingvalue.collections.impl.*;
-import org.modelingvalue.collections.util.*;
+import java.util.function.Predicate;
 
-import java.util.function.*;
+import org.modelingvalue.collections.impl.QualifiedSetImpl;
+import org.modelingvalue.collections.util.Mergeable;
+import org.modelingvalue.collections.util.QuadFunction;
+import org.modelingvalue.collections.util.SerializableFunction;
 
 @SuppressWarnings("unused")
 public interface QualifiedSet<K, V> extends ContainingCollection<V>, Mergeable<QualifiedSet<K, V>> {
@@ -65,6 +67,9 @@ public interface QualifiedSet<K, V> extends ContainingCollection<V>, Mergeable<Q
 
     @Override
     QualifiedSet<K, V> remove(Object e);
+
+    @Override
+    QualifiedSet<K, V> replace(Object pre, V post);
 
     boolean containsAll(Collection<?> c); //TODO: see DCL-151: consider a rename
 

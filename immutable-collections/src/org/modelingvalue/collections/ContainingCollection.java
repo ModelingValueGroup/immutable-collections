@@ -38,7 +38,9 @@ public interface ContainingCollection<T> extends Collection<T>, Internable {
 
     ContainingCollection<T> addAllUnique(Collection<? extends T> e);
 
-    boolean contains(T e);
+    ContainingCollection<T> replace(Object pre, T post);
+
+    boolean contains(Object e);
 
     Collection<T> reverse();
 
