@@ -74,6 +74,11 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
     @Override
     Collection<T> sorted(Comparator<? super T> comparator);
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    default <C extends Comparable> Collection<T> sortedBy(Function<T, C> by) {
+        return sorted((o1, o2) -> by.apply(o1).compareTo(by.apply(o2)));
+    }
+
     @Override
     Collection<T> peek(Consumer<? super T> action);
 
