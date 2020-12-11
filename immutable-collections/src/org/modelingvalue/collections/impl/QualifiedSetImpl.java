@@ -295,4 +295,10 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
         V[] entries = (V[]) s.readArray(new Object[]{});
         return new QualifiedSetImpl<>(f, entries);
     }
+
+    @Override
+    public QualifiedSet<K, V> clear() {
+        return create(null);
+    }
+
 }

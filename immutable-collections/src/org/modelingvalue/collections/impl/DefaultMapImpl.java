@@ -363,4 +363,10 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
         Entry<K, V>[] entries = s.readArray(new Entry[]{});
         return new DefaultMapImpl<>(entries, defaultFunction);
     }
+
+    @Override
+    public DefaultMap<K, V> clear() {
+        return create(null);
+    }
+
 }

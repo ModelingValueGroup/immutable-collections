@@ -15,13 +15,17 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.io.*;
-import java.util.*;
-import java.util.function.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Objects;
+import java.util.Spliterator;
+import java.util.function.Function;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.util.*;
+import org.modelingvalue.collections.util.Deserializer;
+import org.modelingvalue.collections.util.Serializer;
 
 public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
 
@@ -173,4 +177,10 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
         T[] entries = (T[]) s.readArray(new Object[]{});
         return entries.length == 0 ? (SetImpl<T>) SetImpl.EMPTY : new SetImpl<>(entries);
     }
+
+    @Override
+    public Set<T> clear() {
+        return create(null);
+    }
+
 }

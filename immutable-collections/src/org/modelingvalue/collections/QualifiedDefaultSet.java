@@ -85,4 +85,7 @@ public interface QualifiedDefaultSet<K, V> extends ContainingCollection<V>, Merg
 
     QualifiedDefaultSet<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate);
 
+    @Override
+    QualifiedDefaultSet<K, V> clear();
+
 }

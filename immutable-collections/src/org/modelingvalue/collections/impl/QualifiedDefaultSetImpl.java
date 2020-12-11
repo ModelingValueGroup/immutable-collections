@@ -309,4 +309,10 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
         V[] entries = (V[]) s.readArray(new Object[]{});
         return new QualifiedDefaultSetImpl<>(f1, f2, entries);
     }
+
+    @Override
+    public QualifiedDefaultSet<K, V> clear() {
+        return create(null);
+    }
+
 }

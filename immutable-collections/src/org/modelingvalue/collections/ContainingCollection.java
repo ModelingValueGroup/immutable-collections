@@ -15,9 +15,12 @@
 
 package org.modelingvalue.collections;
 
-import java.util.*;
+import java.util.ListIterator;
+import java.util.Spliterator;
 
-import org.modelingvalue.collections.util.*;
+import org.modelingvalue.collections.util.Deserializer;
+import org.modelingvalue.collections.util.Internable;
+import org.modelingvalue.collections.util.Serializer;
 
 @SuppressWarnings("unused")
 public interface ContainingCollection<T> extends Collection<T>, Internable {
@@ -39,6 +42,8 @@ public interface ContainingCollection<T> extends Collection<T>, Internable {
     ContainingCollection<T> addAllUnique(Collection<? extends T> e);
 
     ContainingCollection<T> replace(Object pre, T post);
+
+    ContainingCollection<T> clear();
 
     boolean contains(Object e);
 

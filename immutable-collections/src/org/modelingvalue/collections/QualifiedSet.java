@@ -83,4 +83,7 @@ public interface QualifiedSet<K, V> extends ContainingCollection<V>, Mergeable<Q
 
     QualifiedSet<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate);
 
+    @Override
+    QualifiedSet<K, V> clear();
+
 }

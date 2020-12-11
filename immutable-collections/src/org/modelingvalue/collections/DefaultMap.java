@@ -15,10 +15,15 @@
 
 package org.modelingvalue.collections;
 
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Predicate;
 
-import org.modelingvalue.collections.impl.*;
-import org.modelingvalue.collections.util.*;
+import org.modelingvalue.collections.impl.DefaultMapImpl;
+import org.modelingvalue.collections.util.Mergeable;
+import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.QuadFunction;
+import org.modelingvalue.collections.util.SerializableFunction;
 
 @SuppressWarnings("unused")
 public interface DefaultMap<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<DefaultMap<K, V>> {
@@ -65,6 +70,9 @@ public interface DefaultMap<K, V> extends ContainingCollection<Entry<K, V>>, Mer
     Collection<K> toKeys();
 
     Collection<V> toValues();
+
+    @Override
+    DefaultMap<K, V> clear();
 
     DefaultMap<K, V> merge(QuadFunction<K, V, V[], Integer, V> merger, DefaultMap<K, V>[] branches, int length);
 

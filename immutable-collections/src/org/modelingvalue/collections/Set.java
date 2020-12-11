@@ -15,10 +15,10 @@
 
 package org.modelingvalue.collections;
 
-import java.util.function.*;
+import java.util.function.Function;
 
-import org.modelingvalue.collections.impl.*;
-import org.modelingvalue.collections.util.*;
+import org.modelingvalue.collections.impl.SetImpl;
+import org.modelingvalue.collections.util.Mergeable;
 
 public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
     @SuppressWarnings("unchecked")
@@ -73,5 +73,8 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
     default Set<T> toSet() {
         return this;
     }
+
+    @Override
+    Set<T> clear();
 
 }

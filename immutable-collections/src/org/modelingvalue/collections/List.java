@@ -141,4 +141,7 @@ public interface List<T> extends ContainingCollection<T>, Mergeable<List<T>> {
     @Override
     List<T> addAllUnique(Collection<? extends T> es);
 
+    @Override
+    List<T> clear();
+
 }

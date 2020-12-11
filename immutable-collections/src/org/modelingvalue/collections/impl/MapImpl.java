@@ -15,24 +15,35 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.io.*;
-import java.util.*;
-import java.util.function.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Objects;
+import java.util.Spliterator;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.*;
-import org.modelingvalue.collections.util.*;
+import org.modelingvalue.collections.util.ArrayUtil;
+import org.modelingvalue.collections.util.Deserializer;
+import org.modelingvalue.collections.util.Mergeables;
+import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.QuadFunction;
+import org.modelingvalue.collections.util.Serializer;
 
 public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Map<K, V> {
 
-    private static final long serialVersionUID = 7758359458143777562L;
+    private static final long                    serialVersionUID = 7758359458143777562L;
 
     @SuppressWarnings("rawtypes")
-    private static final Function<Entry, Object> KEY   = Entry::getKey;
+    private static final Function<Entry, Object> KEY              = Entry::getKey;
     @SuppressWarnings("rawtypes")
-    public static final  Map                     EMPTY = new MapImpl((Object) null);
+    public static final Map                      EMPTY            = new MapImpl((Object) null);
 
     public MapImpl(Entry<K, V>[] entries) {
         this.value = entries.length == 1 ? entries[0] : putAll(null, key(), entries);
@@ -303,4 +314,10 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
         //Collection.of(stream).toMap(e->e);
         return entries.length == 0 ? (MapImpl<K, V>) MapImpl.EMPTY : new MapImpl<K, V>(entries);
     }
+
+    @Override
+    public Map<K, V> clear() {
+        return create(null);
+    }
+
 }
