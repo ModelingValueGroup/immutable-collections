@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2019 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -15,10 +15,12 @@
 
 package org.modelingvalue.collections;
 
-import org.modelingvalue.collections.impl.*;
-import org.modelingvalue.collections.util.*;
+import java.util.function.Predicate;
 
-import java.util.function.*;
+import org.modelingvalue.collections.impl.QualifiedDefaultSetImpl;
+import org.modelingvalue.collections.util.Mergeable;
+import org.modelingvalue.collections.util.QuadFunction;
+import org.modelingvalue.collections.util.SerializableFunction;
 
 @SuppressWarnings("unused")
 public interface QualifiedDefaultSet<K, V> extends ContainingCollection<V>, Mergeable<QualifiedDefaultSet<K, V>> {
@@ -42,6 +44,9 @@ public interface QualifiedDefaultSet<K, V> extends ContainingCollection<V>, Merg
     V get(K key);
 
     Collection<V> getAll(Set<K> keys);
+
+    @Override
+    QualifiedDefaultSet<K, V> replace(Object pre, V post);
 
     @Override
     QualifiedDefaultSet<K, V> add(V value);
@@ -79,5 +84,8 @@ public interface QualifiedDefaultSet<K, V> extends ContainingCollection<V>, Merg
     SerializableFunction<K, V> defaultFunction();
 
     QualifiedDefaultSet<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate);
+
+    @Override
+    QualifiedDefaultSet<K, V> clear();
 
 }

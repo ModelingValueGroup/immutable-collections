@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2019 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -15,10 +15,15 @@
 
 package org.modelingvalue.collections;
 
-import org.modelingvalue.collections.impl.*;
-import org.modelingvalue.collections.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Predicate;
 
-import java.util.function.*;
+import org.modelingvalue.collections.impl.DefaultMapImpl;
+import org.modelingvalue.collections.util.Mergeable;
+import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.QuadFunction;
+import org.modelingvalue.collections.util.SerializableFunction;
 
 @SuppressWarnings("unused")
 public interface DefaultMap<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<DefaultMap<K, V>> {
@@ -66,6 +71,9 @@ public interface DefaultMap<K, V> extends ContainingCollection<Entry<K, V>>, Mer
 
     Collection<V> toValues();
 
+    @Override
+    DefaultMap<K, V> clear();
+
     DefaultMap<K, V> merge(QuadFunction<K, V, V[], Integer, V> merger, DefaultMap<K, V>[] branches, int length);
 
     @Override
@@ -75,10 +83,14 @@ public interface DefaultMap<K, V> extends ContainingCollection<Entry<K, V>>, Mer
     DefaultMap<K, V> add(Entry<K, V> e);
 
     @Override
+    DefaultMap<K, V> replace(Object pre, Entry<K, V> post);
+
+    @Override
     DefaultMap<K, V> addAll(Collection<? extends Entry<K, V>> es);
 
     Collection<Entry<K, Pair<V, V>>> diff(DefaultMap<K, V> other);
 
     SerializableFunction<K, V> defaultFunction();
 
+    void forEach(BiConsumer<K, V> action);
 }

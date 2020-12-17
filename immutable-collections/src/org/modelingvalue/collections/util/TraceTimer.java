@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2019 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -21,20 +21,20 @@ import java.util.regex.*;
 
 @SuppressWarnings("unused")
 public final class TraceTimer {
-    private static final String  REST                     = "<REST>";
-    private static final int     MIL                      = 1_000_000;
-    private static final boolean TRACE_TIME               = Boolean.getBoolean("TRACE_TIME");
-    private static final int     TRACE_TIME_DUMP_INTERVAL = Integer.getInteger("TRACE_TIME_DUMP_INTERVAL", 10) * 1000;
-    private static final boolean TRACE_LOG                = Boolean.getBoolean("TRACE_LOG");
-    private static final boolean TRACE_LOG_DT             = Boolean.getBoolean("TRACE_LOG_DT");
-    private static final int     TRACE_LOG_DUMP_INTERVAL  = Integer.getInteger("TRACE_LOG_DUMP_INTERVAL", 100);
-    private static final boolean TRACE_TIME_STEP          = Boolean.getBoolean("TRACE_TIME_STEP");
-    private static final int     TRACE_TIME_DUMP_NR       = Integer.getInteger("TRACE_TIME_DUMP_NR", 100);
-    private static final boolean TRACE_TIME_CLEAR         = Boolean.getBoolean("TRACE_TIME_CLEAR");
-    private static final String  TRACE_TIME_TOTAL         = System.getProperties().getProperty("TRACE_TIME_TOTAL");
-    private static final Pattern TRACE_TIME_TOTAL_PATTERN = TRACE_TIME_TOTAL != null ? Pattern.compile(TRACE_TIME_TOTAL) : null;
-    private static final String  TRACE_PATTERN            = System.getProperties().getProperty("TRACE_PATTERN");
+    private static final boolean                             TRACE_TIME               = Boolean.getBoolean("TRACE_TIME");
+    private static final int                                 TRACE_TIME_DUMP_INTERVAL = Integer.getInteger("TRACE_TIME_DUMP_INTERVAL", 10) * 1000;
+    private static final boolean                             TRACE_LOG                = Boolean.getBoolean("TRACE_LOG");
+    private static final boolean                             TRACE_LOG_DT             = Boolean.getBoolean("TRACE_LOG_DT");
+    private static final int                                 TRACE_LOG_DUMP_INTERVAL  = Integer.getInteger("TRACE_LOG_DUMP_INTERVAL", 100);
+    private static final boolean                             TRACE_TIME_STEP          = Boolean.getBoolean("TRACE_TIME_STEP");
+    private static final int                                 TRACE_TIME_DUMP_NR       = Integer.getInteger("TRACE_TIME_DUMP_NR", 100);
+    private static final boolean                             TRACE_TIME_CLEAR         = Boolean.getBoolean("TRACE_TIME_CLEAR");
+    private static final String                              TRACE_TIME_TOTAL         = System.getProperties().getProperty("TRACE_TIME_TOTAL");
+    private static final String                              TRACE_PATTERN            = System.getProperties().getProperty("TRACE_PATTERN");
+    private static final Pattern                             TRACE_TIME_TOTAL_PATTERN = TRACE_TIME_TOTAL != null ? Pattern.compile(TRACE_TIME_TOTAL) : null;
     private static final Pattern                             TRACE_PATTERN_PATTERN    = TRACE_PATTERN != null ? Pattern.compile(TRACE_PATTERN) : null;
+    private static final String                              REST                     = "<REST>";
+    private static final int                                 MIL                      = 1_000_000;
     private static final Comparator<Map.Entry<String, Long>> COMPARATOR               = (o1, o2) -> o2.getValue().compareTo(o1.getValue());
     //
     private static final List<TraceTimer>                    ALL_TIMERS               = new ArrayList<>();
@@ -84,11 +84,11 @@ public final class TraceTimer {
         }, TRACE_LOG_DUMP_INTERVAL, TRACE_LOG_DUMP_INTERVAL);
     }
 
-    private long                       time;
-    private long                       grandTotal;
-    private final Deque<String>        queue   = new LinkedList<>();
-    private final Map<String, Long>    total   = new LinkedHashMap<>();
-    private final Map<String, Integer> count   = new LinkedHashMap<>();
+    private       long                 time;
+    private       long                 grandTotal;
+    private final Deque<String>        queue = new LinkedList<>();
+    private final Map<String, Long>    total = new LinkedHashMap<>();
+    private final Map<String, Integer> count = new LinkedHashMap<>();
     private final Thread               thread;
 
     private TraceTimer(Thread thread) {
@@ -137,7 +137,7 @@ public final class TraceTimer {
                     System.out.printf("%-32s   END %-44s at %16dns\n", thread.getName(), name, now);
                 }
                 if (!name.equals(last)) {
-                    System.err.println("Trace Timer begin/end mis match: '" + last + "' <> '" + name + "'");
+                    System.err.println("Trace Timer begin/end mismatch: '" + last + "' <> '" + name + "'");
                 }
             }
             timersChanged = true;
@@ -285,27 +285,44 @@ public final class TraceTimer {
         }
     }
 
+    public static void dumpStacks() {
+        System.err.println("all Threads and their stacks:");
+        Thread.getAllStackTraces().keySet().forEach(t -> {
+            System.err.println(t.getName() + " (" + t.getState() + (t.isDaemon() ? " DAEMON" : "") + (t.isInterrupted() ? " INTERRUPTED" : "") + ")");
+            for (StackTraceElement stackTraceElement : Thread.getAllStackTraces().get(t)) {
+                System.err.println("       at " + stackTraceElement);
+            }
+        });
+    }
+
     public static void traceLog(String format, Object... args) {
         if (TRACE_LOG) {
-            synchronized (ALL_LOGS) {
-                logsChanged = true;
-                ALL_LOGS.add(new TraceLog(format, args));
+            try {
+                synchronized (ALL_LOGS) {
+                    logsChanged = true;
+                    ALL_LOGS.add(new TraceLog(format, args));
+                }
+            } catch (Throwable t) {
+                System.err.println("problem during traceLog():");
+                t.printStackTrace();
             }
         }
     }
 
     private static class TraceLog {
-        private final String   format;
-        private final Object[] args;
-        private final long     nanoDelta;
-        private final Thread   thread;
+        private static final String PRE_FORMAT_NAME = "%-30s| ";
+        private static final String PRE_FORMAT_DT   = "%,15d| ";
+        private static final String PRE_FORMAT_HERE = "%-30s| ";
+        private static final int    INDENT_LEN      = String.format(PRE_FORMAT_NAME, "").length() + (TRACE_LOG_DT ? String.format(PRE_FORMAT_DT, 0).length() : 0) - 1;
+        private static final String INDENT_STR      = String.format("\n%" + INDENT_LEN + "s|", "");
+        private static final long   T0_NANO         = System.nanoTime();
+        private static       long   last            = System.nanoTime();
 
-        private static final String PRE_FORMAT_DT = "%-30s %,15d|";
-        private static final String PRE_FORMAT    = "%-30s|";
-        public static final  int    SHIFT_LEN     = (TRACE_LOG_DT ? String.format(PRE_FORMAT_DT, "", 0) : String.format(PRE_FORMAT, "")).length() - 1;
-        private static final String SHIFT         = String.format("\n%" + SHIFT_LEN + "s|", "");
-        private static final long   T0_NANO       = System.nanoTime();
-        private static       long   last          = System.nanoTime();
+        private final String            format;
+        private final Object[]          args;
+        private final long              nanoDelta;
+        private final Thread            thread;
+        private final StackTraceElement here;
 
         public TraceLog(String format, Object... args) {
             this.format = format;
@@ -314,13 +331,16 @@ public final class TraceTimer {
             nanoDelta = t - last;
             last = t;
             thread = Thread.currentThread();
+            here = format.startsWith("@") ? new Throwable().getStackTrace()[2] : null;
         }
 
         public void dump(List<String> log) {
             try {
-                String pre = TRACE_LOG_DT ? String.format(PRE_FORMAT_DT, thread.getName(), nanoDelta) : String.format(PRE_FORMAT, thread.getName());
-                String msg = String.format(format, args).replace("\n", SHIFT);
-                log.add(pre + msg);
+                String preName = String.format(PRE_FORMAT_NAME, thread.getName());
+                String preTime = TRACE_LOG_DT ? String.format(PRE_FORMAT_DT, nanoDelta) : "";
+                String preHere = here != null ? String.format(PRE_FORMAT_HERE, here.toString().replaceFirst("^[^(]*", "x.x")) : "";
+                String msg     = String.format(format, args).replace("\n", INDENT_STR);
+                log.add(preName + preTime + preHere + msg);
             } catch (MissingFormatArgumentException e) {
                 log.add("OOPS bad format: " + format);
             }

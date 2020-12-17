@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2019 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -17,7 +17,6 @@ package org.modelingvalue.collections.util;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 public class Context<T> {
@@ -69,18 +68,8 @@ public class Context<T> {
         }
     }
 
-    public void set(T v) {
+    public void setOnThread(T v) {
         set(ContextThread.getContext(), v);
-    }
-
-    public <E> void set(BiFunction<T, E, T> f, E e) {
-        Object[] c = ContextThread.getContext();
-        set(c, f.apply(get(c), e));
-    }
-
-    public <K, V> void set(TriFunction<T, K, V, T> f, K k, V v) {
-        Object[] c = ContextThread.getContext();
-        set(c, f.apply(get(c), k, v));
     }
 
     @SuppressWarnings("unchecked")

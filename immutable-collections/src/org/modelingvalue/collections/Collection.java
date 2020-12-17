@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2019 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -73,6 +73,11 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
 
     @Override
     Collection<T> sorted(Comparator<? super T> comparator);
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    default <C extends Comparable> Collection<T> sortedBy(Function<T, C> by) {
+        return sorted((o1, o2) -> by.apply(o1).compareTo(by.apply(o2)));
+    }
 
     @Override
     Collection<T> peek(Consumer<? super T> action);

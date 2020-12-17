@@ -169,7 +169,7 @@
   <target name="artifact.immutable-collections-sources:jar" depends="init.artifacts" description="Build 'immutable-collections-sources:jar' artifact">
     <property name="artifact.temp.output.immutable-collections-sources:jar" value="${artifacts.temp.dir}/immutable_collections_sources_jar"/>
     <mkdir dir="${artifact.temp.output.immutable-collections-sources:jar}"/>
-    <jar destfile="${temp.jar.path.immutable-collections-sources.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+    <jar destfile="${temp.jar.path.immutable-collections-sources.jar}" duplicate="preserve" filesetmanifest="merge">
       <zipfileset dir="${basedir}/immutable-collections/src"/>
     </jar>
     <copy file="${temp.jar.path.immutable-collections-sources.jar}" tofile="${artifact.temp.output.immutable-collections-sources:jar}/immutable-collections-sources.jar"/>
@@ -177,7 +177,7 @@
   <target name="artifact.immutable-collections:jar" depends="init.artifacts, compile.module.immutable-collections" description="Build 'immutable-collections:jar' artifact">
     <property name="artifact.temp.output.immutable-collections:jar" value="${artifacts.temp.dir}/immutable_collections_jar"/>
     <mkdir dir="${artifact.temp.output.immutable-collections:jar}"/>
-    <jar destfile="${temp.jar.path.immutable-collections.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+    <jar destfile="${temp.jar.path.immutable-collections.jar}" duplicate="preserve" filesetmanifest="merge">
       <zipfileset dir="${immutable-collections.output.dir}"/>
     </jar>
     <copy file="${temp.jar.path.immutable-collections.jar}" tofile="${artifact.temp.output.immutable-collections:jar}/immutable-collections.jar"/>

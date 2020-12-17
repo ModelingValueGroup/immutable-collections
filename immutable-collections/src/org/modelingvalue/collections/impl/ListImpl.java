@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2019 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -15,13 +15,24 @@
 
 package org.modelingvalue.collections.impl;
 
-import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.List;
-import org.modelingvalue.collections.*;
-import org.modelingvalue.collections.util.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Spliterator;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-import java.util.*;
-import java.util.function.*;
+import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.ContainingCollection;
+import org.modelingvalue.collections.List;
+import org.modelingvalue.collections.StreamCollection;
+import org.modelingvalue.collections.util.Deserializer;
+import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.Serializer;
 
 public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
 
@@ -279,7 +290,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
             return getIntStream(0, values.length, stop, size).allMatch(i -> {
                 if (!stop[0]) {
                     Object val = values[i];
-                    int    pos = min + prev(len, i);
+                    int pos = min + prev(len, i);
                     if (val instanceof ListMultivalue ? ((ListMultivalue) val).equalsWithStop(other, pos, stop) : val.equals(TreeCollectionImpl.getDeep(other, pos))) {
                         return true;
                     }
@@ -322,7 +333,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
             }
         } else {
             Object[] es = coll.toArray();
-            value = es.length == 1 ? es[0] : ListMultivalue.of(es);
+            value = /* TODO WIM as.length==0?EMPTY : */ es.length == 1 ? es[0] : ListMultivalue.of(es);
         }
     }
 
@@ -406,6 +417,15 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     @Override
     public List<T> removeList(int begin, int end) {
         return end - begin == 0 ? this : new ListImpl<>(removeAllDeep(value, begin, end));
+    }
+
+    @Override
+    public List<T> replace(Object pre, T post) {
+        List<T> result = this;
+        for (int i = firstIndexOf(pre); i >= 0; i = result.firstIndexOf(pre)) {
+            result = result.replace(i, post);
+        }
+        return result;
     }
 
     @Override
@@ -737,14 +757,6 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
         return firstIndexOf(e) >= 0;
     }
 
-    private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
-        doSerialize(s);
-    }
-
-    private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
-        doDeserialize(s);
-    }
-
     @Override
     public T next(T e) {
         int i = firstIndexOf(e) + 1;
@@ -830,6 +842,36 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
             result = result.addUnique(e);
         }
         return result;
+    }
+
+    private void writeObject(ObjectOutputStream s) throws IOException {
+        Serializer.wrap(s, this::javaSerialize);
+    }
+
+    private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+        Deserializer.wrap(s, this::javaDeserialize);
+    }
+
+    @SuppressWarnings("unused")
+    private void serialize(Serializer s) {
+        s.writeInt(size());
+        for (T e : this) {
+            s.writeObject(e);
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "unused"})
+    private static <T> ListImpl<T> deserialize(Deserializer s) {
+        T[] entries = (T[]) s.readArray(new Object[]{});
+        if (entries.length == 0) {
+            return (ListImpl<T>) ListImpl.EMPTY;
+        }
+        return new ListImpl<>(entries);
+    }
+
+    @Override
+    public List<T> clear() {
+        return create(null);
     }
 
 }

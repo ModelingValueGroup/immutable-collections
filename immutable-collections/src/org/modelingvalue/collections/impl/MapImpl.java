@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2019 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -15,8 +15,12 @@
 
 package org.modelingvalue.collections.impl;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Objects;
 import java.util.Spliterator;
+import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -26,9 +30,11 @@ import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.ArrayUtil;
+import org.modelingvalue.collections.util.Deserializer;
 import org.modelingvalue.collections.util.Mergeables;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadFunction;
+import org.modelingvalue.collections.util.Serializer;
 
 public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Map<K, V> {
 
@@ -36,16 +42,19 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
 
     @SuppressWarnings("rawtypes")
     private static final Function<Entry, Object> KEY              = Entry::getKey;
-
     @SuppressWarnings("rawtypes")
     public static final Map                      EMPTY            = new MapImpl((Object) null);
 
-    public MapImpl(Entry<K, V>[] es) {
-        this.value = es.length == 1 ? es[0] : putAll(null, key(), es);
+    public MapImpl(Entry<K, V>[] entries) {
+        this.value = entries.length == 1 ? entries[0] : putAll(null, key(), entries);
     }
 
     protected MapImpl(Object value) {
         this.value = value;
+    }
+
+    public MapImpl(Deserializer s) {
+        javaDeserialize(s);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -134,6 +143,12 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     @Override
     public Map<K, V> remove(Object e) {
         return e instanceof Entry ? remove((Entry) e, (a, b) -> Mergeables.merge(b, null, a)) : this;
+    }
+
+    @Override
+    public Map<K, V> replace(Object pre, Entry<K, V> post) {
+        Map<K, V> rem = remove(pre);
+        return rem != this ? rem.add(post) : this;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -244,10 +259,9 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
         return result != null ? result.getValue() : null;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Entry<K, V> getEntry(K key) {
-        return (Entry<K, V>) get(value, key(), key);
+        return get(value, key(), key);
     }
 
     @SuppressWarnings("rawtypes")
@@ -268,17 +282,42 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
         return EMPTY;
     }
 
-    private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
-        doSerialize(s);
-    }
-
-    private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
-        doDeserialize(s);
-    }
-
     @Override
     public Map<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate) {
         return filter(e -> keyPredicate.test(e.getKey()) && valuePredicate.test(e.getValue())).toMap(Function.identity());
+    }
+
+    @Override
+    public void forEach(BiConsumer<K, V> action) {
+        forEach(e -> action.accept(e.getKey(), e.getValue()));
+    }
+
+    private void writeObject(ObjectOutputStream s) throws IOException {
+        Serializer.wrap(s, this::javaSerialize);
+    }
+
+    private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+        Deserializer.wrap(s, this::javaDeserialize);
+    }
+
+    @SuppressWarnings("unused")
+    private void serialize(Serializer s) {
+        s.writeInt(size());
+        for (Entry<K, V> e : this) {
+            s.writeObject(e);
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "unused", "rawtypes"})
+    private static <K, V> MapImpl<K, V> deserialize(Deserializer s) {
+        Entry[] entries = s.readArray(new Entry[]{});
+        //Collection.of(stream).toMap(e->e);
+        return entries.length == 0 ? (MapImpl<K, V>) MapImpl.EMPTY : new MapImpl<K, V>(entries);
+    }
+
+    @Override
+    public Map<K, V> clear() {
+        return create(null);
     }
 
 }

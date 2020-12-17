@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2019 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -15,6 +15,9 @@
 
 package org.modelingvalue.collections.impl;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Predicate;
@@ -23,9 +26,11 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.QualifiedDefaultSet;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.ArrayUtil;
+import org.modelingvalue.collections.util.Deserializer;
 import org.modelingvalue.collections.util.Mergeables;
 import org.modelingvalue.collections.util.QuadFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
+import org.modelingvalue.collections.util.Serializer;
 
 @SuppressWarnings("serial")
 public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> implements QualifiedDefaultSet<K, V> {
@@ -66,21 +71,6 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
     @Override
     protected final SerializableFunction<V, Object> key() {
         return (SerializableFunction) qualifier;
-    }
-
-    private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
-        s.writeObject(qualifier.original());
-        s.writeObject(defaultFunction.original());
-        doSerialize(s);
-    }
-
-    @SuppressWarnings("unchecked")
-    private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
-        qualifier = (SerializableFunction<V, K>) s.readObject();
-        qualifier = qualifier.of();
-        defaultFunction = (SerializableFunction<K, V>) s.readObject();
-        defaultFunction = defaultFunction.of();
-        doDeserialize(s);
     }
 
     @Override
@@ -212,6 +202,12 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
         return create(null);
     }
 
+    @Override
+    public QualifiedDefaultSet<K, V> replace(Object pre, V post) {
+        QualifiedDefaultSet<K, V> rem = remove(pre);
+        return rem != this ? rem.add(post) : this;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public QualifiedDefaultSet<K, V> remove(Object e) {
@@ -271,6 +267,52 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
         } else {
             return retainAll(c.toQualifiedSet(qualifier));
         }
+    }
+
+    private void writeObject(ObjectOutputStream s) throws IOException {
+        Serializer.wrap(s, this::javaSerialize);
+    }
+
+    private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+        Deserializer.wrap(s, this::javaDeserialize);
+    }
+
+    @Override
+    public void javaSerialize(Serializer s) {
+        s.writeObject(qualifier.original());
+        s.writeObject(defaultFunction.original());
+        super.javaSerialize(s);
+    }
+
+    @Override
+    @SuppressWarnings({"unchecked"})
+    public void javaDeserialize(Deserializer s) {
+        qualifier = ((SerializableFunction<V, K>) s.readObject()).of();
+        defaultFunction = ((SerializableFunction<K, V>) s.readObject()).of();
+        super.javaDeserialize(s);
+    }
+
+    @SuppressWarnings("unused")
+    private void serialize(Serializer s) {
+        s.writeObject(qualifier.original());
+        s.writeObject(defaultFunction.original());
+        s.writeInt(size());
+        for (V e : this) {
+            s.writeObject(e);
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "unused"})
+    private static <K, V> QualifiedDefaultSetImpl<K, V> deserialize(Deserializer s) {
+        SerializableFunction<V, K> f1 = (SerializableFunction<V, K>) ((SerializableFunction<V, K>) s.readObject()).original();
+        SerializableFunction<K, V> f2 = (SerializableFunction<K, V>) ((SerializableFunction<K, V>) s.readObject()).original();
+        V[] entries = (V[]) s.readArray(new Object[]{});
+        return new QualifiedDefaultSetImpl<>(f1, f2, entries);
+    }
+
+    @Override
+    public QualifiedDefaultSet<K, V> clear() {
+        return create(null);
     }
 
 }

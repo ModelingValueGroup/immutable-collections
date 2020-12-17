@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2019 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -15,8 +15,12 @@
 
 package org.modelingvalue.collections.impl;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Objects;
 import java.util.Spliterator;
+import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -26,15 +30,15 @@ import org.modelingvalue.collections.DefaultMap;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.ArrayUtil;
+import org.modelingvalue.collections.util.Deserializer;
 import org.modelingvalue.collections.util.Mergeables;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
+import org.modelingvalue.collections.util.Serializer;
 
 public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements DefaultMap<K, V> {
-
     private static final long                    serialVersionUID = 2424304733060404412L;
-
     @SuppressWarnings("rawtypes")
     private static final Function<Entry, Object> KEY              = Entry::getKey;
 
@@ -137,6 +141,12 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
     @Override
     public DefaultMap<K, V> add(Entry<K, V> entry) {
         return Objects.equals(entry.getValue(), defaultFunction.apply(entry.getKey())) ? removeKey(entry.getKey()) : put(entry);
+    }
+
+    @Override
+    public DefaultMap<K, V> replace(Object pre, Entry<K, V> post) {
+        DefaultMap<K, V> rem = remove(pre);
+        return rem != this ? rem.add(post) : this;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -279,10 +289,9 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
         return result != null ? result.getValue() : defaultFunction.apply(key);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Entry<K, V> getEntry(K key) {
-        return (Entry<K, V>) get(value, key(), key);
+        return get(value, key(), key);
     }
 
     @SuppressWarnings("rawtypes")
@@ -302,18 +311,6 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
         return create(null);
     }
 
-    private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
-        s.writeObject(defaultFunction.original());
-        doSerialize(s);
-    }
-
-    @SuppressWarnings("unchecked")
-    private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
-        defaultFunction = (SerializableFunction<K, V>) s.readObject();
-        defaultFunction = defaultFunction.of();
-        doDeserialize(s);
-    }
-
     @Override
     public DefaultMap<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate) {
         return filter(e -> keyPredicate.test(e.getKey()) && valuePredicate.test(e.getValue())).toDefaultMap(defaultFunction, Function.identity());
@@ -322,6 +319,54 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
     @Override
     public SerializableFunction<K, V> defaultFunction() {
         return defaultFunction;
+    }
+
+    @Override
+    public void forEach(BiConsumer<K, V> action) {
+        forEach(e -> action.accept(e.getKey(), e.getValue()));
+    }
+
+    private void writeObject(ObjectOutputStream s) throws IOException {
+        Serializer.wrap(s, this::javaSerialize);
+    }
+
+    private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+        Deserializer.wrap(s, this::javaDeserialize);
+    }
+
+    @Override
+    @SuppressWarnings("unused")
+    public void javaSerialize(Serializer s) {
+        s.writeObject(defaultFunction.original());
+        super.javaSerialize(s);
+    }
+
+    @Override
+    @SuppressWarnings({"unused", "unchecked"})
+    public void javaDeserialize(Deserializer s) {
+        defaultFunction = ((SerializableFunction<K, V>) s.readObject()).of();
+        super.javaDeserialize(s);
+    }
+
+    @SuppressWarnings("unused")
+    private void serialize(Serializer s) {
+        s.writeObject(defaultFunction.original());
+        s.writeInt(size());
+        for (Entry<K, V> e : this) {
+            s.writeObject(e);
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "unused"})
+    private static <K, V> DefaultMapImpl<K, V> deserialize(Deserializer s) {
+        SerializableFunction<K, V> defaultFunction = ((SerializableFunction<K, V>) s.readObject()).of();
+        Entry<K, V>[] entries = s.readArray(new Entry[]{});
+        return new DefaultMapImpl<>(entries, defaultFunction);
+    }
+
+    @Override
+    public DefaultMap<K, V> clear() {
+        return create(null);
     }
 
 }

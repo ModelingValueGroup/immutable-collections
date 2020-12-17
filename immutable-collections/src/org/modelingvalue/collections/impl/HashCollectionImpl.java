@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2019 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -818,8 +818,10 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     @SuppressWarnings("unchecked")
     protected final Object visit(BiFunction<? super Object[], Integer, Object> visitor, ContainingCollection<? extends T>[] others, int len) {
         len++;
-        CompareStates css = COMPARE_STATES.get();
-        CompareSate cs = css.open(null, len);
+        //CompareStates css = COMPARE_STATES.get();
+        //CompareSate cs = css.open(null, len);
+        CompareState cs = new CompareState();
+        cs.open(len);
         try {
             cs.values[0][0] = value;
             cs.keys[0][0] = key();
@@ -836,22 +838,23 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
             }
             return cs.visit(visitor, maxLevel, (byte) 0, 0, len, (byte) 0);
         } finally {
-            css.close(cs);
+            cs.close();
+            //css.close(cs);
         }
     }
 
-    private static final class CompareStates extends Reusable<Object, Object, CompareSate, Integer> {
+    private static final class CompareStates extends Reusable<Object, Object, CompareState, Integer> {
 
         private static final long serialVersionUID = 4743227838928248552L;
 
         public CompareStates() {
-            super(null, (c, u) -> new CompareSate(), (cs, c, l) -> cs.open(l), CompareSate::close, CompareSate::isOpen);
+            super(null, (c, u) -> new CompareState(), (cs, c, l) -> cs.open(l), CompareState::close, CompareState::isOpen);
         }
 
     }
 
     @SuppressWarnings("rawtypes")
-    private static final class CompareSate {
+    private static final class CompareState {
         private Object[][]   values;
         private Function[][] keys;
         private boolean[][]  keep;
@@ -860,7 +863,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
 
         private int          length = -1;
 
-        private CompareSate() {
+        private CompareState() {
             values = new Object[NR_OF_PARTS + 2][COMPARE_MAX];
             keys = new Function[NR_OF_PARTS + 2][COMPARE_MAX];
             keep = new boolean[NR_OF_PARTS + 2][COMPARE_MAX];

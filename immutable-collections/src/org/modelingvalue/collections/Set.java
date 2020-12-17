@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2019 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -15,10 +15,10 @@
 
 package org.modelingvalue.collections;
 
-import org.modelingvalue.collections.impl.*;
-import org.modelingvalue.collections.util.*;
+import java.util.function.Function;
 
-import java.util.function.*;
+import org.modelingvalue.collections.impl.SetImpl;
+import org.modelingvalue.collections.util.Mergeable;
 
 public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
     @SuppressWarnings("unchecked")
@@ -28,8 +28,8 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
 
     @SafeVarargs
     @SuppressWarnings("unchecked")
-    static <T> Set<T> of(T... e) {
-        return e.length == 0 ? SetImpl.EMPTY : new SetImpl<>(e);
+    static <T> Set<T> of(T... entries) {
+        return entries.length == 0 ? SetImpl.EMPTY : new SetImpl<>(entries);
     }
 
     @SuppressWarnings("unchecked")
@@ -47,6 +47,9 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
     }
 
     boolean containsAll(Collection<?> c);
+
+    @Override
+    Set<T> replace(Object pre, T post);
 
     @Override
     Set<T> add(T e);
@@ -70,5 +73,8 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
     default Set<T> toSet() {
         return this;
     }
+
+    @Override
+    Set<T> clear();
 
 }

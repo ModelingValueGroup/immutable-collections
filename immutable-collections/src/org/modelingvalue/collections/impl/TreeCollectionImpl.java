@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2019 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -36,27 +36,29 @@ import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.StreamCollection;
 import org.modelingvalue.collections.util.Age;
 import org.modelingvalue.collections.util.ContextThread;
+import org.modelingvalue.collections.util.Deserializer;
 import org.modelingvalue.collections.util.Internable;
+import org.modelingvalue.collections.util.Serializer;
 import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.collections.util.TriConsumer;
 import org.modelingvalue.collections.util.TriFunction;
 
 public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements ContainingCollection<T> {
     private static final long         serialVersionUID = 7999808719969099597L;
-
     protected static final int        CHARACTERISTICS  = Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL;
-
     private static final int          SPLIT_START      = Integer.getInteger("SPLIT_START", 64);
-
     private static final Predicate<?> ALL_INTERNABLE   = e -> e instanceof Internable && ((Internable) e).isInternable();
 
     protected static boolean split(int amount) {
-        if (PARALLEL_COLLECTIONS && Thread.currentThread() instanceof ContextThread) {
-            int nrOfRunningThreads = ContextThread.nrOfRunningThreads();
-            return nrOfRunningThreads < Collection.PARALLELISM || (nrOfRunningThreads < ContextThread.POOL_SIZE && amount >= SPLIT_START);
-        } else {
+        if (!PARALLEL_COLLECTIONS) {
             return false;
         }
+        Thread thread = Thread.currentThread();
+        if (!(thread instanceof ContextThread)) {
+            return false;
+        }
+        int nrOfRunningThreads = ((ContextThread) thread).nrOfRunningThreads();
+        return nrOfRunningThreads < Collection.PARALLELISM || (nrOfRunningThreads < ContextThread.POOL_SIZE && SPLIT_START <= amount);
     }
 
     transient protected Object value;
@@ -142,25 +144,6 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         } else {
             value = other.value;
             return true;
-        }
-    }
-
-    protected void doSerialize(java.io.ObjectOutputStream s) throws java.io.IOException {
-        s.writeInt(size());
-
-        // Write out all elements in the proper order.
-        for (Object e : this) {
-            s.writeObject(e);
-        }
-    }
-
-    protected void doDeserialize(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
-        int size = s.readInt();
-        for (int i = 0; i < size; i++) {
-            @SuppressWarnings("unchecked")
-            T e = (T) s.readObject();
-            TreeCollectionImpl<T> newSet = (TreeCollectionImpl<T>) add(e);
-            this.value = newSet.value;
         }
     }
 
@@ -650,4 +633,22 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         return allMatch((Predicate<? super T>) ALL_INTERNABLE);
     }
 
+    @Override
+    public void javaSerialize(Serializer s) {
+        s.writeInt(size());
+        for (Object e : this) {
+            s.writeObject(e);
+        }
+    }
+
+    @Override
+    public void javaDeserialize(Deserializer s) {
+        int size = s.readInt();
+        for (int i = 0; i < size; i++) {
+            @SuppressWarnings("unchecked")
+            T e = (T) s.readObject();
+            TreeCollectionImpl<T> newSet = (TreeCollectionImpl<T>) add(e);
+            this.value = newSet.value;
+        }
+    }
 }

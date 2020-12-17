@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2019 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -15,21 +15,25 @@
 
 package org.modelingvalue.collections;
 
-import org.modelingvalue.collections.impl.*;
-import org.modelingvalue.collections.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Predicate;
 
-import java.util.function.*;
+import org.modelingvalue.collections.impl.MapImpl;
+import org.modelingvalue.collections.util.Mergeable;
+import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.QuadFunction;
 
 @SuppressWarnings("unused")
 public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<Map<K, V>> {
 
     @SafeVarargs
     @SuppressWarnings("unchecked")
-    static <K, V> Map<K, V> of(Entry<K, V>... e) {
-        if (e.length == 0) {
+    static <K, V> Map<K, V> of(Entry<K, V>... entries) {
+        if (entries.length == 0) {
             return MapImpl.EMPTY;
         } else {
-            return new MapImpl<>(e);
+            return new MapImpl<>(entries);
         }
     }
 
@@ -80,8 +84,15 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
     Map<K, V> add(Entry<K, V> e);
 
     @Override
+    Map<K, V> replace(Object pre, Entry<K, V> post);
+
+    @Override
     Map<K, V> addAll(Collection<? extends Entry<K, V>> es);
 
     Collection<Entry<K, Pair<V, V>>> diff(Map<K, V> other);
 
+    void forEach(BiConsumer<K, V> action);
+
+    @Override
+    Map<K, V> clear();
 }

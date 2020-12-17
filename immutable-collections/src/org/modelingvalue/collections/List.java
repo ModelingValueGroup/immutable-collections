@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2019 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -15,10 +15,12 @@
 
 package org.modelingvalue.collections;
 
-import java.util.function.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
-import org.modelingvalue.collections.impl.*;
-import org.modelingvalue.collections.util.*;
+import org.modelingvalue.collections.impl.ListImpl;
+import org.modelingvalue.collections.util.Mergeable;
 
 @SuppressWarnings("unused")
 public interface List<T> extends ContainingCollection<T>, Mergeable<List<T>> {
@@ -117,6 +119,9 @@ public interface List<T> extends ContainingCollection<T>, Mergeable<List<T>> {
     }
 
     @Override
+    List<T> replace(Object pre, T post);
+
+    @Override
     List<T> remove(Object e);
 
     @Override
@@ -135,5 +140,8 @@ public interface List<T> extends ContainingCollection<T>, Mergeable<List<T>> {
 
     @Override
     List<T> addAllUnique(Collection<? extends T> es);
+
+    @Override
+    List<T> clear();
 
 }

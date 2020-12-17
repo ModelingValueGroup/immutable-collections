@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2019 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -15,11 +15,17 @@
 
 package org.modelingvalue.collections.impl;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Objects;
+import java.util.Spliterator;
+import java.util.function.Function;
+
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
-
-import java.util.*;
-import java.util.function.*;
+import org.modelingvalue.collections.util.Deserializer;
+import org.modelingvalue.collections.util.Serializer;
 
 public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
 
@@ -64,6 +70,12 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
         return create(remove(value, key(), e, identity()));
     }
 
+    @Override
+    public Set<T> replace(Object pre, T post) {
+        Object rem = remove(value, key(), pre, identity());
+        return rem != value ? create(add(rem, key(), post, identity())) : this;
+    }
+
     @SuppressWarnings("rawtypes")
     @Override
     public void deduplicate(Set<T> other) {
@@ -72,7 +84,7 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
 
     @SuppressWarnings("rawtypes")
     @Override
-    public Set<T> retainAll(Collection<?> c) {
+    public Set<T> retainAll(org.modelingvalue.collections.Collection<?> c) {
         if (c instanceof SetImpl) {
             return create(retain(value, key(), ((SetImpl) c).value, key()));
         } else {
@@ -82,7 +94,7 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
 
     @SuppressWarnings("rawtypes")
     @Override
-    public Set<T> exclusiveAll(Collection<? extends T> c) {
+    public Set<T> exclusiveAll(org.modelingvalue.collections.Collection<? extends T> c) {
         if (c instanceof SetImpl) {
             return create(exclusive(value, key(), ((SetImpl) c).value, key()));
         } else {
@@ -94,7 +106,7 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
     @Override
     public Set<T> addAll(Collection<? extends T> c) {
         if (c instanceof SetImpl) {
-            return create(add(value, key(), ((SetImpl) c).value, key()));
+            return c.isEmpty() ? this : create(add(value, key(), ((SetImpl) c).value, key()));
         } else {
             return addAll(c.toSet());
         }
@@ -144,12 +156,31 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
         return EMPTY;
     }
 
-    private void writeObject(java.io.ObjectOutputStream s) throws java.io.IOException {
-        doSerialize(s);
+    private void writeObject(ObjectOutputStream s) throws IOException {
+        Serializer.wrap(s, this::javaSerialize);
     }
 
-    private void readObject(java.io.ObjectInputStream s) throws java.io.IOException, ClassNotFoundException {
-        doDeserialize(s);
+    private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+        Deserializer.wrap(s, this::javaDeserialize);
+    }
+
+    @SuppressWarnings("unused")
+    private void serialize(Serializer s) {
+        s.writeInt(size());
+        for (T e : this) {
+            s.writeObject(e);
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "unused"})
+    private static <T> SetImpl<T> deserialize(Deserializer s) {
+        T[] entries = (T[]) s.readArray(new Object[]{});
+        return entries.length == 0 ? (SetImpl<T>) SetImpl.EMPTY : new SetImpl<>(entries);
+    }
+
+    @Override
+    public Set<T> clear() {
+        return create(null);
     }
 
 }
