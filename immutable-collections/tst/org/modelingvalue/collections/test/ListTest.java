@@ -210,7 +210,7 @@ public class ListTest {
         List<String> af = abcdef.removeList(1, 5);
         assertEquals(af, List.of("a", "f"));
 
-        List<String> abcef = abcdef.remove(3);
+        List<String> abcef = abcdef.removeIndex(3);
         assertEquals(abcef, List.of("a", "b", "c", "e", "f"));
 
         List<Integer> longList1 = List.of();

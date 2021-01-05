@@ -410,7 +410,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     }
 
     @Override
-    public List<T> remove(int position) {
+    public List<T> removeIndex(int position) {
         return removeList(position, position + 1);
     }
 
@@ -665,7 +665,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     @Override
     public List<T> remove(Object e) {
         int pos = firstIndexOf(e);
-        return pos >= 0 ? remove(pos) : this;
+        return pos >= 0 ? removeIndex(pos) : this;
     }
 
     @Override
@@ -779,7 +779,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
             R source = reused.first();
             if (source != null && matcher.apply(source, target)) {
                 id = Math.max(id, identity.apply(source));
-                reused = reused.remove(0);
+                reused = reused.removeIndex(0);
                 changer.accept(source, target);
                 result = result.append(source);
             } else {
@@ -793,7 +793,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
             R source = reused.last();
             if (source != null && matcher.apply(source, target)) {
                 id = Math.max(id, identity.apply(source));
-                reused = reused.remove(reused.size() - 1);
+                reused = reused.removeIndex(reused.size() - 1);
                 changer.accept(source, target);
                 result = result.insert(begin, source);
             } else {

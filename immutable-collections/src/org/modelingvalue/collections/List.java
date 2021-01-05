@@ -78,7 +78,7 @@ public interface List<T> extends ContainingCollection<T>, Mergeable<List<T>> {
 
     List<T> replace(int position, T inserted);
 
-    List<T> remove(int position);
+    List<T> removeIndex(int position);
 
     List<T> insertList(int position, List<? extends T> inserted);
 
