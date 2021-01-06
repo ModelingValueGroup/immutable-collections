@@ -27,7 +27,7 @@ public class IdentifiedByArray {
 
     @Override
     public int hashCode() {
-        return Arrays.deepHashCode(array);
+        return Arrays.hashCode(array);
     }
 
     @Override
@@ -42,7 +42,7 @@ public class IdentifiedByArray {
             IdentifiedByArray other = (IdentifiedByArray) obj;
             if (other.array == array) {
                 return true;
-            } else if (!Arrays.deepEquals(array, other.array)) {
+            } else if (!Arrays.equals(array, other.array)) {
                 return false;
             } else {
                 if (Age.age(array) > Age.age(other.array)) {
