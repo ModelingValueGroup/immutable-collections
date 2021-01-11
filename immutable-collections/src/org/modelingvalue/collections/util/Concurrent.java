@@ -154,6 +154,22 @@ public class Concurrent<T> {
         }
     }
 
+    public T merge() {
+        if (pre == null) {
+            throw new ConcurrentModificationException();
+        }
+        int l = 0;
+        for (int i = 0; i < states.length; i++) {
+            if (states[i] != pre) {
+                states[l++] = states[i];
+            }
+        }
+        T result = Mergeables.merge(pre, this::merge, states, l);
+        Arrays.fill(states, result);
+        pre = result;
+        return result;
+    }
+
     public T result() {
         if (pre == null) {
             throw new ConcurrentModificationException();
@@ -168,7 +184,6 @@ public class Concurrent<T> {
         Arrays.fill(states, null);
         pre = null;
         return result;
-
     }
 
     public void clear() {
@@ -178,15 +193,6 @@ public class Concurrent<T> {
         }
     }
 
-    public boolean isChanged() {
-        for (T state : states) {
-            if (state != pre) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @SuppressWarnings("unchecked")
     protected T merge(T base, T[] branches, int l) {
         if (base instanceof Mergeable) {
@@ -194,13 +200,6 @@ public class Concurrent<T> {
         } else {
             throw new ConcurrentModificationException();
         }
-    }
-
-    public T pre() {
-        if (pre == null) {
-            throw new ConcurrentModificationException();
-        }
-        return pre;
     }
 
 }
