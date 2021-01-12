@@ -57,6 +57,10 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
     @Override
     Collection<T> filter(Predicate<? super T> predicate);
 
+    default Collection<T> exclude(Predicate<? super T> predicate) {
+        return filter(predicate.negate());
+    }
+
     @Override
     <R> Collection<R> map(Function<? super T, ? extends R> mapper);
 
