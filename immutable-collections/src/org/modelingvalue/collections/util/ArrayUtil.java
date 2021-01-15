@@ -19,10 +19,11 @@ import java.lang.reflect.Array;
 
 public class ArrayUtil {
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T> T[] set(T[] a, int i, T v, int l) {
         if (a == null && v != null) {
-            a = (T[]) Array.newInstance(v.getClass(), l);
+            Class cls = v instanceof Mergeable ? ((Mergeable) v).getMeetClass() : v.getClass();
+            a = (T[]) Array.newInstance(cls, l);
             a[i] = v;
             return a;
         } else {

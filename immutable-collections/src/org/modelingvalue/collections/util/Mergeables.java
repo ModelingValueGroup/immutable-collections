@@ -15,7 +15,8 @@
 
 package org.modelingvalue.collections.util;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Objects;
 
 public interface Mergeables {
 

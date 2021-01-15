@@ -282,6 +282,12 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
         return EMPTY;
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
+    public Class<Map> getMeetClass() {
+        return Map.class;
+    }
+
     @Override
     public Map<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate) {
         return filter(e -> keyPredicate.test(e.getKey()) && valuePredicate.test(e.getValue())).toMap(Function.identity());

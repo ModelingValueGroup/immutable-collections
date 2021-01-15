@@ -311,6 +311,12 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
         return create(null);
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
+    public Class<DefaultMap> getMeetClass() {
+        return DefaultMap.class;
+    }
+
     @Override
     public DefaultMap<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate) {
         return filter(e -> keyPredicate.test(e.getKey()) && valuePredicate.test(e.getValue())).toDefaultMap(defaultFunction, Function.identity());

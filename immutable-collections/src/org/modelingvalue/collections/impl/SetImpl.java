@@ -156,6 +156,12 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
         return EMPTY;
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
+    public Class<Set> getMeetClass() {
+        return Set.class;
+    }
+
     private void writeObject(ObjectOutputStream s) throws IOException {
         Serializer.wrap(s, this::javaSerialize);
     }

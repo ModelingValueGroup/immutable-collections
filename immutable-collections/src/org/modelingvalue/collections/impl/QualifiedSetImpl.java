@@ -197,6 +197,12 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
         return create(null);
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
+    public Class<QualifiedSet> getMeetClass() {
+        return QualifiedSet.class;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public QualifiedSet<K, V> remove(Object e) {
