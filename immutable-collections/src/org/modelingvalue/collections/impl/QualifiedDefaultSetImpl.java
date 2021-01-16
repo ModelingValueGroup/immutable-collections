@@ -202,6 +202,12 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
         return create(null);
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
+    public Class<QualifiedDefaultSet> getMeetClass() {
+        return QualifiedDefaultSet.class;
+    }
+
     @Override
     public QualifiedDefaultSet<K, V> replace(Object pre, V post) {
         QualifiedDefaultSet<K, V> rem = remove(pre);

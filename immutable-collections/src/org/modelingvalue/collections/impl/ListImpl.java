@@ -752,6 +752,12 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
         return EMPTY;
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
+    public Class<List> getMeetClass() {
+        return List.class;
+    }
+
     @Override
     public boolean contains(Object e) {
         return firstIndexOf(e) >= 0;

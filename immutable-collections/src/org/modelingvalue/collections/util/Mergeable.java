@@ -27,6 +27,8 @@ public interface Mergeable<T> {
 
     T getMerger();
 
+    Class<?> getMeetClass();
+
     @SuppressWarnings("unchecked")
     default T merge(T a, T b) {
         T[] us = (T[]) Array.newInstance(getClass(), 2);
