@@ -1,0 +1,5 @@
+package org.modelingvalue.collections.struct;
+
+public interface Struct5<T0, T1, T2, T3, T4> extends Struct4<T0, T1, T2, T3> {
+    T4 get4 ();
+}
