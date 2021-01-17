@@ -49,8 +49,8 @@ public class StructGenerator extends StructGeneratorBase {
             throw new Error("no such dir: " + genBaseDir);
         }
 
-        Path interfacesDir = pathFromClassOrPackageName(interfaceJavaPackage);
-        Path implementsDir = pathFromClassOrPackageName(implementJavaPackage);
+        Path interfacesDir = pathFromPackageName(interfaceJavaPackage);
+        Path implementsDir = pathFromPackageName(implementJavaPackage);
         try {
             Files.createDirectories(interfacesDir);
             Files.createDirectories(implementsDir);
@@ -65,13 +65,13 @@ public class StructGenerator extends StructGeneratorBase {
 
     @Override
     public Writer getWriter(String className) throws IOException {
-        return new OutputStreamWriter(Files.newOutputStream(pathFromClassOrPackageName(className)));
+        return new OutputStreamWriter(Files.newOutputStream(pathFromClassName(className)));
     }
 
     @Override
     protected void write(String className, List<String> lines) throws IOException {
         super.write(className, lines);
-        previouslyGenerated.remove(pathFromClassOrPackageName(className));
+        previouslyGenerated.remove(pathFromClassName(className));
     }
 
     protected void generateAll() throws IOException {
@@ -79,7 +79,11 @@ public class StructGenerator extends StructGeneratorBase {
         removeLeftOvers();
     }
 
-    private Path pathFromClassOrPackageName(String className) {
+    private Path pathFromClassName(String className) {
+        return genBaseDir.resolve(className.replace('.', '/') + ".java");
+    }
+
+    private Path pathFromPackageName(String className) {
         return genBaseDir.resolve(className.replace('.', '/'));
     }
 

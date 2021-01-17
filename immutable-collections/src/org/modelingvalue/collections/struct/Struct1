@@ -1,5 +1,0 @@
-package org.modelingvalue.collections.struct;
-
-public interface Struct1<T0> extends Struct0 {
-    T0 get0 ();
-}
