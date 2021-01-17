@@ -12,12 +12,18 @@
       <entry name="?*.dtd" />
       <entry name="?*.tld" />
       <entry name="?*.ftl" />
+      <entry name="?*.Processor" />
     </wildcardResourcePatterns>
     <annotationProcessing>
-      <profile name="Maven default annotation processors profile" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
+      <profile default="true" name="Default">
+        <processor name="generator.StructProcessor" />
+      </profile>
+      <profile name="Tom" enabled="true">
+        <processor name="generator.StructProcessor" />
+        <processorPath>
+          <entry name="$PROJECT_DIR$/out/production/build" />
+        </processorPath>
+        <module name="immutable-collections" />
       </profile>
     </annotationProcessing>
   </component>
