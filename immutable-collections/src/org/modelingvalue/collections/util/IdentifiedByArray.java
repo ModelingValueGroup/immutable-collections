@@ -17,7 +17,7 @@ package org.modelingvalue.collections.util;
 
 import java.util.Arrays;
 
-public class IdentifiedByArray {
+public class IdentifiedByArray implements Internable {
 
     private Object[] array;
 
@@ -56,12 +56,26 @@ public class IdentifiedByArray {
     }
 
     @Override
+    public boolean isInternable() {
+        for (Object obj : array) {
+            if (!Internable.isInternable(obj)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
     public String toString() {
         return getClass().getSimpleName() + Arrays.toString(array);
     }
 
-    public Object[] array() {
-        return array;
+    public Object get(int i) {
+        return array[i];
+    }
+
+    public int size() {
+        return array.length;
     }
 
 }
