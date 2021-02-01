@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2021 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -154,6 +154,22 @@ public class Concurrent<T> {
         }
     }
 
+    public T merge() {
+        if (pre == null) {
+            throw new ConcurrentModificationException();
+        }
+        int l = 0;
+        for (int i = 0; i < states.length; i++) {
+            if (states[i] != pre) {
+                states[l++] = states[i];
+            }
+        }
+        T result = Mergeables.merge(pre, this::merge, states, l);
+        Arrays.fill(states, result);
+        pre = result;
+        return result;
+    }
+
     public T result() {
         if (pre == null) {
             throw new ConcurrentModificationException();
@@ -168,7 +184,6 @@ public class Concurrent<T> {
         Arrays.fill(states, null);
         pre = null;
         return result;
-
     }
 
     public void clear() {
@@ -178,15 +193,6 @@ public class Concurrent<T> {
         }
     }
 
-    public boolean isChanged() {
-        for (T state : states) {
-            if (state != pre) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @SuppressWarnings("unchecked")
     protected T merge(T base, T[] branches, int l) {
         if (base instanceof Mergeable) {
@@ -194,13 +200,6 @@ public class Concurrent<T> {
         } else {
             throw new ConcurrentModificationException();
         }
-    }
-
-    public T pre() {
-        if (pre == null) {
-            throw new ConcurrentModificationException();
-        }
-        return pre;
     }
 
 }

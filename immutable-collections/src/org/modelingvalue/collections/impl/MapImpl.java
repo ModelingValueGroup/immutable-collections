@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2021 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -15,24 +15,35 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.io.*;
-import java.util.*;
-import java.util.function.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Objects;
+import java.util.Spliterator;
+import java.util.function.BiConsumer;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.*;
-import org.modelingvalue.collections.util.*;
+import org.modelingvalue.collections.util.ArrayUtil;
+import org.modelingvalue.collections.util.Deserializer;
+import org.modelingvalue.collections.util.Mergeables;
+import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.QuadFunction;
+import org.modelingvalue.collections.util.Serializer;
 
 public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Map<K, V> {
 
-    private static final long serialVersionUID = 7758359458143777562L;
+    private static final long                    serialVersionUID = 7758359458143777562L;
 
     @SuppressWarnings("rawtypes")
-    private static final Function<Entry, Object> KEY   = Entry::getKey;
+    private static final Function<Entry, Object> KEY              = Entry::getKey;
     @SuppressWarnings("rawtypes")
-    public static final  Map                     EMPTY = new MapImpl((Object) null);
+    public static final Map                      EMPTY            = new MapImpl((Object) null);
 
     public MapImpl(Entry<K, V>[] entries) {
         this.value = entries.length == 1 ? entries[0] : putAll(null, key(), entries);
@@ -271,6 +282,12 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
         return EMPTY;
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
+    public Class<Map> getMeetClass() {
+        return Map.class;
+    }
+
     @Override
     public Map<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate) {
         return filter(e -> keyPredicate.test(e.getKey()) && valuePredicate.test(e.getValue())).toMap(Function.identity());
@@ -303,4 +320,10 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
         //Collection.of(stream).toMap(e->e);
         return entries.length == 0 ? (MapImpl<K, V>) MapImpl.EMPTY : new MapImpl<K, V>(entries);
     }
+
+    @Override
+    public Map<K, V> clear() {
+        return create(null);
+    }
+
 }

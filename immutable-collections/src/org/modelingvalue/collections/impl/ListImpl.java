@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2021 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -15,14 +15,24 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.io.*;
-import java.util.*;
-import java.util.function.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Spliterator;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.List;
-import org.modelingvalue.collections.*;
-import org.modelingvalue.collections.util.*;
+import org.modelingvalue.collections.StreamCollection;
+import org.modelingvalue.collections.util.Deserializer;
+import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.Serializer;
 
 public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
 
@@ -323,7 +333,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
             }
         } else {
             Object[] es = coll.toArray();
-            value = /*TODO WIM as.length==0?EMPTY : */ es.length == 1 ? es[0] : ListMultivalue.of(es);
+            value = /* TODO WIM as.length==0?EMPTY : */ es.length == 1 ? es[0] : ListMultivalue.of(es);
         }
     }
 
@@ -400,7 +410,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     }
 
     @Override
-    public List<T> remove(int position) {
+    public List<T> removeIndex(int position) {
         return removeList(position, position + 1);
     }
 
@@ -655,7 +665,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     @Override
     public List<T> remove(Object e) {
         int pos = firstIndexOf(e);
-        return pos >= 0 ? remove(pos) : this;
+        return pos >= 0 ? removeIndex(pos) : this;
     }
 
     @Override
@@ -742,6 +752,12 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
         return EMPTY;
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
+    public Class<List> getMeetClass() {
+        return List.class;
+    }
+
     @Override
     public boolean contains(Object e) {
         return firstIndexOf(e) >= 0;
@@ -769,7 +785,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
             R source = reused.first();
             if (source != null && matcher.apply(source, target)) {
                 id = Math.max(id, identity.apply(source));
-                reused = reused.remove(0);
+                reused = reused.removeIndex(0);
                 changer.accept(source, target);
                 result = result.append(source);
             } else {
@@ -783,7 +799,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
             R source = reused.last();
             if (source != null && matcher.apply(source, target)) {
                 id = Math.max(id, identity.apply(source));
-                reused = reused.remove(reused.size() - 1);
+                reused = reused.removeIndex(reused.size() - 1);
                 changer.accept(source, target);
                 result = result.insert(begin, source);
             } else {
@@ -858,4 +874,10 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
         }
         return new ListImpl<>(entries);
     }
+
+    @Override
+    public List<T> clear() {
+        return create(null);
+    }
+
 }

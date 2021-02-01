@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2021 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -15,17 +15,19 @@
 
 package org.modelingvalue.collections.util;
 
-import java.util.concurrent.*;
-import java.util.concurrent.ForkJoinPool.*;
-import java.util.concurrent.atomic.*;
+import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory;
+import java.util.concurrent.ForkJoinWorkerThread;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicIntegerArray;
 
-import org.modelingvalue.collections.*;
+import org.modelingvalue.collections.Collection;
 
 @SuppressWarnings("unused")
 public final class ContextThread extends ForkJoinWorkerThread {
-    public static final ContextThreadFactory FACTORY   = new ContextThreadFactory();
-    public static final int                  POOL_SIZE = Integer.getInteger("POOL_SIZE", Math.max(4, Collection.PARALLELISM * 2));
-    private static final AtomicInteger POOL_COUNTER = new AtomicInteger(0);
+    public static final ContextThreadFactory FACTORY      = new ContextThreadFactory();
+    public static final int                  POOL_SIZE    = Integer.getInteger("POOL_SIZE", Math.max(6, Collection.PARALLELISM * 2));
+    private static final AtomicInteger       POOL_COUNTER = new AtomicInteger(0);
 
     public static ContextPool createPool() {
         return new ContextPool(Collection.PARALLELISM, FACTORY, null, false);
@@ -66,7 +68,7 @@ public final class ContextThread extends ForkJoinWorkerThread {
         Thread currentThread = Thread.currentThread();
         if (currentThread instanceof ContextThread) {
             ContextThread contextThread = (ContextThread) currentThread;
-            Object[]      pre           = contextThread.getCtx();
+            Object[] pre = contextThread.getCtx();
             contextThread.setCtx(context, delta);
             return pre;
         } else {
@@ -89,8 +91,8 @@ public final class ContextThread extends ForkJoinWorkerThread {
         return getPool().runningThreads();
     }
 
-    private final int      nr;
-    private       Object[] context;
+    private final int nr;
+    private Object[]  context;
 
     private ContextThread(ForkJoinPool pool, int nr) {
         super(pool);
@@ -137,7 +139,7 @@ public final class ContextThread extends ForkJoinWorkerThread {
         private final int                poolNr;
         private final AtomicInteger      numInOverflow = new AtomicInteger();
         private final int[]              activity      = new int[POOL_SIZE];
-        private       int                running       = -1;
+        private int                      running       = -1;
 
         private ContextPool(int parallelism, ForkJoinWorkerThreadFactory factory, UncaughtExceptionHandler handler, boolean asyncMode) {
             super(parallelism, factory, handler, asyncMode);

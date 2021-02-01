@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2021 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -15,13 +15,17 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.io.*;
-import java.util.*;
-import java.util.function.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Objects;
+import java.util.Spliterator;
+import java.util.function.Function;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.util.*;
+import org.modelingvalue.collections.util.Deserializer;
+import org.modelingvalue.collections.util.Serializer;
 
 public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
 
@@ -152,6 +156,12 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
         return EMPTY;
     }
 
+    @SuppressWarnings("rawtypes")
+    @Override
+    public Class<Set> getMeetClass() {
+        return Set.class;
+    }
+
     private void writeObject(ObjectOutputStream s) throws IOException {
         Serializer.wrap(s, this::javaSerialize);
     }
@@ -173,4 +183,10 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
         T[] entries = (T[]) s.readArray(new Object[]{});
         return entries.length == 0 ? (SetImpl<T>) SetImpl.EMPTY : new SetImpl<>(entries);
     }
+
+    @Override
+    public Set<T> clear() {
+        return create(null);
+    }
+
 }
