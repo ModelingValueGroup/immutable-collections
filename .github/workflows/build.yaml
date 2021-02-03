@@ -1,149 +1,26 @@
-name: build and test
+name: build
 
-on: [push]
-
-env:
-  GITHUB_TOKEN: "${{secrets.GITHUB_TOKEN}}"
-  ALLREP_TOKEN: "${{secrets.ALLREP_TOKEN}}"
+on:
+  push:
+    branches: [ "*" ]
 
 jobs:
   build:
     runs-on: ubuntu-20.04
+    if: "!contains(github.event.head_commit.message, '[no-ci]')"
+    env:
+      ALLREP_TOKEN: "${{secrets.ALLREP_TOKEN}}"
+      TOKEN: "${{secrets.ALLREP_TOKEN}}"
+      CI: "true"
     steps:
-      - name: "checkout"
-        uses: actions/checkout@v1
+      - uses: actions/checkout@v2.3.4
+        with:
+          fetch-depth: 0
 
-      - name: "attach head"
-        run: git checkout "${GITHUB_REF#refs/heads/}"
-
-      - name: "setup JDK"
-        uses: actions/setup-java@v1
+      - uses: actions/setup-java@v1
         with:
           java-version: 11
 
-      - name: "get buildtools"
-        uses: ModelingValueGroup/buildtools@master
-
-      - name: "get generic info" # for header file used below
-        uses: ModelingValueGroup/generic-info@master
-
-      - name: "(re)generate some files"
-        run:  |
-          . <(java -jar ~/buildtools.jar)
-          generateAll
-          cat <<EOF >build.properties
-          jdk.home.11=$JAVA_HOME
-          path.variable.maven_repository=$HOME/.m2/repository
-          EOF
-          ant compile.module.build
-          java -cp out/production/build generator.StructGenerator "25" "immutable-collections/src" "org.modelingvalue.collections.struct"
-          correctEols
-          correctHeaders header
-
-      - name: "push changes back to github"
-        run:  |
-          . <(java -jar ~/buildtools.jar)
-          pushBackToGithub
-
-      #=========== build & test: ===================================================================
-      - name: "download dependencies (as mentioned in pom)"
-        run:  |
-          . <(java -jar ~/buildtools.jar)
-          getAllDependencies
-          installJunitlauncher
-
+      ################################################################################
       - name: "build"
-        run:  ant
-
-      - name: "test"
-        run:  |
-          if ! ant test; then
-            for i in TEST-*.xml; do
-              echo "=============== $i"
-              sed "s/^/>> /" $i
-            done
-            exit 42
-          fi
-
-      - name: "generate javadoc"
-        run:  ant javadoc
-
-      #=========== publish: ===================================================================
-      - name: "publish action-artifact jar"
-        uses: actions/upload-artifact@v1
-        with:
-          name: immutable-collections.jar
-          path: out/artifacts/immutable-collections.jar
-
-      - name: "publish action-artifact sources"
-        uses: actions/upload-artifact@v1
-        with:
-          name: immutable-collections-sources.jar
-          path: out/artifacts/immutable-collections-sources.jar
-
-      - name: "publish action-artifact javadoc"
-        uses: actions/upload-artifact@v1
-        with:
-          name: immutable-collections-javadoc.jar
-          path: out/artifacts/immutable-collections-javadoc.jar
-
-      - name: "publish action-artifact test-results"
-        uses: actions/upload-artifact@v1
-        with:
-          name: immutable-collections-testresults.jar
-          path: out/artifacts/immutable-collections-testresults.jar
-
-  snapshots:
-    runs-on: ubuntu-20.04
-    if: github.ref != 'refs/heads/master'
-    needs: build
-    steps:
-      - name: "checkout"
-        uses: actions/checkout@v1
-
-      - name: "get buildtools"
-        uses: ModelingValueGroup/buildtools@master
-
-      - name: "get downloads"
-        uses: actions/download-artifact@v2
-        with:
-          path: tmp
-
-      - name: "saving snapshots for other projects on this branch"
-        run: |
-          . <(java -jar ~/buildtools.jar)
-          mkdir -p out/artifacts
-          find tmp out
-          mv tmp/*/* out/artifacts
-          find tmp out
-          storeMyBranchSnapshots
-
-  publish:
-    runs-on: ubuntu-20.04
-    if: github.ref == 'refs/heads/master'
-    needs: build
-    steps:
-      - name: "checkout"
-        uses: actions/checkout@v1
-
-      - name: "get buildtools"
-        uses: ModelingValueGroup/buildtools@master
-
-      - name: "get downloads"
-        uses: actions/download-artifact@v2
-        with:
-          path: tmp
-
-      - name: "tag with version"
-        run: |
-          . <(java -jar ~/buildtools.jar)
-          setVersionTag
-          mkdir -p out/artifacts
-          find tmp out
-          mv tmp/*/* out/artifacts
-          find tmp out
-
-      - name: "publish maven-artifacts (jar/pom/sources/javadoc)"
-        uses: ModelingValueGroup/upload-maven-package-action@master
-        with:
-          file : "out/artifacts/immutable-collections.jar"
+        run: ./gradlew --scan
