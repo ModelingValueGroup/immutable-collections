@@ -26,7 +26,7 @@ import org.modelingvalue.collections.Collection;
 @SuppressWarnings("unused")
 public final class ContextThread extends ForkJoinWorkerThread {
     public static final ContextThreadFactory FACTORY      = new ContextThreadFactory();
-    public static final int                  POOL_SIZE    = Integer.getInteger("POOL_SIZE", Math.max(6, Collection.PARALLELISM * 2));
+    public static final int                  POOL_SIZE    = Integer.getInteger("POOL_SIZE", Collection.PARALLELISM * 2);
     private static final AtomicInteger       POOL_COUNTER = new AtomicInteger(0);
 
     public static ContextPool createPool() {

@@ -38,7 +38,7 @@ import org.modelingvalue.collections.util.TriFunction;
 @SuppressWarnings("unused")
 public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
 
-    int PARALLELISM = Math.max(3, Integer.getInteger("PARALLELISM", ForkJoinPool.getCommonPoolParallelism()));
+    int PARALLELISM = Math.max(2, Integer.getInteger("PARALLELISM", ForkJoinPool.getCommonPoolParallelism()));
 
     @Override
     Spliterator<T> spliterator();
