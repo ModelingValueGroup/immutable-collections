@@ -20,10 +20,16 @@ plugins {
     `maven-publish`
     id("org.modelingvalue.gradle.mvgplugin") version "0.4.26"
 }
+
+
 dependencies {
     annotationProcessor(project(":generator"))
     compileOnly        (project(":generator"))
 }
+
+sourceSets["main"].java.srcDir(file("build/generated/sources/annotationProcessor/java/main"))
+
+
 publishing {
     publications {
         create<MavenPublication>("immutable-collections") {
