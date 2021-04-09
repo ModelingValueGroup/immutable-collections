@@ -25,9 +25,11 @@ import org.modelingvalue.collections.Collection;
 
 @SuppressWarnings("unused")
 public final class ContextThread extends ForkJoinWorkerThread {
-    public static final ContextThreadFactory FACTORY      = new ContextThreadFactory();
-    public static final int                  POOL_SIZE    = Integer.getInteger("POOL_SIZE", Collection.PARALLELISM * 2);
-    private static final AtomicInteger       POOL_COUNTER = new AtomicInteger(0);
+    public static final  String               WORKER_THREAD_NAME_TEMPLATE = "dclare-p%02d-w%02d";
+    public static final  int                  POOL_SIZE                   = Integer.getInteger("POOL_SIZE", Collection.PARALLELISM * 2);
+    //
+    private static final ContextThreadFactory FACTORY                     = new ContextThreadFactory();
+    private static final AtomicInteger        POOL_COUNTER                = new AtomicInteger();
 
     public static ContextPool createPool() {
         return new ContextPool(Collection.PARALLELISM, FACTORY, null, false);
@@ -68,7 +70,7 @@ public final class ContextThread extends ForkJoinWorkerThread {
         Thread currentThread = Thread.currentThread();
         if (currentThread instanceof ContextThread) {
             ContextThread contextThread = (ContextThread) currentThread;
-            Object[] pre = contextThread.getCtx();
+            Object[]      pre           = contextThread.getCtx();
             contextThread.setCtx(context, delta);
             return pre;
         } else {
@@ -91,8 +93,8 @@ public final class ContextThread extends ForkJoinWorkerThread {
         return getPool().runningThreads();
     }
 
-    private final int nr;
-    private Object[]  context;
+    private final int      nr;
+    private       Object[] context;
 
     private ContextThread(ForkJoinPool pool, int nr) {
         super(pool);
@@ -139,7 +141,7 @@ public final class ContextThread extends ForkJoinWorkerThread {
         private final int                poolNr;
         private final AtomicInteger      numInOverflow = new AtomicInteger();
         private final int[]              activity      = new int[POOL_SIZE];
-        private int                      running       = -1;
+        private       int                running       = -1;
 
         private ContextPool(int parallelism, ForkJoinWorkerThreadFactory factory, UncaughtExceptionHandler handler, boolean asyncMode) {
             super(parallelism, factory, handler, asyncMode);
@@ -170,6 +172,11 @@ public final class ContextThread extends ForkJoinWorkerThread {
         public int incrementAndGetNumInOverflow() {
             return numInOverflow.incrementAndGet();
         }
+
+        @Override
+        public String toString() {
+            return String.format("pool%02d-%s", poolNr, super.toString().replaceFirst(".*\\[", "").replaceFirst("].*", ""));
+        }
     }
 
     private static final class ContextThreadFactory implements ForkJoinWorkerThreadFactory {
@@ -180,12 +187,16 @@ public final class ContextThread extends ForkJoinWorkerThread {
             ContextPool contextPool = (ContextPool) pool;
             for (int i = 0; i < POOL_SIZE; i++) {
                 if (contextPool.counter.compareAndSet(i, 0, 1)) {
-                    return new ContextThread(pool, i);
+                    ContextThread thread = new ContextThread(pool, i);
+                    thread.setName(String.format(WORKER_THREAD_NAME_TEMPLATE, contextPool.poolNr(), i));
+                    return thread;
                 }
             }
             int numInOverflow = contextPool.incrementAndGetNumInOverflow();
             System.err.println("WARNING: Overflow ForkJoinWorkerThread created, consider increasing POOL_SIZE (=" + POOL_SIZE + ") to at least " + (POOL_SIZE + numInOverflow));
-            return ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
+            ForkJoinWorkerThread thread = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
+            thread.setName(String.format(WORKER_THREAD_NAME_TEMPLATE, contextPool.poolNr(), POOL_SIZE + numInOverflow) + "-OVERFLOW");
+            return thread;
         }
     }
 }
