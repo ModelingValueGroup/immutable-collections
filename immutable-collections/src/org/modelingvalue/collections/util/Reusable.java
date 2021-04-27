@@ -17,20 +17,20 @@ package org.modelingvalue.collections.util;
 
 import java.util.ArrayList;
 
-public class Reusable<U, C, T, P> {
+public class Reusable<U, D, C, T, P> {
 
-    private static final int                       CHUNCK_SIZE = 4;
+    private static final int                           CHUNCK_SIZE = 4;
 
-    private final ArrayList<T>                     list        = new ArrayList<>(0);
-    private final U                                init;
-    private final SerializableBiFunction<C, U, T>  construct;
-    private final SerializableTriConsumer<T, C, P> start;
-    private final SerializableConsumer<T>          stop;
-    private final SerializableFunction<T, Boolean> isOpen;
+    private final ArrayList<T>                         list        = new ArrayList<>(0);
+    private final U                                    init;
+    private final SerializableBiFunction<C, U, T>      construct;
+    private final SerializableQuadConsumer<T, D, C, P> start;
+    private final SerializableConsumer<T>              stop;
+    private final SerializableFunction<T, Boolean>     isOpen;
 
-    private int                                    level       = -1;
+    private int                                        level       = -1;
 
-    public Reusable(U init, SerializableBiFunction<C, U, T> construct, SerializableTriConsumer<T, C, P> start, SerializableConsumer<T> stop, SerializableFunction<T, Boolean> isOpen) {
+    public Reusable(U init, SerializableBiFunction<C, U, T> construct, SerializableQuadConsumer<T, D, C, P> start, SerializableConsumer<T> stop, SerializableFunction<T, Boolean> isOpen) {
         this.init = init;
         this.construct = construct;
         this.start = start;
@@ -38,13 +38,13 @@ public class Reusable<U, C, T, P> {
         this.isOpen = isOpen;
     }
 
-    public T open(C cls, P parent) {
+    public T open(D dir, C cls, P parent) {
         if (ContextThread.getNr() < 0) {
             synchronized (list) {
-                return doOpen(cls, parent);
+                return doOpen(dir, cls, parent);
             }
         } else {
-            return doOpen(cls, parent);
+            return doOpen(dir, cls, parent);
         }
     }
 
@@ -58,7 +58,7 @@ public class Reusable<U, C, T, P> {
         }
     }
 
-    private T doOpen(C cls, P parent) {
+    private T doOpen(D dir, C cls, P parent) {
         if (++level >= list.size()) {
             list.ensureCapacity(list.size() + CHUNCK_SIZE);
             for (int i = 0; i < CHUNCK_SIZE; i++) {
@@ -66,7 +66,7 @@ public class Reusable<U, C, T, P> {
             }
         }
         T tx = list.get(level);
-        start.accept(tx, cls, parent);
+        start.accept(tx, dir, cls, parent);
         return tx;
     }
 

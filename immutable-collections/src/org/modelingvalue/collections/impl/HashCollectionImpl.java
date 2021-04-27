@@ -843,12 +843,12 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         }
     }
 
-    private static final class CompareStates extends Reusable<Object, Object, CompareState, Integer> {
+    private static final class CompareStates extends Reusable<Object, Object, Object, CompareState, Integer> {
 
         private static final long serialVersionUID = 4743227838928248552L;
 
         public CompareStates() {
-            super(null, (c, u) -> new CompareState(), (cs, c, l) -> cs.open(l), CompareState::close, CompareState::isOpen);
+            super(null, (c, u) -> new CompareState(), (cs, d, c, l) -> cs.open(l), CompareState::close, CompareState::isOpen);
         }
 
     }

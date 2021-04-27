@@ -181,7 +181,7 @@ public class QualifiedSetTest {
         assertNotEquals(qset0, qset3);
         assertNotEquals(qset0, qset4);
     }
-    //
+
     //    @Test
     //    public void merge() throws Exception {
     //
