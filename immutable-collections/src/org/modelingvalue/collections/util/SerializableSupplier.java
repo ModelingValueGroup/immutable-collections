@@ -15,64 +15,29 @@
 
 package org.modelingvalue.collections.util;
 
-import java.util.ArrayList;
+import java.util.function.Supplier;
 
-public class Reusable<C, T, P> {
+@FunctionalInterface
+public interface SerializableSupplier<T> extends Supplier<T>, LambdaReflection {
 
-    private static final int                       CHUNCK_SIZE = 4;
-
-    private final ArrayList<T>                     list        = new ArrayList<>(0);
-    private final SerializableFunction<C, T>       construct;
-    private final SerializableTriConsumer<T, C, P> start;
-    private final SerializableConsumer<T>          stop;
-    private final SerializableFunction<T, Boolean> isOpen;
-
-    private int                                    level       = -1;
-
-    public Reusable(SerializableFunction<C, T> construct, SerializableTriConsumer<T, C, P> start, SerializableConsumer<T> stop, SerializableFunction<T, Boolean> isOpen) {
-        this.construct = construct;
-        this.start = start;
-        this.stop = stop;
-        this.isOpen = isOpen;
+    @Override
+    default SerializableSupplierImpl<T> of() {
+        return this instanceof SerializableSupplierImpl ? (SerializableSupplierImpl<T>) this : new SerializableSupplierImpl<>(this);
     }
 
-    public T open(C cls, P parent) {
-        if (ContextThread.getNr() < 0) {
-            synchronized (list) {
-                return doOpen(cls, parent);
-            }
-        } else {
-            return doOpen(cls, parent);
-        }
-    }
+    class SerializableSupplierImpl<T> extends LambdaImpl<SerializableSupplier<T>> implements SerializableSupplier<T> {
 
-    public void close(T tx) {
-        if (ContextThread.getNr() < 0) {
-            synchronized (list) {
-                doClose(tx);
-            }
-        } else {
-            doClose(tx);
-        }
-    }
+        private static final long serialVersionUID = 2587381775760584999L;
 
-    private T doOpen(C cls, P parent) {
-        if (++level >= list.size()) {
-            list.ensureCapacity(list.size() + CHUNCK_SIZE);
-            for (int i = 0; i < CHUNCK_SIZE; i++) {
-                list.add(construct.apply(cls));
-            }
+        public SerializableSupplierImpl(SerializableSupplier<T> f) {
+            super(f);
         }
-        T tx = list.get(level);
-        start.accept(tx, cls, parent);
-        return tx;
-    }
 
-    private void doClose(T tx) {
-        stop.accept(tx);
-        while (level >= 0 && !isOpen.apply(list.get(level))) {
-            level--;
+        @Override
+        public T get() {
+            return f.get();
         }
+
     }
 
 }
