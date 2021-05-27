@@ -58,6 +58,8 @@ public interface QualifiedSet<K, V> extends ContainingCollection<V>, Mergeable<Q
 
     QualifiedSet<K, V> addAll(QualifiedSet<? extends K, ? extends V> c);
 
+    QualifiedSet<K, V> putAll(QualifiedSet<? extends K, ? extends V> c);
+
     @Override
     QualifiedSet<K, V> addAll(Collection<? extends V> e);
 

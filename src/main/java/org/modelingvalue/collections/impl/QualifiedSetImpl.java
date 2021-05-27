@@ -113,6 +113,12 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
 
     @SuppressWarnings("rawtypes")
     @Override
+    public QualifiedSet<K, V> putAll(QualifiedSet<? extends K, ? extends V> c) {
+        return create(put(value, key(), ((QualifiedSetImpl) c).value, key()));
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
     public void deduplicate(QualifiedSet<K, V> other) {
         deduplicate(value, key(), ((QualifiedSetImpl) other).value, key());
     }
@@ -206,7 +212,9 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
     @SuppressWarnings("unchecked")
     @Override
     public QualifiedSet<K, V> remove(Object e) {
-        return removeKey(qualifier.apply((V) e));
+        K key = qualifier.apply((V) e);
+        V val = get(key);
+        return e.equals(val) ? removeKey(key) : this;
     }
 
     @Override

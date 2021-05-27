@@ -17,21 +17,19 @@ package org.modelingvalue.collections.util;
 
 import java.util.ArrayList;
 
-public class Reusable<U, C, T, P> {
+public class Reusable<C, T, P> {
 
     private static final int                       CHUNCK_SIZE = 4;
 
     private final ArrayList<T>                     list        = new ArrayList<>(0);
-    private final U                                init;
-    private final SerializableBiFunction<C, U, T>  construct;
+    private final SerializableFunction<C, T>       construct;
     private final SerializableTriConsumer<T, C, P> start;
     private final SerializableConsumer<T>          stop;
     private final SerializableFunction<T, Boolean> isOpen;
 
     private int                                    level       = -1;
 
-    public Reusable(U init, SerializableBiFunction<C, U, T> construct, SerializableTriConsumer<T, C, P> start, SerializableConsumer<T> stop, SerializableFunction<T, Boolean> isOpen) {
-        this.init = init;
+    public Reusable(SerializableFunction<C, T> construct, SerializableTriConsumer<T, C, P> start, SerializableConsumer<T> stop, SerializableFunction<T, Boolean> isOpen) {
         this.construct = construct;
         this.start = start;
         this.stop = stop;
@@ -62,7 +60,7 @@ public class Reusable<U, C, T, P> {
         if (++level >= list.size()) {
             list.ensureCapacity(list.size() + CHUNCK_SIZE);
             for (int i = 0; i < CHUNCK_SIZE; i++) {
-                list.add(construct.apply(cls, init));
+                list.add(construct.apply(cls));
             }
         }
         T tx = list.get(level);
