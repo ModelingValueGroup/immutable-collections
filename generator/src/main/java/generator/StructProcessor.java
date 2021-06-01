@@ -35,10 +35,9 @@ public class StructProcessor extends AbstractProcessor {
         annotations.stream()
                 .map(roundEnv::getElementsAnnotatedWith)
                 .forEach(annotatedElements -> annotatedElements.forEach(element -> {
-                    String packageName    = element.asType().toString();
-                    int    maxNumTypeArgs = element.getAnnotation(Structs.class).value();
-                    System.err.println("@@@@@ init - " + maxNumTypeArgs + " - " + packageName);
                     try {
+                        String packageName    = element.asType().toString();
+                        int    maxNumTypeArgs = element.getAnnotation(Structs.class).value();
                         new StructGeneratorForAnnotation(maxNumTypeArgs, packageName).generateAll();
                     } catch (IOException ioException) {
                         processingEnv.getMessager().printMessage(Kind.ERROR, "problem during struct generation: " + ioException.getMessage(), element);
@@ -54,7 +53,6 @@ public class StructProcessor extends AbstractProcessor {
 
         @Override
         public Writer getWriter(String className) throws IOException {
-            System.err.println("@@@@@   gen " + className);
             return processingEnv.getFiler().createSourceFile(className).openWriter();
         }
     }

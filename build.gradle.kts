@@ -21,7 +21,6 @@ plugins {
     id("org.modelingvalue.gradle.mvgplugin") version "0.4.29"
 }
 
-
 dependencies {
     annotationProcessor(project(":generator"))
     compileOnly        (project(":generator"))
@@ -29,11 +28,14 @@ dependencies {
 
 sourceSets["main"].java.srcDir(file("build/generated/sources/annotationProcessor/java/main"))
 
-
 publishing {
     publications {
         create<MavenPublication>("immutable-collections") {
             from(components["java"])
         }
     }
+}
+
+tasks.withType<Javadoc> {
+    exclude("org/modelingvalue/collections/struct/**")
 }
