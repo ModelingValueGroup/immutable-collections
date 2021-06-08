@@ -18,15 +18,13 @@ defaultTasks("mvgCorrector", "test", "publish", "mvgTagger")
 plugins {
     `java-library`
     `maven-publish`
-    id("org.modelingvalue.gradle.mvgplugin") version "0.4.29"
+    id("org.modelingvalue.gradle.mvgplugin") version "0.4.34"
 }
 
 dependencies {
     annotationProcessor(project(":generator"))
     compileOnly        (project(":generator"))
 }
-
-sourceSets["main"].java.srcDir(file("build/generated/sources/annotationProcessor/java/main"))
 
 publishing {
     publications {
