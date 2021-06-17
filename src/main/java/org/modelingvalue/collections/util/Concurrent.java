@@ -54,6 +54,13 @@ public class Concurrent<T> {
         return pre != null;
     }
 
+    public T pre() {
+        if (pre == null) {
+            throw new ConcurrentModificationException();
+        }
+        return pre;
+    }
+
     public <E> boolean set(BiFunction<T, E, T> function, E e) {
         return change(t -> function.apply(t, e));
     }
