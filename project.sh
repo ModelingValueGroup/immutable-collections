@@ -23,7 +23,7 @@
 #       s = sources
 #       t = test
 #===================================================================
-version=1.5.0
+version=1.6.0
 artifacts=(
   "org.modelingvalue   immutable-collections   $version    jar jds"
 )
