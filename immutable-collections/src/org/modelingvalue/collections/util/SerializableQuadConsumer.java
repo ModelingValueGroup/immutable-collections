@@ -13,25 +13,29 @@
 //     Arjan Kok, Carel Bast                                                                                           ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-package org.modelingvalue.collections.struct.impl;
+package org.modelingvalue.collections.util;
 
-import org.modelingvalue.collections.struct.Struct4;
-
-@SuppressWarnings({"unchecked", "unused"})
-public class Struct4Impl<T0, T1, T2, T3> extends Struct3Impl<T0, T1, T2> implements Struct4<T0, T1, T2, T3> {
-
-    private static final long serialVersionUID = 0x47114711_B5CAD59FL;
-
-    public Struct4Impl(T0 t0, T1 t1, T2 t2, T3 t3) {
-        this((Object) t0, t1, t2, t3);
-    }
-
-    protected Struct4Impl(Object... data){
-        super(data);
-    }
+@FunctionalInterface
+public interface SerializableQuadConsumer<A, B, C, D> extends QuadConsumer<A, B, C, D>, LambdaReflection {
 
     @Override
-    public T3 get3() {
-        return (T3) get(3);
+    default SerializableQuadConsumerImpl<A, B, C, D> of() {
+        return this instanceof SerializableQuadConsumerImpl ? (SerializableQuadConsumerImpl<A, B, C, D>) this : new SerializableQuadConsumerImpl<>(this);
     }
+
+    class SerializableQuadConsumerImpl<A, B, C, D> extends LambdaImpl<SerializableQuadConsumer<A, B, C, D>> implements SerializableQuadConsumer<A, B, C, D> {
+
+        private static final long serialVersionUID = -5270335229106305734L;
+
+        public SerializableQuadConsumerImpl(SerializableQuadConsumer<A, B, C, D> f) {
+            super(f);
+        }
+
+        @Override
+        public void accept(A s, B t, C u, D v) {
+            f.accept(s, t, u, v);
+        }
+
+    }
+
 }

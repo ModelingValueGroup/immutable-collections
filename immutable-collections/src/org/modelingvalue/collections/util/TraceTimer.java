@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2021 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -15,9 +15,18 @@
 
 package org.modelingvalue.collections.util;
 
-import java.util.*;
-import java.util.Map.*;
-import java.util.regex.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Deque;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.MissingFormatArgumentException;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.regex.Pattern;
 
 @SuppressWarnings("unused")
 public final class TraceTimer {
@@ -298,9 +307,10 @@ public final class TraceTimer {
     public static void traceLog(String format, Object... args) {
         if (TRACE_LOG) {
             try {
+                TraceLog newLog = new TraceLog(format, args);
                 synchronized (ALL_LOGS) {
+                    ALL_LOGS.add(newLog);
                     logsChanged = true;
-                    ALL_LOGS.add(new TraceLog(format, args));
                 }
             } catch (Throwable t) {
                 System.err.println("problem during traceLog():");
@@ -310,13 +320,13 @@ public final class TraceTimer {
     }
 
     private static class TraceLog {
-        private static final String PRE_FORMAT_NAME = "%-30s| ";
-        private static final String PRE_FORMAT_DT   = "%,15d| ";
-        private static final String PRE_FORMAT_HERE = "%-30s| ";
-        private static final int    INDENT_LEN      = String.format(PRE_FORMAT_NAME, "").length() + (TRACE_LOG_DT ? String.format(PRE_FORMAT_DT, 0).length() : 0) - 1;
-        private static final String INDENT_STR      = String.format("\n%" + INDENT_LEN + "s|", "");
-        private static final long   T0_NANO         = System.nanoTime();
-        private static       long   last            = System.nanoTime();
+        private static final String PRE_FORMAT_THREAD_NAME = "%-32s| ";
+        private static final String PRE_FORMAT_DT          = "%,15d| ";
+        private static final String PRE_FORMAT_CODE_LOC    = "%-32s| ";
+        private static final int    INDENT_LEN             = String.format(PRE_FORMAT_THREAD_NAME, "").length() - 2 + (TRACE_LOG_DT ? String.format(PRE_FORMAT_DT, 0).length() : 0);
+        private static final String INDENT_STR             = String.format("\n%" + INDENT_LEN + "s|", "");
+        private static final long   T0_NANO                = System.nanoTime();
+        private static       long   last                   = System.nanoTime();
 
         private final String            format;
         private final Object[]          args;
@@ -325,7 +335,7 @@ public final class TraceTimer {
         private final StackTraceElement here;
 
         public TraceLog(String format, Object... args) {
-            this.format = format;
+            this.format = format.replaceAll("(.)\n$", "$1");
             this.args = args;
             long t = System.nanoTime();
             nanoDelta = t - last;
@@ -336,11 +346,11 @@ public final class TraceTimer {
 
         public void dump(List<String> log) {
             try {
-                String preName = String.format(PRE_FORMAT_NAME, thread.getName());
-                String preTime = TRACE_LOG_DT ? String.format(PRE_FORMAT_DT, nanoDelta) : "";
-                String preHere = here != null ? String.format(PRE_FORMAT_HERE, here.toString().replaceFirst("^[^(]*", "x.x")) : "";
-                String msg     = String.format(format, args).replace("\n", INDENT_STR);
-                log.add(preName + preTime + preHere + msg);
+                String preThreadName = String.format(PRE_FORMAT_THREAD_NAME, thread.getName());
+                String preTime       = TRACE_LOG_DT ? String.format(PRE_FORMAT_DT, nanoDelta) : "";
+                String preCodeLoc    = here != null ? String.format(PRE_FORMAT_CODE_LOC, here.toString().replaceFirst("^[^(]*", "x.x")) : "";
+                String msg           = String.format(format, args).replace("\n", INDENT_STR);
+                log.add(preThreadName + preTime + preCodeLoc + msg);
             } catch (MissingFormatArgumentException e) {
                 log.add("OOPS bad format: " + format);
             }

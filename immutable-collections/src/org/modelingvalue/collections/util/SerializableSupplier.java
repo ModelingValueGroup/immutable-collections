@@ -13,25 +13,31 @@
 //     Arjan Kok, Carel Bast                                                                                           ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-package org.modelingvalue.collections.struct.impl;
+package org.modelingvalue.collections.util;
 
-import org.modelingvalue.collections.struct.Struct4;
+import java.util.function.Supplier;
 
-@SuppressWarnings({"unchecked", "unused"})
-public class Struct4Impl<T0, T1, T2, T3> extends Struct3Impl<T0, T1, T2> implements Struct4<T0, T1, T2, T3> {
-
-    private static final long serialVersionUID = 0x47114711_B5CAD59FL;
-
-    public Struct4Impl(T0 t0, T1 t1, T2 t2, T3 t3) {
-        this((Object) t0, t1, t2, t3);
-    }
-
-    protected Struct4Impl(Object... data){
-        super(data);
-    }
+@FunctionalInterface
+public interface SerializableSupplier<T> extends Supplier<T>, LambdaReflection {
 
     @Override
-    public T3 get3() {
-        return (T3) get(3);
+    default SerializableSupplierImpl<T> of() {
+        return this instanceof SerializableSupplierImpl ? (SerializableSupplierImpl<T>) this : new SerializableSupplierImpl<>(this);
     }
+
+    class SerializableSupplierImpl<T> extends LambdaImpl<SerializableSupplier<T>> implements SerializableSupplier<T> {
+
+        private static final long serialVersionUID = 2587381775760584999L;
+
+        public SerializableSupplierImpl(SerializableSupplier<T> f) {
+            super(f);
+        }
+
+        @Override
+        public T get() {
+            return f.get();
+        }
+
+    }
+
 }

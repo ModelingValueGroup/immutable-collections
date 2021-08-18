@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2021 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -843,12 +843,12 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         }
     }
 
-    private static final class CompareStates extends Reusable<Object, Object, CompareState, Integer> {
+    private static final class CompareStates extends Reusable<Object, CompareState, Integer> {
 
         private static final long serialVersionUID = 4743227838928248552L;
 
         public CompareStates() {
-            super(null, (c, u) -> new CompareState(), (cs, c, l) -> cs.open(l), CompareState::close, CompareState::isOpen);
+            super(x -> new CompareState(), (cs, x, l) -> cs.open(l), CompareState::close, CompareState::isOpen);
         }
 
     }

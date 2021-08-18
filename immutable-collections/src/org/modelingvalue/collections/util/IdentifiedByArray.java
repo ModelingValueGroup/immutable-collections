@@ -13,25 +13,69 @@
 //     Arjan Kok, Carel Bast                                                                                           ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-package org.modelingvalue.collections.struct.impl;
+package org.modelingvalue.collections.util;
 
-import org.modelingvalue.collections.struct.Struct4;
+import java.util.Arrays;
 
-@SuppressWarnings({"unchecked", "unused"})
-public class Struct4Impl<T0, T1, T2, T3> extends Struct3Impl<T0, T1, T2> implements Struct4<T0, T1, T2, T3> {
+public class IdentifiedByArray implements Internable {
 
-    private static final long serialVersionUID = 0x47114711_B5CAD59FL;
+    private Object[] array;
 
-    public Struct4Impl(T0 t0, T1 t1, T2 t2, T3 t3) {
-        this((Object) t0, t1, t2, t3);
-    }
-
-    protected Struct4Impl(Object... data){
-        super(data);
+    public IdentifiedByArray(Object[] array) {
+        this.array = array;
     }
 
     @Override
-    public T3 get3() {
-        return (T3) get(3);
+    public int hashCode() {
+        return Arrays.hashCode(array);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        } else if (obj == null) {
+            return false;
+        } else if (getClass() != obj.getClass()) {
+            return false;
+        } else {
+            IdentifiedByArray other = (IdentifiedByArray) obj;
+            if (other.array == array) {
+                return true;
+            } else if (!Arrays.equals(array, other.array)) {
+                return false;
+            } else {
+                if (Age.age(array) > Age.age(other.array)) {
+                    other.array = array;
+                } else {
+                    array = other.array;
+                }
+                return true;
+            }
+        }
+    }
+
+    @Override
+    public boolean isInternable() {
+        for (Object obj : array) {
+            if (!Internable.isInternable(obj)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + Arrays.toString(array);
+    }
+
+    public Object get(int i) {
+        return array[i];
+    }
+
+    public int size() {
+        return array.length;
+    }
+
 }

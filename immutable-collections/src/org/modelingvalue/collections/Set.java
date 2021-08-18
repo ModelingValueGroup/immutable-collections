@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2021 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -28,8 +28,19 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
 
     @SafeVarargs
     @SuppressWarnings("unchecked")
-    static <T> Set<T> of(T... entries) {
-        return entries.length == 0 ? SetImpl.EMPTY : new SetImpl<>(entries);
+    static <T> Set<T> of(T... elements) {
+        return elements.length == 0 ? SetImpl.EMPTY : new SetImpl<>(elements);
+    }
+
+    @SafeVarargs
+    static <T> Set<T> notNull(T... elements) {
+        Set<T> result = Set.of();
+        for (int i = 0; i < elements.length; i++) {
+            if (elements[i] != null) {
+                result = result.add(elements[i]);
+            }
+        }
+        return result;
     }
 
     @SuppressWarnings("unchecked")

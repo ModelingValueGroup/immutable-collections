@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2021 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -17,23 +17,19 @@ package org.modelingvalue.collections.util;
 
 import java.util.ArrayList;
 
-public class Reusable<U, C, T, P> extends ArrayList<T> {
+public class Reusable<C, T, P> {
 
-    private static final long                      serialVersionUID = 9116265671882887291L;
+    private static final int                       CHUNCK_SIZE = 4;
 
-    private static final int                       CHUNCK_SIZE      = 4;
-
-    private final U                                init;
-    private final SerializableBiFunction<C, U, T>  construct;
+    private final ArrayList<T>                     list        = new ArrayList<>(0);
+    private final SerializableFunction<C, T>       construct;
     private final SerializableTriConsumer<T, C, P> start;
     private final SerializableConsumer<T>          stop;
     private final SerializableFunction<T, Boolean> isOpen;
 
-    private int                                    level            = -1;
+    private int                                    level       = -1;
 
-    public Reusable(U init, SerializableBiFunction<C, U, T> construct, SerializableTriConsumer<T, C, P> start, SerializableConsumer<T> stop, SerializableFunction<T, Boolean> isOpen) {
-        super(0);
-        this.init = init;
+    public Reusable(SerializableFunction<C, T> construct, SerializableTriConsumer<T, C, P> start, SerializableConsumer<T> stop, SerializableFunction<T, Boolean> isOpen) {
         this.construct = construct;
         this.start = start;
         this.stop = stop;
@@ -41,20 +37,40 @@ public class Reusable<U, C, T, P> extends ArrayList<T> {
     }
 
     public T open(C cls, P parent) {
-        if (++level >= size()) {
-            ensureCapacity(size() + CHUNCK_SIZE);
+        if (ContextThread.getNr() < 0) {
+            synchronized (list) {
+                return doOpen(cls, parent);
+            }
+        } else {
+            return doOpen(cls, parent);
+        }
+    }
+
+    public void close(T tx) {
+        if (ContextThread.getNr() < 0) {
+            synchronized (list) {
+                doClose(tx);
+            }
+        } else {
+            doClose(tx);
+        }
+    }
+
+    private T doOpen(C cls, P parent) {
+        if (++level >= list.size()) {
+            list.ensureCapacity(list.size() + CHUNCK_SIZE);
             for (int i = 0; i < CHUNCK_SIZE; i++) {
-                add(construct.apply(cls, init));
+                list.add(construct.apply(cls));
             }
         }
-        T tx = get(level);
+        T tx = list.get(level);
         start.accept(tx, cls, parent);
         return tx;
     }
 
-    public void close(T tx) {
+    private void doClose(T tx) {
         stop.accept(tx);
-        while (level >= 0 && !isOpen.apply(get(level))) {
+        while (level >= 0 && !isOpen.apply(list.get(level))) {
             level--;
         }
     }

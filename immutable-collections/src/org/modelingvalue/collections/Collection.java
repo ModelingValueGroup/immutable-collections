@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2020 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2021 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -38,7 +38,7 @@ import org.modelingvalue.collections.util.TriFunction;
 @SuppressWarnings("unused")
 public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
 
-    int PARALLELISM = Integer.getInteger("PARALLELISM", ForkJoinPool.getCommonPoolParallelism());
+    int PARALLELISM = Math.max(2, Integer.getInteger("PARALLELISM", ForkJoinPool.getCommonPoolParallelism()));
 
     @Override
     Spliterator<T> spliterator();
@@ -56,6 +56,10 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
 
     @Override
     Collection<T> filter(Predicate<? super T> predicate);
+
+    default Collection<T> exclude(Predicate<? super T> predicate) {
+        return filter(predicate.negate());
+    }
 
     @Override
     <R> Collection<R> map(Function<? super T, ? extends R> mapper);
@@ -77,6 +81,11 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
     @SuppressWarnings({"rawtypes", "unchecked"})
     default <C extends Comparable> Collection<T> sortedBy(Function<T, C> by) {
         return sorted((o1, o2) -> by.apply(o1).compareTo(by.apply(o2)));
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    default <C extends Comparable> Collection<T> sortedByDesc(Function<T, C> by) {
+        return sorted((o1, o2) -> by.apply(o2).compareTo(by.apply(o1)));
     }
 
     @Override
