@@ -25,6 +25,8 @@ import java.util.function.UnaryOperator;
 
 public class StatusProvider<S extends StatusProvider.AbstractStatus> implements Iterable<S> {
 
+    private static final boolean TRACE_STATUS = Boolean.getBoolean("TRACE_STATUS");
+
     public static abstract class AbstractStatus {
 
         protected final CompletableFuture<AbstractStatus> next = new CompletableFuture<>();
@@ -49,6 +51,9 @@ public class StatusProvider<S extends StatusProvider.AbstractStatus> implements 
                 return;
             } else if (status.weakCompareAndSetVolatile(pre, post)) {
                 pre.next.complete(post);
+                if (TRACE_STATUS) {
+                    System.err.println("Status changed: " + pre + " -> " + post);
+                }
                 return;
             }
         }
