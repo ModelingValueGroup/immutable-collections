@@ -102,15 +102,30 @@ public class StatusProvider<S extends StatusProvider.AbstractStatus> implements 
             }
         }
 
-        public M getFirst(Predicate<M> pred) {
-            M s;
+        public M waitFor(Predicate<M> pred) {
+            M s = status;
             while (hasNext()) {
                 s = next();
                 if (pred.test(s)) {
+                    firstDone = false;
                     return s;
                 }
             }
+            firstDone = false;
             throw new IllegalStateException();
+        }
+
+        public M waitForStoppedOr(Predicate<M> pred) {
+            M s = status;
+            while (hasNext()) {
+                s = next();
+                if (pred.test(s)) {
+                    firstDone = false;
+                    return s;
+                }
+            }
+            firstDone = false;
+            return s;
         }
     }
 

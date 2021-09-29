@@ -33,7 +33,7 @@ import org.modelingvalue.collections.util.StatusProvider.StatusIterator;
 public class StatusTest {
     @Test
     public void simple() {
-        StatusFeeder               feeder   = new StatusFeeder();
+        StatusFeeder feeder = new StatusFeeder();
         StatusIterator<TestStatus> iterator = feeder.iterator();
 
         assertTimeoutPreemptively(ofMillis(20), () -> assertNext(feeder, iterator, "$start$", 0, true, 0));
@@ -41,7 +41,7 @@ public class StatusTest {
 
     @Test
     public void complex() {
-        StatusFeeder               feeder   = new StatusFeeder("A", "B", "100:C", "100:D", "E");
+        StatusFeeder feeder = new StatusFeeder("A", "B", "100:C", "100:D", "E");
         StatusIterator<TestStatus> iterator = feeder.iterator();
 
         assertTimeoutPreemptively(ofMillis(300), () -> {
@@ -70,8 +70,8 @@ public class StatusTest {
             assertTrue(0 <= (t1 - t0));
             assertTrue((t1 - t0) <= 20);
         } else {
-            assertTrue((expectTime * 90) / 100 <= (t1 - t0));
-            assertTrue((t1 - t0) <= (expectTime * 110) / 100);
+            assertTrue((expectTime * 80) / 100 <= (t1 - t0));
+            assertTrue((t1 - t0) <= (expectTime * 120) / 100, "Time expected=" + expectTime + " actual=" + (t1 - t0));
         }
     }
 
@@ -84,9 +84,9 @@ public class StatusTest {
         private final boolean stop;
 
         public TestStatus(String name, boolean last) {
-            this.name     = name;
+            this.name = name;
             this.preDelay = extracDelay(name);
-            this.stop     = last;
+            this.stop = last;
         }
 
         private long extracDelay(String name) {
