@@ -43,6 +43,11 @@ public class StatusProvider<S extends StatusProvider.AbstractStatus> implements 
 
     public StatusProvider(S start) {
         this.status = new AtomicReference<>(start);
+        if (TRACE_STATUS) {
+            Thread tread = new Thread(() -> new StatusIterator<>(start).forEachRemaining(s -> System.err.println("Status changed: " + s)), "StatusProvider.traceThread");
+            tread.setDaemon(true);
+            tread.start();
+        }
     }
 
     public void setNext(UnaryOperator<S> nextFunction) {
@@ -51,9 +56,6 @@ public class StatusProvider<S extends StatusProvider.AbstractStatus> implements 
                 return;
             } else if (status.weakCompareAndSetVolatile(pre, post)) {
                 pre.next.complete(post);
-                if (TRACE_STATUS) {
-                    System.err.println("Status changed: " + pre + " -> " + post);
-                }
                 return;
             }
         }
