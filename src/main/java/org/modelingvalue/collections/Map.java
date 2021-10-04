@@ -20,6 +20,7 @@ import java.util.function.BinaryOperator;
 import java.util.function.Predicate;
 
 import org.modelingvalue.collections.impl.MapImpl;
+import org.modelingvalue.collections.mutable.MutableMap;
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadFunction;
@@ -85,6 +86,9 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
     Map<K, V> remove(Object e);
 
     @Override
+    Map<K, V> removeAll(Collection<?> e);
+
+    @Override
     Map<K, V> add(Entry<K, V> e);
 
     @Override
@@ -99,4 +103,10 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
 
     @Override
     Map<K, V> clear();
+
+    java.util.Map<K, V> toMutable();
+
+    static <S, E> Map<S, E> fromMutable(java.util.Map<S, E> mutable) {
+        return mutable instanceof MutableMap ? ((MutableMap<S, E>) mutable).toImmutable() : Collection.of(mutable.entrySet()).toMap(e -> Entry.of(e.getKey(), e.getValue()));
+    }
 }

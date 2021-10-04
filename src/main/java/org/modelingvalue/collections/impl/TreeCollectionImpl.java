@@ -166,6 +166,11 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
     }
 
     @Override
+    public ListIterator<T> listIterator(int index) {
+        return new CollectionIterator<>(value, index);
+    }
+
+    @Override
     public ListIterator<T> listIteratorAtEnd() {
         return new CollectionIterator<>(value, length(value));
     }

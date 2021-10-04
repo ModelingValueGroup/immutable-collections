@@ -20,6 +20,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.modelingvalue.collections.impl.ListImpl;
+import org.modelingvalue.collections.mutable.MutableList;
 import org.modelingvalue.collections.util.Mergeable;
 
 @SuppressWarnings("unused")
@@ -118,6 +119,8 @@ public interface List<T> extends ContainingCollection<T>, Mergeable<List<T>> {
         return this;
     }
 
+    boolean containsAll(Collection<?> c);
+
     @Override
     List<T> replace(Object pre, T post);
 
@@ -143,5 +146,11 @@ public interface List<T> extends ContainingCollection<T>, Mergeable<List<T>> {
 
     @Override
     List<T> clear();
+
+    java.util.List<T> toMutable();
+
+    static <E> List<E> fromMutable(java.util.Collection<E> mutable) {
+        return mutable instanceof MutableList ? ((MutableList<E>) mutable).toImmutable() : Collection.of(mutable).toList();
+    }
 
 }

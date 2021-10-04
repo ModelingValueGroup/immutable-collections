@@ -30,6 +30,7 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.StreamCollection;
+import org.modelingvalue.collections.mutable.MutableList;
 import org.modelingvalue.collections.util.Deserializer;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.Serializer;
@@ -764,6 +765,11 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     }
 
     @Override
+    public boolean containsAll(Collection<?> c) {
+        return c.allMatch(this::contains);
+    }
+
+    @Override
     public T next(T e) {
         int i = firstIndexOf(e) + 1;
         return i > 0 && i < size() ? get(i) : null;
@@ -878,6 +884,11 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     @Override
     public List<T> clear() {
         return create(null);
+    }
+
+    @Override
+    public java.util.List<T> toMutable() {
+        return new MutableList<T>(this);
     }
 
 }

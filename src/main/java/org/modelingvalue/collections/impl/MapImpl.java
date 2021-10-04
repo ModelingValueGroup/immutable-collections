@@ -29,6 +29,7 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.mutable.MutableMap;
 import org.modelingvalue.collections.util.ArrayUtil;
 import org.modelingvalue.collections.util.Deserializer;
 import org.modelingvalue.collections.util.Mergeables;
@@ -324,6 +325,11 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     @Override
     public Map<K, V> clear() {
         return create(null);
+    }
+
+    @Override
+    public java.util.Map<K, V> toMutable() {
+        return new MutableMap<K, V>(this);
     }
 
 }

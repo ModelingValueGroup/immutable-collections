@@ -18,6 +18,7 @@ package org.modelingvalue.collections;
 import java.util.function.Function;
 
 import org.modelingvalue.collections.impl.SetImpl;
+import org.modelingvalue.collections.mutable.MutableSet;
 import org.modelingvalue.collections.util.Mergeable;
 
 public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
@@ -87,5 +88,11 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
 
     @Override
     Set<T> clear();
+
+    java.util.Set<T> toMutable();
+
+    static <E> Set<E> fromMutable(java.util.Collection<E> mutable) {
+        return mutable instanceof MutableSet ? ((MutableSet<E>) mutable).toImmutable() : Collection.of(mutable).toSet();
+    }
 
 }

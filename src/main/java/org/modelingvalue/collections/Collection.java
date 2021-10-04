@@ -30,6 +30,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import org.modelingvalue.collections.impl.StreamCollectionImpl;
+import org.modelingvalue.collections.mutable.Mutable;
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.SerializableFunction;
 import org.modelingvalue.collections.util.TriConsumer;
@@ -151,8 +152,9 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
         return new StreamCollectionImpl<>(base);
     }
 
+    @SuppressWarnings("unchecked")
     static <T> Collection<T> of(Iterable<T> base) {
-        return base instanceof Collection ? (Collection<T>) base : new StreamCollectionImpl<>(base);
+        return base instanceof Collection ? (Collection<T>) base : base instanceof Mutable ? ((Mutable<T>) base).toImmutable() : new StreamCollectionImpl<>(base);
     }
 
     static <T> Collection<T> of(Supplier<T> base) {

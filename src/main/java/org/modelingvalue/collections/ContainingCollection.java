@@ -53,6 +53,8 @@ public interface ContainingCollection<T> extends Collection<T>, Internable {
 
     ListIterator<T> listIterator();
 
+    ListIterator<T> listIterator(int index);
+
     ListIterator<T> listIteratorAtEnd();
 
     void javaSerialize(Serializer s);

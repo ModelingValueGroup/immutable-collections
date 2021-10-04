@@ -24,6 +24,7 @@ import java.util.function.Function;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.mutable.MutableSet;
 import org.modelingvalue.collections.util.Deserializer;
 import org.modelingvalue.collections.util.Serializer;
 
@@ -187,6 +188,11 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
     @Override
     public Set<T> clear() {
         return create(null);
+    }
+
+    @Override
+    public java.util.Set<T> toMutable() {
+        return new MutableSet<T>(this);
     }
 
 }
