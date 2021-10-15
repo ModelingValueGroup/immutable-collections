@@ -143,7 +143,6 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
         return create(retain(value, key(), ((SetImpl) keys).value, identity()));
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected QualifiedDefaultSetImpl<K, V> create(Object val) {
         return val != value ? new QualifiedDefaultSetImpl<>(qualifier, defaultFunction, val) : this;

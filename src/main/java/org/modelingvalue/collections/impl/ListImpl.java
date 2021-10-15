@@ -888,7 +888,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
 
     @Override
     public java.util.List<T> toMutable() {
-        return new MutableList<T>(this);
+        return new MutableList<>(this);
     }
 
 }

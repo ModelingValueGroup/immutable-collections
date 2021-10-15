@@ -37,3 +37,7 @@ publishing {
 tasks.withType<Javadoc> {
     exclude("org/modelingvalue/collections/struct/**")
 }
+tasks.withType(JavaCompile::class) {
+    options.compilerArgs.add("-Xlint:unchecked")
+    options.compilerArgs.add("-Xlint:deprecation")
+}

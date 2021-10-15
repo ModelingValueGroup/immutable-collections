@@ -147,6 +147,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         }
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     protected static boolean equalsWithStop(Object v1, Object v2, boolean[] stop) {
         if (v1 instanceof MultiValue) {
             return ((MultiValue) v1).equalsWithStop(v2, stop);
@@ -584,7 +585,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         }
     }
 
-    abstract protected <R extends TreeCollectionImpl<T>> R create(Object val);
+    abstract protected TreeCollectionImpl<T> create(Object val);
 
     abstract protected StreamCollection<Object[]> getCompareStream(ContainingCollection<? extends T> toCompare);
 
@@ -650,8 +651,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
     public void javaDeserialize(Deserializer s) {
         int size = s.readInt();
         for (int i = 0; i < size; i++) {
-            @SuppressWarnings("unchecked")
-            T e = (T) s.readObject();
+            T e = s.readObject();
             TreeCollectionImpl<T> newSet = (TreeCollectionImpl<T>) add(e);
             this.value = newSet.value;
         }

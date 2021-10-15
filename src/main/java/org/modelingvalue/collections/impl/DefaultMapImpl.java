@@ -300,7 +300,6 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
         return create(retain(value, key(), ((SetImpl) keys).value, identity())).map(Entry::getValue);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected DefaultMapImpl<K, V> create(Object val) {
         return val != value ? new DefaultMapImpl<>(val, defaultFunction) : this;

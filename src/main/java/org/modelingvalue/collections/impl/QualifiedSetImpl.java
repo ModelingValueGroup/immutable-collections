@@ -144,7 +144,6 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
         return create(retain(value, key(), ((SetImpl) keys).value, identity()));
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected QualifiedSetImpl<K, V> create(Object val) {
         return val != value ? new QualifiedSetImpl<>(qualifier, val) : this;

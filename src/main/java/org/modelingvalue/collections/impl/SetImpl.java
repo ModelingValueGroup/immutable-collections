@@ -192,7 +192,7 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
 
     @Override
     public java.util.Set<T> toMutable() {
-        return new MutableSet<T>(this);
+        return new MutableSet<>(this);
     }
 
 }
