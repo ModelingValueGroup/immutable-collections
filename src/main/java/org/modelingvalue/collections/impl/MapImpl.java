@@ -15,36 +15,25 @@
 
 package org.modelingvalue.collections.impl;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.Objects;
-import java.util.Spliterator;
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Function;
-import java.util.function.Predicate;
-
 import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.mutable.MutableMap;
-import org.modelingvalue.collections.util.ArrayUtil;
-import org.modelingvalue.collections.util.Deserializer;
-import org.modelingvalue.collections.util.Mergeables;
-import org.modelingvalue.collections.util.Pair;
-import org.modelingvalue.collections.util.QuadFunction;
-import org.modelingvalue.collections.util.Serializer;
+import org.modelingvalue.collections.*;
+import org.modelingvalue.collections.mutable.*;
+import org.modelingvalue.collections.util.*;
+
+import java.io.*;
+import java.util.*;
+import java.util.function.*;
 
 public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Map<K, V> {
 
-    private static final long                    serialVersionUID = 7758359458143777562L;
+    private static final long serialVersionUID = 7758359458143777562L;
 
     @SuppressWarnings("rawtypes")
-    private static final Function<Entry, Object> KEY              = Entry::getKey;
+    private static final Function<Entry, Object> KEY   = Entry::getKey;
     @SuppressWarnings("rawtypes")
-    public static final Map                      EMPTY            = new MapImpl((Object) null);
+    public static final  Map                     EMPTY = new MapImpl((Object) null);
 
     public MapImpl(Entry<K, V>[] entries) {
         this.value = entries.length == 1 ? entries[0] : putAll(null, key(), entries);
@@ -78,6 +67,71 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     public Map<K, V> put(K key, V val) {
         return put(Entry.of(key, val));
     }
+
+    @Override
+    public Map<K, V> putIfAbsent(K key, V value) {
+        Entry<K, V> entry = getEntry(key);
+        return entry == null ? put(key, value) : this;
+    }
+
+    @Override
+    public Map<K, V> computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction) {
+        Objects.requireNonNull(mappingFunction);
+        Entry<K, V> entry = getEntry(key);
+        if (entry == null) {
+            V newValue;
+            if ((newValue = mappingFunction.apply(key)) != null) {
+                return put(key, newValue);
+            }
+        }
+        return this;
+    }
+
+    @Override
+    public Map<K, V> computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        Objects.requireNonNull(remappingFunction);
+        Entry<K, V> entry = getEntry(key);
+        if (entry == null) {
+            return this;
+        }
+        V newValue = remappingFunction.apply(key, entry.getValue());
+        if (newValue == null) {
+            return remove(key);
+        }
+        return put(key, newValue);
+    }
+
+    @Override
+    public Map<K, V> compute(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction) {
+        Objects.requireNonNull(remappingFunction);
+        V oldValue = get(key);
+        V newValue = remappingFunction.apply(key, oldValue);
+        if (newValue != null) {
+            // add or replace old mapping
+            return put(key, newValue);
+        }
+        if (oldValue != null || containsKey(key)) {
+            // something to remove
+            return remove(key);
+        }
+        // nothing to do. Leave things as they were.
+        return this;
+    }
+
+    @Override
+    public Map<K, V> merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction) {
+        Objects.requireNonNull(remappingFunction);
+        Objects.requireNonNull(value);
+        V oldValue = get(key);
+        V newValue = oldValue == null ? value : remappingFunction.apply(oldValue, value);
+        if (newValue != null) {
+            // add or replace old mapping
+            return put(key, newValue);
+        }
+        // remove was requested
+        return remove(key);
+    }
+
 
     @Override
     public Map<K, V> put(Entry<K, V> entry) {
@@ -177,8 +231,8 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
 
     protected Object mergeEntry(Map<K, V> map1, Map<K, V> map2, BinaryOperator<V> merger) {
         return ((MapImpl<K, V>) map1.toMap(e1 -> {
-            Entry<K, V> e2 = map2.getEntry(e1.getKey());
-            V val = merger.apply(e1.getValue(), e2.getValue());
+            Entry<K, V> e2  = map2.getEntry(e1.getKey());
+            V           val = merger.apply(e1.getValue(), e2.getValue());
             return Objects.equals(val, e1.getValue()) ? e1 : Objects.equals(val, e2.getValue()) ? e2 : Entry.of(e1.getKey(), val);
         })).value;
     }
@@ -207,9 +261,9 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
 
     @SuppressWarnings("unchecked")
     private Object merge(QuadFunction<K, V, V[], Integer, V> merger, Object[] es, int el) {
-        K key = es[0] != null ? ((Entry<K, V>) es[0]).getKey() : null;
-        V v = key != null ? ((Entry<K, V>) es[0]).getValue() : null;
-        V[] vs = null;
+        K   key = es[0] != null ? ((Entry<K, V>) es[0]).getKey() : null;
+        V   v   = key != null ? ((Entry<K, V>) es[0]).getValue() : null;
+        V[] vs  = null;
         for (int i = 1; i < el; i++) {
             if (es[i] != null) {
                 if (key == null) {
@@ -256,8 +310,13 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
 
     @Override
     public V get(K key) {
-        Entry<K, V> result = getEntry(key);
-        return result != null ? result.getValue() : null;
+        return getOrDefault(key, null);
+    }
+
+    @Override
+    public V getOrDefault(K key, V defaultValue) {
+        Entry<K, V> entry = getEntry(key);
+        return entry == null ? defaultValue : entry.getValue();
     }
 
     @Override
