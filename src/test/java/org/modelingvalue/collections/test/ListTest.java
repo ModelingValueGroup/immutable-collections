@@ -15,20 +15,46 @@
 
 package org.modelingvalue.collections.test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.stream.IntStream;
-
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.List;
+import org.modelingvalue.collections.*;
+
+import java.util.*;
+import java.util.stream.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ListTest {
 
     private static final int LONG = 10_000;
+
+    @Test
+    public void sorted1() {
+        List<String> l = List.of("n", "k", "c", "y", "a", "b");
+        assertEquals(List.of("a", "b", "c", "k", "n", "y"), l.sorted().toList());
+    }
+
+    @Test
+    public void sorted2() {
+        StringBuilder l1 = new StringBuilder();
+        StringBuilder l2 = new StringBuilder();
+        Collection.of("n", "k", "c", "y", "a", "b").sorted().forEach(l1::append);
+        Collection.of("n", "k", "c", "y", "a", "b").sorted().toList().forEach(l2::append);
+
+        assertEquals(l2.toString(), l1.toString());
+    }
+
+    @Test
+    @Disabled("@WIM: this fails because l1 will NOT get sorted for some reason")
+    public void sorted3() {
+        StringBuilder       l1 = new StringBuilder();
+        StringBuilder       l2 = new StringBuilder();
+        Collection.of("n", "k", "c", "y", "a", "b").toMap(c -> Entry.of(c, new Object())).toKeys().sorted().forEach(l1::append);
+        Collection.of("n", "k", "c", "y", "a", "b").toMap(c -> Entry.of(c, new Object())).toKeys().sorted().toList().forEach(l2::append);
+
+        assertEquals(l2.toString(), l1.toString());
+    }
 
     @SuppressWarnings("unchecked")
     @Test
@@ -229,7 +255,7 @@ public class ListTest {
             boolean higherFound = false;
             for (int i2 = 0; i2 < longList3.size(); i2++) {
                 if (longList3.get(i2) > v) {
-                    longList3 = longList3.insert(i2, v);
+                    longList3   = longList3.insert(i2, v);
                     higherFound = true;
                     break;
                 }
