@@ -50,8 +50,25 @@ public class ListTest {
     public void sorted3() {
         StringBuilder       l1 = new StringBuilder();
         StringBuilder       l2 = new StringBuilder();
-        Collection.of("n", "k", "c", "y", "a", "b").toMap(c -> Entry.of(c, new Object())).toKeys().sorted().forEach(l1::append);
-        Collection.of("n", "k", "c", "y", "a", "b").toMap(c -> Entry.of(c, new Object())).toKeys().sorted().toList().forEach(l2::append);
+        Collection.of("n", "k", "c", "y", "a", "b").toMap(c -> Entry.of(c, new Object())).toKeys().sorted().forEachOrdered(l1::append);
+        Collection.of("n", "k", "c", "y", "a", "b").toMap(c -> Entry.of(c, new Object())).toKeys().sorted().toList().forEachOrdered(l2::append);
+
+        System.err.println("XXX " + Collection.of("n", "k", "c", "y", "a", "b").isParallel());
+        System.err.println("XXX " + Collection.of("n", "k", "c", "y", "a", "b").sorted().isParallel());
+
+        System.err.println("AAA " + Collection.of("n", "k", "c", "y", "a", "b").isParallel());
+        System.err.println("AAA " + Collection.of("n", "k", "c", "y", "a", "b").toMap(c -> Entry.of(c, new Object())).isParallel());
+        System.err.println("AAA " + Collection.of("n", "k", "c", "y", "a", "b").toMap(c -> Entry.of(c, new Object())).toKeys().isParallel());
+        System.err.println("AAA " + Collection.of("n", "k", "c", "y", "a", "b").toMap(c -> Entry.of(c, new Object())).toKeys().sorted().isParallel());
+        System.err.println("AAA " + Collection.of("n", "k", "c", "y", "a", "b").toMap(c -> Entry.of(c, new Object())).toKeys().sorted().toList().isParallel());
+
+        System.err.println("QQQ " + Collection.of("n", "k", "c", "y", "a", "b").toMap(c -> Entry.of(c, new Object())).toKeys().isParallel());
+        System.err.println("QQQ " + Collection.of("n", "k", "c", "y", "a", "b").toMap(c -> Entry.of(c, new Object())).toKeys().sorted().isParallel());
+        System.err.println("QQQ " + Collection.of("n", "k", "c", "y", "a", "b").toMap(c -> Entry.of(c, new Object())).toKeys().sorted().toList().isParallel());
+
+        System.err.println("BBB " + Stream.of("n", "k", "c", "y", "a", "b").isParallel());
+        System.err.println("BBB " + java.util.List.of("n", "k", "c", "y", "a", "b").stream().isParallel());
+        System.err.println("BBB " + java.util.List.of("n", "k", "c", "y", "a", "b").stream().collect(Collectors.toMap(s->s,s->new Object())).keySet().stream().isParallel());
 
         assertEquals(l2.toString(), l1.toString());
     }
