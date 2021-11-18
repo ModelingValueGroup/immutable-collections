@@ -15,12 +15,8 @@
 
 package generator;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.*;
+import java.nio.file.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
@@ -34,8 +30,8 @@ public class StructGenerator extends StructGeneratorBase {
             System.err.println("arg error: 3 arg are expected: <max-struct-size> <dir-to-gen-in> <package>");
             System.exit(53);
         }
-        int    maxNumTypeArgs       = Integer.parseInt(args[0]);
-        Path   genBaseDir           = Paths.get(args[1]);
+        int maxNumTypeArgs = Integer.parseInt(args[0]);
+        Path genBaseDir = Paths.get(args[1]);
         String interfaceJavaPackage = args[2];
 
         new StructGenerator(maxNumTypeArgs, genBaseDir, interfaceJavaPackage).generateAll();
@@ -74,6 +70,7 @@ public class StructGenerator extends StructGeneratorBase {
         previouslyGenerated.remove(pathFromClassName(className));
     }
 
+    @Override
     protected void generateAll() throws IOException {
         super.generateAll();
         removeLeftOvers();
