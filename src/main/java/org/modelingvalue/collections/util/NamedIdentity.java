@@ -15,29 +15,48 @@
 
 package org.modelingvalue.collections.util;
 
-import java.util.function.Consumer;
+public class NamedIdentity implements Internable {
 
-@FunctionalInterface
-public interface SerializableConsumer<U> extends Consumer<U>, LambdaReflection {
-
-    @Override
-    default SerializableConsumerImpl<U> of() {
-        return this instanceof SerializableConsumerImpl ? (SerializableConsumerImpl<U>) this : new SerializableConsumerImpl<>(this);
+    public static NamedIdentity of(Object id, String name) {
+        return new NamedIdentity(id, name);
     }
 
-    class SerializableConsumerImpl<U> extends LambdaImpl<SerializableConsumer<U>> implements SerializableConsumer<U> {
+    private final Object id;
+    private final String name;
 
-        private static final long serialVersionUID = -6443217484725683637L;
+    private NamedIdentity(Object id, String name) {
+        super();
+        this.id = id;
+        this.name = name;
+    }
 
-        public SerializableConsumerImpl(SerializableConsumer<U> f) {
-            super(f);
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        } else if (obj == null) {
+            return false;
+        } else if (getClass() != obj.getClass()) {
+            return false;
+        } else {
+            NamedIdentity other = (NamedIdentity) obj;
+            return id.equals(other.id);
         }
+    }
 
-        @Override
-        public void accept(U t) {
-            f.accept(t);
-        }
-
+    @Override
+    public boolean isInternable() {
+        return Internable.isInternable(id);
     }
 
 }

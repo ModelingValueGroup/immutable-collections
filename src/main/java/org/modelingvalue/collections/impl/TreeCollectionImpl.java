@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2021 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2022 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -147,6 +147,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         }
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     protected static boolean equalsWithStop(Object v1, Object v2, boolean[] stop) {
         if (v1 instanceof MultiValue) {
             return ((MultiValue) v1).equalsWithStop(v2, stop);
@@ -163,6 +164,11 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
     @Override
     public ListIterator<T> listIterator() {
         return new CollectionIterator<>(value, 0);
+    }
+
+    @Override
+    public ListIterator<T> listIterator(int index) {
+        return new CollectionIterator<>(value, index);
     }
 
     @Override
@@ -579,7 +585,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         }
     }
 
-    abstract protected <R extends TreeCollectionImpl<T>> R create(Object val);
+    abstract protected TreeCollectionImpl<T> create(Object val);
 
     abstract protected StreamCollection<Object[]> getCompareStream(ContainingCollection<? extends T> toCompare);
 
@@ -645,8 +651,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
     public void javaDeserialize(Deserializer s) {
         int size = s.readInt();
         for (int i = 0; i < size; i++) {
-            @SuppressWarnings("unchecked")
-            T e = (T) s.readObject();
+            T e = s.readObject();
             TreeCollectionImpl<T> newSet = (TreeCollectionImpl<T>) add(e);
             this.value = newSet.value;
         }

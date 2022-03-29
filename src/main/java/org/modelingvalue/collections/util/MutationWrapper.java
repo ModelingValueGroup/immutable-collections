@@ -15,29 +15,47 @@
 
 package org.modelingvalue.collections.util;
 
-import java.util.function.Consumer;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
+import java.util.function.UnaryOperator;
 
-@FunctionalInterface
-public interface SerializableConsumer<U> extends Consumer<U>, LambdaReflection {
+@SuppressWarnings("unused")
+public class MutationWrapper<C> {
+    private final AtomicReference<C> ref;
 
-    @Override
-    default SerializableConsumerImpl<U> of() {
-        return this instanceof SerializableConsumerImpl ? (SerializableConsumerImpl<U>) this : new SerializableConsumerImpl<>(this);
+    public MutationWrapper() {
+        this(null);
     }
 
-    class SerializableConsumerImpl<U> extends LambdaImpl<SerializableConsumer<U>> implements SerializableConsumer<U> {
-
-        private static final long serialVersionUID = -6443217484725683637L;
-
-        public SerializableConsumerImpl(SerializableConsumer<U> f) {
-            super(f);
-        }
-
-        @Override
-        public void accept(U t) {
-            f.accept(t);
-        }
-
+    public MutationWrapper(C wrapped) {
+        ref = new AtomicReference<>(wrapped);
     }
 
+    public C get() {
+        return ref.get();
+    }
+
+    public void clear() {
+        ref.set(null);
+    }
+
+    public void update(UnaryOperator<C> f) {
+        ref.updateAndGet(f);
+    }
+
+    public void set(C val) {
+        ref.set(val);
+    }
+
+    public <E> void update(BiFunction<C, E, C> f, E e) {
+        ref.updateAndGet(prev -> f.apply(prev, e));
+    }
+
+    public C updateAndGet(UnaryOperator<C> f) {
+        return ref.updateAndGet(f);
+    }
+
+    public <E> C updateAndGet(BiFunction<C, E, C> f, E e) {
+        return ref.updateAndGet(prev -> f.apply(prev, e));
+    }
 }

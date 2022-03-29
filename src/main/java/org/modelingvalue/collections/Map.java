@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2021 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2022 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -15,14 +15,11 @@
 
 package org.modelingvalue.collections;
 
-import java.util.function.BiConsumer;
-import java.util.function.BinaryOperator;
-import java.util.function.Predicate;
+import org.modelingvalue.collections.impl.*;
+import org.modelingvalue.collections.mutable.*;
+import org.modelingvalue.collections.util.*;
 
-import org.modelingvalue.collections.impl.MapImpl;
-import org.modelingvalue.collections.util.Mergeable;
-import org.modelingvalue.collections.util.Pair;
-import org.modelingvalue.collections.util.QuadFunction;
+import java.util.function.*;
 
 @SuppressWarnings("unused")
 public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<Map<K, V>> {
@@ -39,6 +36,8 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
 
     V get(K key);
 
+    V getOrDefault(K key, V defaultValue);
+
     default boolean containsKey(K key) {
         return getEntry(key) != null;
     }
@@ -51,6 +50,15 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
 
     Map<K, V> put(K key, V value);
 
+    Map<K, V> putIfAbsent(K key, V value);
+
+    Map<K, V> computeIfAbsent(K key, Function<? super K, ? extends V> mappingFunction);
+
+    Map<K, V> computeIfPresent(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction);
+
+    Map<K, V> compute(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction);
+
+    Map<K, V> merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction);
     Map<K, V> putAll(Map<? extends K, ? extends V> c);
 
     Map<K, V> add(Entry<K, V> entry, BinaryOperator<V> merger);
@@ -85,6 +93,9 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
     Map<K, V> remove(Object e);
 
     @Override
+    Map<K, V> removeAll(Collection<?> e);
+
+    @Override
     Map<K, V> add(Entry<K, V> e);
 
     @Override
@@ -99,4 +110,10 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
 
     @Override
     Map<K, V> clear();
+
+    java.util.Map<K, V> toMutable();
+
+    static <S, E> Map<S, E> fromMutable(java.util.Map<S, E> mutable) {
+        return mutable instanceof MutableMap ? ((MutableMap<S, E>) mutable).toImmutable() : Collection.of(mutable.entrySet()).toMap(e -> Entry.of(e.getKey(), e.getValue()));
+    }
 }

@@ -13,31 +13,12 @@
 //     Arjan Kok, Carel Bast                                                                                           ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-package org.modelingvalue.collections.util;
+package org.modelingvalue.collections.mutable;
 
-import java.util.function.Consumer;
+import org.modelingvalue.collections.Collection;
 
-@FunctionalInterface
-public interface SerializableConsumer<U> extends Consumer<U>, LambdaReflection {
+public interface Mutable<T> {
 
-    @Override
-    default SerializableConsumerImpl<U> of() {
-        return this instanceof SerializableConsumerImpl ? (SerializableConsumerImpl<U>) this : new SerializableConsumerImpl<>(this);
-    }
-
-    class SerializableConsumerImpl<U> extends LambdaImpl<SerializableConsumer<U>> implements SerializableConsumer<U> {
-
-        private static final long serialVersionUID = -6443217484725683637L;
-
-        public SerializableConsumerImpl(SerializableConsumer<U> f) {
-            super(f);
-        }
-
-        @Override
-        public void accept(U t) {
-            f.accept(t);
-        }
-
-    }
+    Collection<T> toImmutable();
 
 }

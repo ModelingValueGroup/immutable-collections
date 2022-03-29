@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2021 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2022 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -30,6 +30,7 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.ContainingCollection;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.StreamCollection;
+import org.modelingvalue.collections.mutable.MutableList;
 import org.modelingvalue.collections.util.Deserializer;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.Serializer;
@@ -764,6 +765,11 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     }
 
     @Override
+    public boolean containsAll(Collection<?> c) {
+        return c.allMatch(this::contains);
+    }
+
+    @Override
     public T next(T e) {
         int i = firstIndexOf(e) + 1;
         return i > 0 && i < size() ? get(i) : null;
@@ -878,6 +884,11 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     @Override
     public List<T> clear() {
         return create(null);
+    }
+
+    @Override
+    public java.util.List<T> toMutable() {
+        return new MutableList<>(this);
     }
 
 }

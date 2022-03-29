@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2021 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2022 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -15,20 +15,45 @@
 
 package org.modelingvalue.collections.test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Random;
-import java.util.stream.IntStream;
-
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.List;
+import org.modelingvalue.collections.*;
+
+import java.util.*;
+import java.util.stream.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ListTest {
 
     private static final int LONG = 10_000;
+
+    @Test
+    public void sorted1() {
+        List<String> l = List.of("n", "k", "c", "y", "a", "b");
+        assertEquals(List.of("a", "b", "c", "k", "n", "y"), l.sorted().toList());
+    }
+
+    @Test
+    public void sorted2() {
+        StringBuilder l1 = new StringBuilder();
+        StringBuilder l2 = new StringBuilder();
+        Collection.of("n", "k", "c", "y", "a", "b").sorted().forEach(l1::append);
+        Collection.of("n", "k", "c", "y", "a", "b").sorted().toList().forEach(l2::append);
+
+        assertEquals(l2.toString(), l1.toString());
+    }
+
+    @Test
+    public void sorted3() {
+        StringBuilder       l1 = new StringBuilder();
+        StringBuilder       l2 = new StringBuilder();
+        Collection.of("n", "k", "c", "y", "a", "b").toMap(c -> Entry.of(c, new Object())).toKeys().sorted().forEachOrdered(l1::append);
+        Collection.of("n", "k", "c", "y", "a", "b").toMap(c -> Entry.of(c, new Object())).toKeys().sorted().toList().forEachOrdered(l2::append);
+
+        assertEquals(l2.toString(), l1.toString());
+    }
 
     @SuppressWarnings("unchecked")
     @Test
@@ -229,7 +254,7 @@ public class ListTest {
             boolean higherFound = false;
             for (int i2 = 0; i2 < longList3.size(); i2++) {
                 if (longList3.get(i2) > v) {
-                    longList3 = longList3.insert(i2, v);
+                    longList3   = longList3.insert(i2, v);
                     higherFound = true;
                     break;
                 }
