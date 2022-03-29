@@ -43,6 +43,10 @@ public class MutationWrapper<C> {
         ref.updateAndGet(f);
     }
 
+    public void set(C val) {
+        ref.set(val);
+    }
+
     public <E> void update(BiFunction<C, E, C> f, E e) {
         ref.updateAndGet(prev -> f.apply(prev, e));
     }
