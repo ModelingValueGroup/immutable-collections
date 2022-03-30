@@ -13,33 +13,49 @@
 //     Arjan Kok, Carel Bast                                                                                           ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-defaultTasks("mvgCorrector", "test", "publish", "mvgTagger")
+package org.modelingvalue.collections.util;
 
-plugins {
-    `java-library`
-    `maven-publish`
-    id("org.modelingvalue.gradle.mvgplugin") version "1.1.1"
-}
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiFunction;
+import java.util.function.UnaryOperator;
 
-dependencies {
-    annotationProcessor(project(":generator"))
-    compileOnly        (project(":generator"))
-}
+@SuppressWarnings("unused")
+public class MutationWrapper<C> {
+    private final AtomicReference<C> ref;
 
-sourceSets["main"].java.srcDir(file("build/generated/sources/annotationProcessor/java/main"))
-
-publishing {
-    publications {
-        create<MavenPublication>("immutable-collections") {
-            from(components["java"])
-        }
+    public MutationWrapper() {
+        this(null);
     }
-}
 
-tasks.withType<Javadoc> {
-    exclude("org/modelingvalue/collections/struct/**")
-}
-tasks.withType(JavaCompile::class) {
-    options.compilerArgs.add("-Xlint:unchecked")
-    options.compilerArgs.add("-Xlint:deprecation")
+    public MutationWrapper(C wrapped) {
+        ref = new AtomicReference<>(wrapped);
+    }
+
+    public C get() {
+        return ref.get();
+    }
+
+    public void clear() {
+        ref.set(null);
+    }
+
+    public void update(UnaryOperator<C> f) {
+        ref.updateAndGet(f);
+    }
+
+    public void set(C val) {
+        ref.set(val);
+    }
+
+    public <E> void update(BiFunction<C, E, C> f, E e) {
+        ref.updateAndGet(prev -> f.apply(prev, e));
+    }
+
+    public C updateAndGet(UnaryOperator<C> f) {
+        return ref.updateAndGet(f);
+    }
+
+    public <E> C updateAndGet(BiFunction<C, E, C> f, E e) {
+        return ref.updateAndGet(prev -> f.apply(prev, e));
+    }
 }
