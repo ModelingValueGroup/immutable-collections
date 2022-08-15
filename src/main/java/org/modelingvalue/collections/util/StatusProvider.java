@@ -20,6 +20,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
@@ -70,10 +71,11 @@ public class StatusProvider<S extends StatusProvider.AbstractStatus> implements 
         return new StatusIterator<>(getStatus());
     }
 
+    @SuppressWarnings("unused")
     public static final class StatusIterator<M extends StatusProvider.AbstractStatus> implements Iterator<M> {
-
-        private M       status;
-        private boolean firstDone;
+        private M                   status;
+        private boolean             firstDone;
+        private Consumer<Exception> interruptedHandler;
 
         private StatusIterator(M status) {
             this.status = status;
@@ -82,6 +84,10 @@ public class StatusProvider<S extends StatusProvider.AbstractStatus> implements 
         @Override
         public boolean hasNext() {
             return !firstDone || !status.isStopped();
+        }
+
+        public void setInterruptedHandler(Consumer<Exception> h) {
+            interruptedHandler = h;
         }
 
         @SuppressWarnings("unchecked")
@@ -98,14 +104,18 @@ public class StatusProvider<S extends StatusProvider.AbstractStatus> implements 
                     status = (M) status.next.get();
                     return status;
                 } catch (InterruptedException | ExecutionException e) {
-                    status.handleException(e);
+                    if (interruptedHandler != null) {
+                        interruptedHandler.accept(e);
+                    } else {
+                        status.handleException(e);
+                    }
                     return null;
                 }
             }
         }
 
         public M waitFor(Predicate<M> pred) {
-            M s = status;
+            M s;
             while (hasNext()) {
                 s = next();
                 if (pred.test(s)) {
