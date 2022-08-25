@@ -16,5 +16,4 @@
 package org.modelingvalue.collections;
 
 public interface StreamCollection<T> extends Collection<T> {
-
 }

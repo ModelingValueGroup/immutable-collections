@@ -15,13 +15,18 @@
 
 package org.modelingvalue.collections.impl;
 
-import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.*;
-import org.modelingvalue.collections.util.*;
+import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.function.BiFunction;
+import java.util.function.IntFunction;
+import java.util.stream.BaseStream;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-import java.util.*;
-import java.util.function.*;
-import java.util.stream.*;
+import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.StreamCollection;
+import org.modelingvalue.collections.util.TriConsumer;
+import org.modelingvalue.collections.util.TriFunction;
 
 @SuppressWarnings("serial")
 public final class StreamCollectionImpl<T> extends CollectionImpl<T> implements StreamCollection<T> {
@@ -29,7 +34,7 @@ public final class StreamCollectionImpl<T> extends CollectionImpl<T> implements 
     private final Stream<T> stream;
 
     protected StreamCollectionImpl(Stream<T> stream) {
-        this.stream = stream;
+        this.stream = SEQUENTIAL_ONLY.get() ? stream.sequential() : stream;
     }
 
     @SuppressWarnings("rawtypes")
