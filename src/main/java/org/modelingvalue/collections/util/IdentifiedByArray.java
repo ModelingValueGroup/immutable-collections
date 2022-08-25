@@ -78,4 +78,8 @@ public class IdentifiedByArray implements Internable {
         return array.length;
     }
 
+    protected Object[] identity() {
+        return Arrays.copyOf(array, array.length);
+    }
+
 }
