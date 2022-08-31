@@ -113,14 +113,16 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
         } else if (endIndex < beginIndex) {
             throw new IllegalArgumentException();
         } else if (obj instanceof ListMultivalue) {
-            if (beginIndex != 0 && endIndex != size(obj)) {
+            if (beginIndex == 0 && endIndex == size(obj)) {
+                return null;
+            } else if (beginIndex == 0) {
+                return ((ListMultivalue) obj).getAllDeep(endIndex, size(obj));
+            } else if (endIndex == size(obj)) {
+                return ((ListMultivalue) obj).getAllDeep(0, beginIndex);
+            } else {
                 Object before = ((ListMultivalue) obj).getAllDeep(0, beginIndex);
                 Object after = ((ListMultivalue) obj).getAllDeep(endIndex, size(obj));
                 return ListMultivalue.createPair(before, after);
-            } else if (beginIndex == 0) {
-                return ((ListMultivalue) obj).getAllDeep(endIndex, size(obj));
-            } else { // endIndex == size(obj)
-                return ((ListMultivalue) obj).getAllDeep(0, beginIndex);
             }
         } else if (beginIndex == 0 && endIndex == 0) {
             return obj;
