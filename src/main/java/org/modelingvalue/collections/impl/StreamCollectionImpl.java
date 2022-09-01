@@ -109,4 +109,9 @@ public final class StreamCollectionImpl<T> extends CollectionImpl<T> implements 
     public <R> Collection<R> indexed(BiFunction<T, Integer, R> function) {
         return toList().indexed(function);
     }
+
+    @Override
+    public boolean contains(Object e) {
+        return anyMatch(e::equals);
+    }
 }

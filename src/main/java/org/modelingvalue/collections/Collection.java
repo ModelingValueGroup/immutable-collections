@@ -65,6 +65,8 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
 
     boolean isEmpty();
 
+    boolean contains(Object e);
+
     <F extends T> Collection<F> filter(Class<F> type);
 
     Collection<T> notNull();
