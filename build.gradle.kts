@@ -26,8 +26,6 @@ dependencies {
     compileOnly        (project(":generator"))
 }
 
-sourceSets["main"].java.srcDir(file("build/generated/sources/annotationProcessor/java/main"))
-
 publishing {
     publications {
         create<MavenPublication>("immutable-collections") {
