@@ -38,7 +38,7 @@ public class StructProcessor extends AbstractProcessor {
                     try {
                         String packageName    = element.asType().toString();
                         int    maxNumTypeArgs = element.getAnnotation(Structs.class).value();
-                        new StructGeneratorForAnnotation(maxNumTypeArgs, packageName).generateAll();
+                        new AnnotationStructGenerator(maxNumTypeArgs, packageName).generateAll();
                     } catch (IOException ioException) {
                         processingEnv.getMessager().printMessage(Kind.ERROR, "problem during struct generation: " + ioException.getMessage(), element);
                     }
@@ -46,8 +46,8 @@ public class StructProcessor extends AbstractProcessor {
         return true;
     }
 
-    private class StructGeneratorForAnnotation extends StructGeneratorBase {
-        public StructGeneratorForAnnotation(int maxNumTypeArgs, String interfaceJavaPackage) {
+    private class AnnotationStructGenerator extends StructGenerator {
+        public AnnotationStructGenerator(int maxNumTypeArgs, String interfaceJavaPackage) {
             super(maxNumTypeArgs, interfaceJavaPackage);
         }
 
