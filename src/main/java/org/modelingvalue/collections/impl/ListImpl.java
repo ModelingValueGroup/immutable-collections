@@ -25,8 +25,6 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.ContainingCollection;
@@ -39,12 +37,10 @@ import org.modelingvalue.collections.util.Serializer;
 
 public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
 
-    private static final long                       serialVersionUID     = -8377429516360861865L;
-    private static final int                        MULTI_MAX_LENGTH     = Integer.getInteger("LIST_MULTI_MAX_LENGTH", 32);
-    private static final int                        HALF_MAX_LENGTH      = MULTI_MAX_LENGTH / 2;
-    private static final int                        UNBALANCE_TOLERATION = Integer.getInteger("LIST_UNBALANCE_TOLERATION", 10);
-    @SuppressWarnings("rawtypes")
-    private static final Class<? extends Collector> TO_LIST_CLASS        = Collectors.toList().getClass();
+    private static final long serialVersionUID     = -8377429516360861865L;
+    private static final int  MULTI_MAX_LENGTH     = Integer.getInteger("LIST_MULTI_MAX_LENGTH", 32);
+    private static final int  HALF_MAX_LENGTH      = MULTI_MAX_LENGTH / 2;
+    private static final int  UNBALANCE_TOLERATION = Integer.getInteger("LIST_UNBALANCE_TOLERATION", 10);
 
     private static final class OrderedCollectionSpliterator<T> extends CollectionSpliterator<T> {
 
@@ -895,12 +891,6 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     @Override
     public java.util.List<T> toMutable() {
         return new MutableList<>(this);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <R, A> R collect(Collector<? super T, A, R> collector) {
-        return TO_LIST_CLASS.isInstance(collector) ? (R) toMutable() : super.collect(collector);
     }
 
 }

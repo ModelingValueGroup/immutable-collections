@@ -21,8 +21,6 @@ import java.io.ObjectOutputStream;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.Function;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
@@ -32,11 +30,9 @@ import org.modelingvalue.collections.util.Serializer;
 
 public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
 
-    private static final long                       serialVersionUID = 5749660673243596767L;
+    private static final long serialVersionUID = 5749660673243596767L;
     @SuppressWarnings("rawtypes")
-    private static final Class<? extends Collector> TO_SET_CLASS     = Collectors.toSet().getClass();
-    @SuppressWarnings("rawtypes")
-    public static final Set                         EMPTY            = new SetImpl((Object) null);
+    public static final Set   EMPTY            = new SetImpl((Object) null);
 
     public SetImpl(T[] es) {
         this.value = es.length == 1 ? es[0] : addAll(null, key(), es);
@@ -197,12 +193,6 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
     @Override
     public java.util.Set<T> toMutable() {
         return new MutableSet<>(this);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <R, A> R collect(Collector<? super T, A, R> collector) {
-        return TO_SET_CLASS.isInstance(collector) ? (R) toMutable() : super.collect(collector);
     }
 
 }
