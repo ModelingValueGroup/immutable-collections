@@ -46,7 +46,7 @@ public class StructGeneratorTests {
         assertTrue(Files.list(interfaceDir).map(f -> f.getFileName().toString()).allMatch(f -> f.equals("impl") || f.matches("Struct[0-9]+[.]java")));
     }
 
-    public static class TestStructGenerator extends StructGeneratorBase {
+    public static class TestStructGenerator extends StructGenerator {
         private final Path       genBaseDir;
         private final List<Path> previouslyGenerated;
 

@@ -23,14 +23,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public abstract class StructGeneratorBase {
+public abstract class StructGenerator {
     protected static final String IMPL = "impl";
 
     protected final int    maxNumTypeArgs;
     protected final String interfaceJavaPackage;
     protected final String implementJavaPackage;
 
-    public StructGeneratorBase(int maxNumTypeArgs, String interfaceJavaPackage) {
+    public StructGenerator(int maxNumTypeArgs, String interfaceJavaPackage) {
         this.maxNumTypeArgs = maxNumTypeArgs;
         this.interfaceJavaPackage = interfaceJavaPackage;
         this.implementJavaPackage = interfaceJavaPackage + "." + IMPL;
@@ -56,23 +56,23 @@ public abstract class StructGeneratorBase {
     }
 
     private static String structNameWithTypeArgs(int i) {
-        return StructGeneratorBase.structName(i, false) + StructGeneratorBase.argTypes(i);
+        return StructGenerator.structName(i, false) + StructGenerator.argTypes(i);
     }
 
     private static String structNameWithTypeArgsImpl(int i) {
-        return StructGeneratorBase.structName(i, true) + StructGeneratorBase.argTypes(i);
+        return StructGenerator.structName(i, true) + StructGenerator.argTypes(i);
     }
 
     private static String argTypes(int i) {
-        return i <= 0 ? "" : "<" + StructGeneratorBase.seq(i, "T%d") + ">";
+        return i <= 0 ? "" : "<" + StructGenerator.seq(i, "T%d") + ">";
     }
 
     private static String argTypesWithParams(int i) {
-        return i <= 0 ? "" : StructGeneratorBase.seq(i, "T%d t%d");
+        return i <= 0 ? "" : StructGenerator.seq(i, "T%d t%d");
     }
 
     private static String argParams(int i) {
-        return i <= 0 ? "" : StructGeneratorBase.seq(i, "t%d");
+        return i <= 0 ? "" : StructGenerator.seq(i, "t%d");
     }
 
     private static String seq(int n, String fmt) {
@@ -84,7 +84,7 @@ public abstract class StructGeneratorBase {
         int          prev = i - 1;
         f.add("package " + interfaceJavaPackage + ";");
         f.add("");
-        f.add("public interface " + StructGeneratorBase.structNameWithTypeArgs(i) + " extends " + StructGeneratorBase.structNameWithTypeArgs(prev) + " {");
+        f.add("public interface " + StructGenerator.structNameWithTypeArgs(i) + " extends " + StructGenerator.structNameWithTypeArgs(prev) + " {");
         if (0 != i) {
             f.add("    T" + prev + " get" + prev + " ();");
         }
@@ -97,18 +97,18 @@ public abstract class StructGeneratorBase {
         int          prev = i - 1;
         f.add("package " + implementJavaPackage + ";");
         f.add("");
-        f.add("import " + interfaceJavaPackage + "." + StructGeneratorBase.structName(i, false) + ";");
+        f.add("import " + interfaceJavaPackage + "." + StructGenerator.structName(i, false) + ";");
         f.add("");
         if (0 != i) {
             f.add("@SuppressWarnings({\"unchecked\", \"unused\"})");
         }
-        f.add("public class " + StructGeneratorBase.structNameWithTypeArgsImpl(i) + " extends " + StructGeneratorBase.structNameWithTypeArgsImpl(prev) + " implements " + StructGeneratorBase.structNameWithTypeArgs(i) + " {");
+        f.add("public class " + StructGenerator.structNameWithTypeArgsImpl(i) + " extends " + StructGenerator.structNameWithTypeArgsImpl(prev) + " implements " + StructGenerator.structNameWithTypeArgs(i) + " {");
         f.add("");
-        f.add("    private static final long serialVersionUID = " + String.format("0x%08X_%08XL", 0x47114711, StructGeneratorBase.structName(i, true).hashCode()) + ";");
+        f.add("    private static final long serialVersionUID = " + String.format("0x%08X_%08XL", 0x47114711, StructGenerator.structName(i, true).hashCode()) + ";");
         f.add("");
-        f.add("    public Struct" + i + "Impl(" + StructGeneratorBase.argTypesWithParams(i) + ") {");
+        f.add("    public Struct" + i + "Impl(" + StructGenerator.argTypesWithParams(i) + ") {");
         if (0 != i) {
-            f.add("        this((Object) " + StructGeneratorBase.argParams(i) + ");");
+            f.add("        this((Object) " + StructGenerator.argParams(i) + ");");
         } else {
             f.add("        super();");
         }
