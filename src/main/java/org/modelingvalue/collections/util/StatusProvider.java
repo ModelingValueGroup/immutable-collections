@@ -42,10 +42,10 @@ public class StatusProvider<S extends StatusProvider.AbstractStatus> implements 
 
     private final AtomicReference<S> status;
 
-    public StatusProvider(S start) {
+    public StatusProvider(Object context, S start) {
         this.status = new AtomicReference<>(start);
         if (TRACE_STATUS) {
-            Thread tread = new Thread(() -> new StatusIterator<>(start).forEachRemaining(s -> System.err.println("Status changed: " + s)), "StatusProvider.traceThread");
+            Thread tread = new Thread(() -> new StatusIterator<>(start).forEachRemaining(s -> System.err.println("Status of " + context + " changed: " + s)), "StatusProvider.traceThread");
             tread.setDaemon(true);
             tread.start();
         }

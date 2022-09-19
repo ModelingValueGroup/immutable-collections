@@ -16,11 +16,7 @@
 package org.modelingvalue.collections.test;
 
 import static java.time.Duration.ofMillis;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -112,7 +108,7 @@ public class StatusTest {
             for (int i = 0; i < args.length; i++) {
                 statusList.add(new TestStatus(args[i], args.length - 1 == i));
             }
-            testStatusProvider = new StatusProvider<>(get(0));
+            testStatusProvider = new StatusProvider<>("Test", get(0));
             setDaemon(true);
             start();
         }
