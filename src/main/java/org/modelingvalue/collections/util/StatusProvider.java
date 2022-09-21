@@ -68,7 +68,7 @@ public class StatusProvider<S extends StatusProvider.AbstractStatus> implements 
 
     @Override
     public StatusIterator<S> iterator() {
-        return new StatusIterator<>(getStatus());
+        return StatusIterator.of(getStatus());
     }
 
     @SuppressWarnings("unused")
@@ -76,6 +76,10 @@ public class StatusProvider<S extends StatusProvider.AbstractStatus> implements 
         private M                   status;
         private boolean             firstDone;
         private Consumer<Exception> interruptedHandler;
+
+        public static <X extends StatusProvider.AbstractStatus> StatusIterator<X> of(X status) {
+            return new StatusIterator<>(status);
+        }
 
         private StatusIterator(M status) {
             this.status = status;
