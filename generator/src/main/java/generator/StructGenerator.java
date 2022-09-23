@@ -15,79 +15,117 @@
 
 package generator;
 
-import java.io.*;
-import java.nio.file.*;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-public class StructGenerator extends StructGeneratorBase {
-    private final Path       genBaseDir;
-    private final List<Path> previouslyGenerated = new ArrayList<>();
+public abstract class StructGenerator {
+    protected static final String IMPL = "impl";
 
-    public static void main(String[] args) throws IOException {
-        if (args.length != 3) {
-            System.err.println("arg error: 3 arg are expected: <max-struct-size> <dir-to-gen-in> <package>");
-            System.exit(53);
-        }
-        int maxNumTypeArgs = Integer.parseInt(args[0]);
-        Path genBaseDir = Paths.get(args[1]);
-        String interfaceJavaPackage = args[2];
+    protected final int    maxNumTypeArgs;
+    protected final String interfaceJavaPackage;
+    protected final String implementJavaPackage;
 
-        new StructGenerator(maxNumTypeArgs, genBaseDir, interfaceJavaPackage).generateAll();
+    public StructGenerator(int maxNumTypeArgs, String interfaceJavaPackage) {
+        this.maxNumTypeArgs = maxNumTypeArgs;
+        this.interfaceJavaPackage = interfaceJavaPackage;
+        this.implementJavaPackage = interfaceJavaPackage + "." + IMPL;
     }
 
-    public StructGenerator(int maxNumTypeArgs, Path genBaseDir, String interfaceJavaPackage) throws IOException {
-        super(maxNumTypeArgs, interfaceJavaPackage);
-        this.genBaseDir = genBaseDir;
+    public abstract Writer getWriter(String className) throws IOException;
 
-        if (!Files.isDirectory(genBaseDir)) {
-            throw new Error("no such dir: " + genBaseDir);
-        }
-
-        Path interfacesDir = pathFromPackageName(interfaceJavaPackage);
-        Path implementsDir = pathFromPackageName(implementJavaPackage);
-        try {
-            Files.createDirectories(interfacesDir);
-            Files.createDirectories(implementsDir);
-        } catch (IOException e) {
-            throw new Error("could not create dir: " + interfacesDir + " or " + implementsDir, e);
-        }
-        Stream.concat(Files.list(interfacesDir), Files.list(implementsDir))//
-                .filter(Files::isRegularFile)//
-                .filter(f -> f.getFileName().toString().matches("^Struct[0-9][0-9]*(Impl)?\\.java$"))//
-                .forEach(previouslyGenerated::add);
-    }
-
-    @Override
-    public Writer getWriter(String className) throws IOException {
-        return new OutputStreamWriter(Files.newOutputStream(pathFromClassName(className)));
-    }
-
-    @Override
-    protected void write(String className, List<String> lines) throws IOException {
-        super.write(className, lines);
-        previouslyGenerated.remove(pathFromClassName(className));
-    }
-
-    @Override
     protected void generateAll() throws IOException {
-        super.generateAll();
-        removeLeftOvers();
-    }
-
-    private Path pathFromClassName(String className) {
-        return genBaseDir.resolve(className.replace('.', '/') + ".java");
-    }
-
-    private Path pathFromPackageName(String className) {
-        return genBaseDir.resolve(className.replace('.', '/'));
-    }
-
-    private void removeLeftOvers() throws IOException {
-        for (Path file : previouslyGenerated) {
-            System.err.println("- deleted      : " + file);
-            Files.delete(file);
+        for (int i = 0; i < maxNumTypeArgs; i++) {
+            write(interfaceJavaPackage + "." + structName(i, false), generateStructInterface(i));
+            write(implementJavaPackage + "." + structName(i, true), generateStructImplementation(i));
         }
+    }
+
+    protected void write(String className, List<String> lines) throws IOException {
+        try (PrintWriter printWriter = new PrintWriter(getWriter(className))) {
+            lines.forEach(printWriter::println);
+        }
+    }
+
+    protected static String structName(int i, boolean impl) {
+        return "Struct" + (i < 0 ? "" : i) + (impl ? "Impl" : "");
+    }
+
+    private static String structNameWithTypeArgs(int i) {
+        return StructGenerator.structName(i, false) + StructGenerator.argTypes(i);
+    }
+
+    private static String structNameWithTypeArgsImpl(int i) {
+        return StructGenerator.structName(i, true) + StructGenerator.argTypes(i);
+    }
+
+    private static String argTypes(int i) {
+        return i <= 0 ? "" : "<" + StructGenerator.seq(i, "T%d") + ">";
+    }
+
+    private static String argTypesWithParams(int i) {
+        return i <= 0 ? "" : StructGenerator.seq(i, "T%d t%d");
+    }
+
+    private static String argParams(int i) {
+        return i <= 0 ? "" : StructGenerator.seq(i, "t%d");
+    }
+
+    private static String seq(int n, String fmt) {
+        return IntStream.range(0, n).mapToObj(i -> String.format(fmt, i, i, i, i, i, i, i, i)).collect(Collectors.joining(", "));
+    }
+
+    protected List<String> generateStructInterface(int i) {
+        List<String> f    = new ArrayList<>();
+        int          prev = i - 1;
+        f.add("package " + interfaceJavaPackage + ";");
+        f.add("");
+        f.add("public interface " + StructGenerator.structNameWithTypeArgs(i) + " extends " + StructGenerator.structNameWithTypeArgs(prev) + " {");
+        if (0 != i) {
+            f.add("    T" + prev + " get" + prev + " ();");
+        }
+        f.add("}");
+        return f;
+    }
+
+    protected List<String> generateStructImplementation(int i) {
+        List<String> f    = new ArrayList<>();
+        int          prev = i - 1;
+        f.add("package " + implementJavaPackage + ";");
+        f.add("");
+        f.add("import " + interfaceJavaPackage + "." + StructGenerator.structName(i, false) + ";");
+        f.add("");
+        if (0 != i) {
+            f.add("@SuppressWarnings({\"unchecked\", \"unused\"})");
+        }
+        f.add("public class " + StructGenerator.structNameWithTypeArgsImpl(i) + " extends " + StructGenerator.structNameWithTypeArgsImpl(prev) + " implements " + StructGenerator.structNameWithTypeArgs(i) + " {");
+        f.add("");
+        f.add("    private static final long serialVersionUID = " + String.format("0x%08X_%08XL", 0x47114711, StructGenerator.structName(i, true).hashCode()) + ";");
+        f.add("");
+        f.add("    public Struct" + i + "Impl(" + StructGenerator.argTypesWithParams(i) + ") {");
+        if (0 != i) {
+            f.add("        this((Object) " + StructGenerator.argParams(i) + ");");
+        } else {
+            f.add("        super();");
+        }
+        f.add("    }");
+        f.add("");
+        f.add("    protected Struct" + i + "Impl(Object... data){");
+        f.add("        super(data);");
+        f.add("    }");
+
+        if (0 != i) {
+            f.add("");
+            f.add("    @Override");
+            f.add("    public T" + prev + " get" + prev + "() {");
+            f.add("        return (T" + prev + ") get(" + prev + ");");
+            f.add("    }");
+        }
+        f.add("}");
+        return f;
     }
 }

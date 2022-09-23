@@ -15,10 +15,12 @@
 
 package org.modelingvalue.collections.util;
 
-import java.io.*;
-import java.lang.invoke.*;
-import java.lang.reflect.*;
-import java.util.*;
+import java.io.Serializable;
+import java.lang.invoke.MethodHandleInfo;
+import java.lang.invoke.SerializedLambda;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import org.modelingvalue.collections.List;
 
@@ -26,9 +28,9 @@ import org.modelingvalue.collections.List;
 public interface LambdaReflection extends Serializable {
 
     static List<Class<?>> in(String signature) {
-        String         in   = signature.substring(1, signature.lastIndexOf(')'));
+        String in = signature.substring(1, signature.lastIndexOf(')'));
         List<Class<?>> list = List.of();
-        int            i    = 0;
+        int i = 0;
         while (i < in.length()) {
             char charAt = in.charAt(i++);
             if (charAt == 'L') {
@@ -253,7 +255,8 @@ public interface LambdaReflection extends Serializable {
 
         @Override
         public String toString() {
-            return LambdaReflection.string(serialized);
+            // return LambdaReflection.string(serialized);
+            return serialized.getImplMethodName() + StringUtil.toString(capturedArgs());
         }
 
         @Override

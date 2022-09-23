@@ -13,31 +13,31 @@
 //     Arjan Kok, Carel Bast                                                                                           ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-defaultTasks("mvgCorrector", "test", "publish", "mvgTagger")
+package org.modelingvalue.collections.util;
 
-plugins {
-    `java-library`
-    `maven-publish`
-    id("org.modelingvalue.gradle.mvgplugin") version "1.1.3"
-}
+import java.util.function.BinaryOperator;
 
-dependencies {
-    annotationProcessor(project(":generator"))
-    compileOnly        (project(":generator"))
-}
+@FunctionalInterface
+public interface SerializableBinaryOperator<T> extends BinaryOperator<T>, LambdaReflection {
 
-publishing {
-    publications {
-        create<MavenPublication>("immutable-collections") {
-            from(components["java"])
-        }
+    @Override
+    default SerializableBinaryOperatorImpl<T> of() {
+        return this instanceof SerializableBinaryOperatorImpl ? (SerializableBinaryOperatorImpl<T>) this : new SerializableBinaryOperatorImpl<>(this);
     }
-}
 
-tasks.withType<Javadoc> {
-    exclude("org/modelingvalue/collections/struct/**")
-}
-tasks.withType(JavaCompile::class) {
-    options.compilerArgs.add("-Xlint:unchecked")
-    options.compilerArgs.add("-Xlint:deprecation")
+    class SerializableBinaryOperatorImpl<T> extends LambdaImpl<SerializableBinaryOperator<T>> implements SerializableBinaryOperator<T> {
+
+        private static final long serialVersionUID = 7465116047167434408L;
+
+        public SerializableBinaryOperatorImpl(SerializableBinaryOperator<T> f) {
+            super(f);
+        }
+
+        @Override
+        public T apply(T t1, T t2) {
+            return f.apply(t1, t2);
+        }
+
+    }
+
 }

@@ -13,31 +13,31 @@
 //     Arjan Kok, Carel Bast                                                                                           ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-defaultTasks("mvgCorrector", "test", "publish", "mvgTagger")
+package org.modelingvalue.collections.util;
 
-plugins {
-    `java-library`
-    `maven-publish`
-    id("org.modelingvalue.gradle.mvgplugin") version "1.1.3"
-}
+import java.util.function.UnaryOperator;
 
-dependencies {
-    annotationProcessor(project(":generator"))
-    compileOnly        (project(":generator"))
-}
+@FunctionalInterface
+public interface SerializableUnaryOperator<T> extends UnaryOperator<T>, LambdaReflection {
 
-publishing {
-    publications {
-        create<MavenPublication>("immutable-collections") {
-            from(components["java"])
-        }
+    @Override
+    default SerializableUnaryOperatorImpl<T> of() {
+        return this instanceof SerializableUnaryOperatorImpl ? (SerializableUnaryOperatorImpl<T>) this : new SerializableUnaryOperatorImpl<>(this);
     }
-}
 
-tasks.withType<Javadoc> {
-    exclude("org/modelingvalue/collections/struct/**")
-}
-tasks.withType(JavaCompile::class) {
-    options.compilerArgs.add("-Xlint:unchecked")
-    options.compilerArgs.add("-Xlint:deprecation")
+    class SerializableUnaryOperatorImpl<T> extends LambdaImpl<SerializableUnaryOperator<T>> implements SerializableUnaryOperator<T> {
+
+        private static final long serialVersionUID = -7330574302748660603L;
+
+        public SerializableUnaryOperatorImpl(SerializableUnaryOperator<T> f) {
+            super(f);
+        }
+
+        @Override
+        public T apply(T t) {
+            return f.apply(t);
+        }
+
+    }
+
 }

@@ -15,11 +15,15 @@
 
 package org.modelingvalue.collections.struct.impl;
 
-import java.util.*;
-import java.util.function.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Spliterator;
+import java.util.function.Consumer;
 
-import org.modelingvalue.collections.struct.*;
-import org.modelingvalue.collections.util.*;
+import org.modelingvalue.collections.struct.Struct;
+import org.modelingvalue.collections.util.Age;
+import org.modelingvalue.collections.util.Internable;
+import org.modelingvalue.collections.util.StringUtil;
 
 public abstract class StructImpl implements Struct {
     private static final long serialVersionUID = -1849579252791770119L;
@@ -74,9 +78,7 @@ public abstract class StructImpl implements Struct {
 
     @Override
     public String toString() {
-        Class<? extends StructImpl> clazz = getClass();
-        Class<?>[] interfaces = clazz.getInterfaces();
-        return (interfaces.length == 0 ? clazz : interfaces[0]).getSimpleName() + StringUtil.toString(data);
+        return StringUtil.toString(data);
     }
 
     @Override

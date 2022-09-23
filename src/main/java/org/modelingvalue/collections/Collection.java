@@ -39,7 +39,21 @@ import org.modelingvalue.collections.util.TriFunction;
 @SuppressWarnings("unused")
 public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
 
-    int PARALLELISM = Math.max(2, Integer.getInteger("PARALLELISM", ForkJoinPool.getCommonPoolParallelism()));
+    int                  PARALLELISM     = Math.max(2, Integer.getInteger("PARALLELISM", ForkJoinPool.getCommonPoolParallelism()));
+
+    ThreadLocal<Boolean> SEQUENTIAL_ONLY = ThreadLocal.withInitial(() -> false);
+
+    static Runnable sequential(Runnable runnable) {
+        return () -> {
+            boolean old = SEQUENTIAL_ONLY.get();
+            SEQUENTIAL_ONLY.set(true);
+            try {
+                runnable.run();
+            } finally {
+                SEQUENTIAL_ONLY.set(old);
+            }
+        };
+    }
 
     @Override
     Spliterator<T> spliterator();
@@ -50,6 +64,8 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
     int size();
 
     boolean isEmpty();
+
+    boolean contains(Object e);
 
     <F extends T> Collection<F> filter(Class<F> type);
 

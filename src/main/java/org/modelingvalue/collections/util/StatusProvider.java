@@ -20,6 +20,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
@@ -41,10 +42,10 @@ public class StatusProvider<S extends StatusProvider.AbstractStatus> implements 
 
     private final AtomicReference<S> status;
 
-    public StatusProvider(S start) {
+    public StatusProvider(Object context, S start) {
         this.status = new AtomicReference<>(start);
         if (TRACE_STATUS) {
-            Thread tread = new Thread(() -> new StatusIterator<>(start).forEachRemaining(s -> System.err.println("Status changed: " + s)), "StatusProvider.traceThread");
+            Thread tread = new Thread(() -> new StatusIterator<>(start).forEachRemaining(s -> System.err.println("Status of " + context + " changed: " + s)), "StatusProvider.traceThread");
             tread.setDaemon(true);
             tread.start();
         }
@@ -67,13 +68,18 @@ public class StatusProvider<S extends StatusProvider.AbstractStatus> implements 
 
     @Override
     public StatusIterator<S> iterator() {
-        return new StatusIterator<>(getStatus());
+        return StatusIterator.of(getStatus());
     }
 
+    @SuppressWarnings("unused")
     public static final class StatusIterator<M extends StatusProvider.AbstractStatus> implements Iterator<M> {
+        private M                   status;
+        private boolean             firstDone;
+        private Consumer<Exception> interruptedHandler;
 
-        private M       status;
-        private boolean firstDone;
+        public static <X extends StatusProvider.AbstractStatus> StatusIterator<X> of(X status) {
+            return new StatusIterator<>(status);
+        }
 
         private StatusIterator(M status) {
             this.status = status;
@@ -82,6 +88,10 @@ public class StatusProvider<S extends StatusProvider.AbstractStatus> implements 
         @Override
         public boolean hasNext() {
             return !firstDone || !status.isStopped();
+        }
+
+        public void setInterruptedHandler(Consumer<Exception> h) {
+            interruptedHandler = h;
         }
 
         @SuppressWarnings("unchecked")
@@ -98,14 +108,18 @@ public class StatusProvider<S extends StatusProvider.AbstractStatus> implements 
                     status = (M) status.next.get();
                     return status;
                 } catch (InterruptedException | ExecutionException e) {
-                    status.handleException(e);
+                    if (interruptedHandler != null) {
+                        interruptedHandler.accept(e);
+                    } else {
+                        status.handleException(e);
+                    }
                     return null;
                 }
             }
         }
 
         public M waitFor(Predicate<M> pred) {
-            M s = status;
+            M s;
             while (hasNext()) {
                 s = next();
                 if (pred.test(s)) {

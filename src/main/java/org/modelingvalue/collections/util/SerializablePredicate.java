@@ -13,31 +13,31 @@
 //     Arjan Kok, Carel Bast                                                                                           ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-defaultTasks("mvgCorrector", "test", "publish", "mvgTagger")
+package org.modelingvalue.collections.util;
 
-plugins {
-    `java-library`
-    `maven-publish`
-    id("org.modelingvalue.gradle.mvgplugin") version "1.1.3"
-}
+import java.util.function.Predicate;
 
-dependencies {
-    annotationProcessor(project(":generator"))
-    compileOnly        (project(":generator"))
-}
+@FunctionalInterface
+public interface SerializablePredicate<U> extends Predicate<U>, LambdaReflection {
 
-publishing {
-    publications {
-        create<MavenPublication>("immutable-collections") {
-            from(components["java"])
-        }
+    @Override
+    default SerializablePredicateImpl<U> of() {
+        return this instanceof SerializablePredicateImpl ? (SerializablePredicateImpl<U>) this : new SerializablePredicateImpl<>(this);
     }
-}
 
-tasks.withType<Javadoc> {
-    exclude("org/modelingvalue/collections/struct/**")
-}
-tasks.withType(JavaCompile::class) {
-    options.compilerArgs.add("-Xlint:unchecked")
-    options.compilerArgs.add("-Xlint:deprecation")
+    class SerializablePredicateImpl<U> extends LambdaImpl<SerializablePredicate<U>> implements SerializablePredicate<U> {
+
+        private static final long serialVersionUID = -8866812297241618996L;
+
+        public SerializablePredicateImpl(SerializablePredicate<U> f) {
+            super(f);
+        }
+
+        @Override
+        public final boolean test(U t) {
+            return f.test(t);
+        }
+
+    }
+
 }
