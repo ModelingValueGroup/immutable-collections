@@ -15,14 +15,30 @@
 
 package org.modelingvalue.collections.util;
 
+import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.Objects;
 
 public interface Mergeables {
 
+    @SuppressWarnings("unchecked")
     @SafeVarargs
     static <T> T merge(T base, T... branches) {
-        return merge(base, branches, branches.length);
+        Class<?> clz = base != null ? base.getClass() : null;
+        if (clz == null) {
+            for (T b : branches) {
+                if (b != null) {
+                    clz = b.getClass();
+                }
+            }
+        }
+        if (!branches.getClass().equals(clz)) {
+            T[] newBranches = (T[]) Array.newInstance(clz, branches.length);
+            System.arraycopy(branches, 0, newBranches, 0, branches.length);
+            return merge(base, newBranches, newBranches.length);
+        } else {
+            return merge(base, branches, branches.length);
+        }
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
