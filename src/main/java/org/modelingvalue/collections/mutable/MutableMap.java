@@ -420,6 +420,11 @@ public class MutableMap<K, V> implements java.util.Map<K, V>, Mutable<Entry<K, V
         };
     }
 
+    @Override
+    public String toString() {
+        return map.toString();
+    }
+
     private final class EntryImpl extends java.util.AbstractMap.SimpleEntry<K, V> {
         private static final long serialVersionUID = 1L;
 

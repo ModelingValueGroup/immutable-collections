@@ -256,4 +256,9 @@ public class MutableList<T> implements java.util.List<T>, Mutable<T> {
         list = list.clear();
     }
 
+    @Override
+    public String toString() {
+        return list.toString();
+    }
+
 }

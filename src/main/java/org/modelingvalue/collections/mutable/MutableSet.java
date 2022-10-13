@@ -147,4 +147,9 @@ public class MutableSet<T> implements java.util.Set<T>, Mutable<T> {
     public void clear() {
         set = set.clear();
     }
+
+    @Override
+    public String toString() {
+        return set.toString();
+    }
 }
