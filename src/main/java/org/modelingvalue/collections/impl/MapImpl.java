@@ -15,25 +15,37 @@
 
 package org.modelingvalue.collections.impl;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.Objects;
+import java.util.Spliterator;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Predicate;
+
 import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.*;
-import org.modelingvalue.collections.mutable.*;
-import org.modelingvalue.collections.util.*;
-
-import java.io.*;
-import java.util.*;
-import java.util.function.*;
+import org.modelingvalue.collections.mutable.MutableMap;
+import org.modelingvalue.collections.util.ArrayUtil;
+import org.modelingvalue.collections.util.Deserializer;
+import org.modelingvalue.collections.util.Mergeables;
+import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.QuadFunction;
+import org.modelingvalue.collections.util.Serializer;
 
 public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Map<K, V> {
 
-    private static final long serialVersionUID = 7758359458143777562L;
+    private static final long                    serialVersionUID = 7758359458143777562L;
 
     @SuppressWarnings("rawtypes")
-    private static final Function<Entry, Object> KEY   = Entry::getKey;
+    private static final Function<Entry, Object> KEY              = Entry::getKey;
     @SuppressWarnings("rawtypes")
-    public static final  Map                     EMPTY = new MapImpl((Object) null);
+    public static final Map                      EMPTY            = new MapImpl((Object) null);
 
     public MapImpl(Entry<K, V>[] entries) {
         this.value = entries.length == 1 ? entries[0] : putAll(null, key(), entries);
@@ -132,7 +144,6 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
         return remove(key);
     }
 
-
     @Override
     public Map<K, V> put(Entry<K, V> entry) {
         return create(put(value, key(), entry, key()));
@@ -188,6 +199,11 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
         return add(entry, (a, b) -> Mergeables.merge(null, a, b));
     }
 
+    @Override
+    public Map<K, V> add(K key, V val) {
+        return add(Entry.of(key, val));
+    }
+
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public Map<K, V> addAll(Collection<? extends Entry<K, V>> es) {
@@ -231,8 +247,8 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
 
     protected Object mergeEntry(Map<K, V> map1, Map<K, V> map2, BinaryOperator<V> merger) {
         return ((MapImpl<K, V>) map1.toMap(e1 -> {
-            Entry<K, V> e2  = map2.getEntry(e1.getKey());
-            V           val = merger.apply(e1.getValue(), e2.getValue());
+            Entry<K, V> e2 = map2.getEntry(e1.getKey());
+            V val = merger.apply(e1.getValue(), e2.getValue());
             return Objects.equals(val, e1.getValue()) ? e1 : Objects.equals(val, e2.getValue()) ? e2 : Entry.of(e1.getKey(), val);
         })).value;
     }
@@ -261,9 +277,9 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
 
     @SuppressWarnings("unchecked")
     private Object merge(QuadFunction<K, V, V[], Integer, V> merger, Object[] es, int el) {
-        K   key = es[0] != null ? ((Entry<K, V>) es[0]).getKey() : null;
-        V   v   = key != null ? ((Entry<K, V>) es[0]).getValue() : null;
-        V[] vs  = null;
+        K key = es[0] != null ? ((Entry<K, V>) es[0]).getKey() : null;
+        V v = key != null ? ((Entry<K, V>) es[0]).getValue() : null;
+        V[] vs = null;
         for (int i = 1; i < el; i++) {
             if (es[i] != null) {
                 if (key == null) {

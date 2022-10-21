@@ -55,6 +55,16 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
         };
     }
 
+    static <T> T getSequential(Supplier<T> supplier) {
+        boolean old = SEQUENTIAL_ONLY.get();
+        SEQUENTIAL_ONLY.set(true);
+        try {
+            return supplier.get();
+        } finally {
+            SEQUENTIAL_ONLY.set(old);
+        }
+    }
+
     @Override
     Spliterator<T> spliterator();
 

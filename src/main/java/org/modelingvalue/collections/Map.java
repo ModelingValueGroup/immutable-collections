@@ -15,11 +15,17 @@
 
 package org.modelingvalue.collections;
 
-import org.modelingvalue.collections.impl.*;
-import org.modelingvalue.collections.mutable.*;
-import org.modelingvalue.collections.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
-import java.util.function.*;
+import org.modelingvalue.collections.impl.MapImpl;
+import org.modelingvalue.collections.mutable.MutableMap;
+import org.modelingvalue.collections.util.Mergeable;
+import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.QuadFunction;
 
 @SuppressWarnings("unused")
 public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<Map<K, V>> {
@@ -59,7 +65,10 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
     Map<K, V> compute(K key, BiFunction<? super K, ? super V, ? extends V> remappingFunction);
 
     Map<K, V> merge(K key, V value, BiFunction<? super V, ? super V, ? extends V> remappingFunction);
+
     Map<K, V> putAll(Map<? extends K, ? extends V> c);
+
+    Map<K, V> add(K key, V value);
 
     Map<K, V> add(Entry<K, V> entry, BinaryOperator<V> merger);
 
