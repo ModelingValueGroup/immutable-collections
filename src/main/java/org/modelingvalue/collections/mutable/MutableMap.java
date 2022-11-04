@@ -34,6 +34,26 @@ public class MutableMap<K, V> implements java.util.Map<K, V>, Mutable<Entry<K, V
     }
 
     @Override
+    public int hashCode() {
+        return map.hashCode();
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        } else if (obj == null) {
+            return false;
+        } else if (getClass() != obj.getClass()) {
+            return false;
+        } else {
+            MutableMap other = (MutableMap) obj;
+            return map.equals(other.map);
+        }
+    }
+
+    @Override
     public Map<K, V> toImmutable() {
         return map;
     }
@@ -398,6 +418,11 @@ public class MutableMap<K, V> implements java.util.Map<K, V>, Mutable<Entry<K, V
             }
 
         };
+    }
+
+    @Override
+    public String toString() {
+        return map.toString();
     }
 
     private final class EntryImpl extends java.util.AbstractMap.SimpleEntry<K, V> {

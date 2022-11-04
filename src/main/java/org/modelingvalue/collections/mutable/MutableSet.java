@@ -29,6 +29,26 @@ public class MutableSet<T> implements java.util.Set<T>, Mutable<T> {
     }
 
     @Override
+    public int hashCode() {
+        return set.hashCode();
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        } else if (obj == null) {
+            return false;
+        } else if (getClass() != obj.getClass()) {
+            return false;
+        } else {
+            MutableSet other = (MutableSet) obj;
+            return set.equals(other.set);
+        }
+    }
+
+    @Override
     public Set<T> toImmutable() {
         return set;
     }
@@ -126,5 +146,10 @@ public class MutableSet<T> implements java.util.Set<T>, Mutable<T> {
     @Override
     public void clear() {
         set = set.clear();
+    }
+
+    @Override
+    public String toString() {
+        return set.toString();
     }
 }

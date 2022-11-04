@@ -45,6 +45,7 @@ public interface ContainingCollection<T> extends Collection<T>, Internable {
 
     ContainingCollection<T> clear();
 
+    @Override
     boolean contains(Object e);
 
     Collection<T> reverse();
