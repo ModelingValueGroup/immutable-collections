@@ -48,6 +48,10 @@ public interface ContainingCollection<T> extends Collection<T>, Internable {
     @Override
     boolean contains(Object e);
 
+    default boolean notContains(Object e) {
+        return !contains(e);
+    }
+
     Collection<T> reverse();
 
     Spliterator<T> reverseSpliterator();
