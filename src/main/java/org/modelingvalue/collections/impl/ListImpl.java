@@ -65,16 +65,16 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     private static Object getAllDeep(Object obj, int beginIndex, int endIndex) {
         if (beginIndex < 0) {
             throw new IndexOutOfBoundsException();
+        } else if (endIndex > size(obj)) {
+            throw new IndexOutOfBoundsException();
         } else if (endIndex < beginIndex) {
             throw new IllegalArgumentException();
+        } else if (beginIndex == endIndex) {
+            return null;
         } else if (obj instanceof ListMultivalue) {
             return ((ListMultivalue) obj).getAllDeep(beginIndex, endIndex);
-        } else if (beginIndex == 0 && endIndex == 0) {
-            return null;
-        } else if (obj != null && beginIndex == 0 && endIndex == 1) {
-            return obj;
         } else {
-            throw new IndexOutOfBoundsException();
+            return obj;
         }
     }
 
@@ -110,8 +110,12 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     private static Object removeAllDeep(Object obj, int beginIndex, int endIndex) {
         if (beginIndex < 0) {
             throw new IndexOutOfBoundsException();
+        } else if (endIndex > size(obj)) {
+            throw new IndexOutOfBoundsException();
         } else if (endIndex < beginIndex) {
             throw new IllegalArgumentException();
+        } else if (beginIndex == endIndex) {
+            return obj;
         } else if (obj instanceof ListMultivalue) {
             if (beginIndex == 0 && endIndex == size(obj)) {
                 return null;
@@ -124,12 +128,8 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
                 Object after = ((ListMultivalue) obj).getAllDeep(endIndex, size(obj));
                 return ListMultivalue.createPair(before, after);
             }
-        } else if (beginIndex == 0 && endIndex == 0) {
-            return obj;
-        } else if (obj != null && beginIndex == 0 && endIndex == 1) {
-            return null;
         } else {
-            throw new IndexOutOfBoundsException();
+            return null;
         }
     }
 
