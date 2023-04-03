@@ -80,6 +80,9 @@ public interface DefaultMap<K, V> extends ContainingCollection<Entry<K, V>>, Mer
     DefaultMap<K, V> remove(Object e);
 
     @Override
+    DefaultMap<K, V> removeAll(Collection<?> e);
+
+    @Override
     DefaultMap<K, V> add(Entry<K, V> e);
 
     @Override

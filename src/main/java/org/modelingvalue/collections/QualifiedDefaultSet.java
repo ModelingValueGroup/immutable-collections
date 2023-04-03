@@ -53,6 +53,9 @@ public interface QualifiedDefaultSet<K, V> extends ContainingCollection<V>, Merg
 
     QualifiedDefaultSet<K, V> put(V value);
 
+    @Override
+    QualifiedDefaultSet<K, V> removeAll(Collection<?> e);
+
     QualifiedDefaultSet<K, V> removeKey(K key);
 
     QualifiedDefaultSet<K, V> removeAllKey(Collection<K> c);
