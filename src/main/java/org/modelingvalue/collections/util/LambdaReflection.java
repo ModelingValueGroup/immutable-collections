@@ -212,6 +212,10 @@ public interface LambdaReflection extends Serializable {
         return of().invoke(args);
     }
 
+    default String getImplMethodName() {
+        return of().getImplMethodName();
+    }
+
     default LambdaReflection original() {
         return this;
     }
@@ -251,6 +255,11 @@ public interface LambdaReflection extends Serializable {
             } else {
                 return LambdaReflection.equal(serialized, other.serialized);
             }
+        }
+
+        @Override
+        public String getImplMethodName() {
+            return serialized.getImplMethodName();
         }
 
         @Override
