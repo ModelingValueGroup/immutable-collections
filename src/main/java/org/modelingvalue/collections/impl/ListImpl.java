@@ -432,6 +432,16 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     }
 
     @Override
+    public List<T> replaceFirst(Object pre, T post) {
+        int i = firstIndexOf(pre);
+        if (i >= 0) {
+            return replace(i, post);
+        } else {
+            return this;
+        }
+    }
+
+    @Override
     public List<T> replace(int position, T replacement) {
         return new ListImpl<>(insert(removeAllDeep(value, position, position + 1), replacement, position));
     }

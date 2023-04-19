@@ -43,6 +43,8 @@ public interface ContainingCollection<T> extends Collection<T>, Internable {
 
     ContainingCollection<T> replace(Object pre, T post);
 
+    ContainingCollection<T> replaceFirst(Object pre, T post);
+
     ContainingCollection<T> clear();
 
     @Override

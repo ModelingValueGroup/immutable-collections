@@ -48,13 +48,13 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
 
     @SuppressWarnings("rawtypes")
     private static final BiFunction                PRUNE                        = (v1, v2) -> {
-        // the result of this equals call is purposely ignored
-        // the importance is in the side-effect that sharing is discovered and accomplished in parts of v1 and v2
-        //noinspection ResultOfMethodCallIgnored
-        v1.equals(v2);
-        // null is returned here on purpose to create as little overhead as possible
-        return null;
-    };
+                                                                                    // the result of this equals call is purposely ignored
+                                                                                    // the importance is in the side-effect that sharing is discovered and accomplished in parts of v1 and v2
+                                                                                    //noinspection ResultOfMethodCallIgnored
+                                                                                    v1.equals(v2);
+                                                                                    // null is returned here on purpose to create as little overhead as possible
+                                                                                    return null;
+                                                                                };
 
     private static final int                       PART_SIZE                    = Integer.getInteger("HASH_PARTITION_SIZE", 6);
     private static final int                       PART_REST                    = Integer.SIZE % PART_SIZE == 0 ? 0 : PART_SIZE - Integer.SIZE % PART_SIZE;
@@ -1089,6 +1089,11 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
             }
             return equal ? l : -l;
         }
+    }
+
+    @Override
+    public ContainingCollection<T> replaceFirst(Object pre, T post) {
+        return replace(pre, post);
     }
 
 }

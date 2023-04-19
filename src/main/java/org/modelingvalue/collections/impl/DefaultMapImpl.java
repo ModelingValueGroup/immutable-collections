@@ -192,7 +192,7 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
             Entry<K, V> e2 = map2.getEntry(e1.getKey());
             V val = merger.apply(e1.getValue(), e2.getValue());
             return Objects.equals(val, defaultFunction.apply(e1.getKey())) ? null : //
-            Objects.equals(val, e1.getValue()) ? e1 : Objects.equals(val, e2.getValue()) ? e2 : Entry.of(e1.getKey(), val);
+                    Objects.equals(val, e1.getValue()) ? e1 : Objects.equals(val, e2.getValue()) ? e2 : Entry.of(e1.getKey(), val);
         }).notNull().toDefaultMap(defaultFunction, e -> e)).value;
     }
 
