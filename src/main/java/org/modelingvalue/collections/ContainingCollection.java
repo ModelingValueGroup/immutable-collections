@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2022 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2023 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -43,10 +43,16 @@ public interface ContainingCollection<T> extends Collection<T>, Internable {
 
     ContainingCollection<T> replace(Object pre, T post);
 
+    ContainingCollection<T> replaceFirst(Object pre, T post);
+
     ContainingCollection<T> clear();
 
     @Override
     boolean contains(Object e);
+
+    default boolean notContains(Object e) {
+        return !contains(e);
+    }
 
     Collection<T> reverse();
 

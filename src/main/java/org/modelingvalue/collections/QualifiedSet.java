@@ -1,5 +1,5 @@
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2022 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
+// (C) Copyright 2018-2023 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
 //                                                                                                                     ~
 // Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
 // compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
@@ -51,6 +51,9 @@ public interface QualifiedSet<K, V> extends ContainingCollection<V>, Mergeable<Q
     QualifiedSet<K, V> put(V value);
 
     QualifiedSet<K, V> removeKey(K key);
+
+    @Override
+    QualifiedSet<K, V> removeAll(Collection<?> e);
 
     QualifiedSet<K, V> removeAllKey(Collection<K> c);
 
