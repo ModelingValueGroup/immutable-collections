@@ -15,6 +15,8 @@
 
 package org.modelingvalue.collections.util;
 
+import org.modelingvalue.collections.Collection;
+
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
@@ -73,8 +75,8 @@ public class Concurrent<T> {
         if (i < 0) {
             //noinspection SynchronizeOnNonFinalField
             synchronized (states) {
-                T t = states[ContextThread.POOL_SIZE];
-                T value = oper.apply(t);
+                T t     = states[ContextThread.POOL_SIZE];
+                T value = Collection.getSequential(() -> oper.apply(t)); // TODO @Wim: come up with an alternative
                 if (t != value) {
                     states[ContextThread.POOL_SIZE] = value;
                     return true;
@@ -83,7 +85,8 @@ public class Concurrent<T> {
                 }
             }
         } else {
-            T value = oper.apply(states[i]);
+
+            T value = Collection.getSequential(() -> oper.apply(states[i])); // TODO @Wim: come up with an alternative
             if (states[i] != value) {
                 states[i] = value;
                 return true;
@@ -208,5 +211,4 @@ public class Concurrent<T> {
             throw new ConcurrentModificationException();
         }
     }
-
 }
