@@ -15,14 +15,14 @@
 
 package org.modelingvalue.collections.util;
 
-import org.modelingvalue.collections.Collection;
-
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
+
+import org.modelingvalue.collections.Collection;
 
 public class Concurrent<T> {
 
@@ -75,7 +75,7 @@ public class Concurrent<T> {
         if (i < 0) {
             //noinspection SynchronizeOnNonFinalField
             synchronized (states) {
-                T t     = states[ContextThread.POOL_SIZE];
+                T t = states[ContextThread.POOL_SIZE];
                 T value = Collection.getSequential(() -> oper.apply(t)); // TODO @Wim: come up with an alternative
                 if (t != value) {
                     states[ContextThread.POOL_SIZE] = value;
@@ -119,7 +119,7 @@ public class Concurrent<T> {
                     if (pre == states[ContextThread.POOL_SIZE]) {
                         states[ContextThread.POOL_SIZE] = value;
                     } else if (pre instanceof Mergeable) {
-                        states[ContextThread.POOL_SIZE] = (T) ((Mergeable) pre).merge(states[ContextThread.POOL_SIZE], value);
+                        states[ContextThread.POOL_SIZE] = (T) Collection.getSequential(() -> ((Mergeable) pre).merge(states[ContextThread.POOL_SIZE], value));
                     } else {
                         throw new ConcurrentModificationException();
                     }
