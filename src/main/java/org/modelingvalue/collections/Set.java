@@ -82,7 +82,7 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
     void deduplicate(Set<T> other);
 
     @Override
-    default Set<T> toSet() {
+    default Set<T> asSet() {
         return this;
     }
 
@@ -92,7 +92,7 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
     java.util.Set<T> toMutable();
 
     static <E> Set<E> fromMutable(java.util.Collection<E> mutable) {
-        return mutable instanceof MutableSet ? ((MutableSet<E>) mutable).toImmutable() : Collection.of(mutable).toSet();
+        return mutable instanceof MutableSet ? ((MutableSet<E>) mutable).toImmutable() : Collection.of(mutable).asSet();
     }
 
 }

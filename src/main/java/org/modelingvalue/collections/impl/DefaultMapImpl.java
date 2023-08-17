@@ -111,7 +111,7 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
     @SuppressWarnings("rawtypes")
     @Override
     public DefaultMap<K, V> removeAllKey(Collection<?> c) {
-        return create(remove(value, key(), ((SetImpl) c.toSet()).value, identity()));
+        return create(remove(value, key(), ((SetImpl) c.asSet()).value, identity()));
     }
 
     @SuppressWarnings("rawtypes")
@@ -152,7 +152,7 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public DefaultMap<K, V> addAll(Collection<? extends Entry<K, V>> es) {
-        return putAll(es instanceof DefaultMap ? (DefaultMap) es : es.toDefaultMap(defaultFunction, e -> e));
+        return putAll(es instanceof DefaultMap ? (DefaultMap) es : es.asDefaultMap(defaultFunction, e -> e));
     }
 
     @SuppressWarnings("unchecked")
@@ -193,7 +193,7 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
             V val = merger.apply(e1.getValue(), e2.getValue());
             return Objects.equals(val, defaultFunction.apply(e1.getKey())) ? null : //
                     Objects.equals(val, e1.getValue()) ? e1 : Objects.equals(val, e2.getValue()) ? e2 : Entry.of(e1.getKey(), val);
-        }).notNull().toDefaultMap(defaultFunction, e -> e)).value;
+        }).notNull().asDefaultMap(defaultFunction, e -> e)).value;
     }
 
     @Override
@@ -268,7 +268,7 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
             } else if (a[1] == null) {
                 return a[0].map(e -> Entry.of(e.getKey(), Pair.of(a[0].get(e.getKey()), defaultFunction.apply(e.getKey()))));
             } else {
-                return a[0].toKeys().toSet().addAll(a[1].toKeys()).map(k -> Entry.of(k, Pair.of(a[0].get(k), a[1].get(k))));
+                return a[0].toKeys().asSet().addAll(a[1].toKeys()).map(k -> Entry.of(k, Pair.of(a[0].get(k), a[1].get(k))));
             }
         });
     }
@@ -318,7 +318,7 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
 
     @Override
     public DefaultMap<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate) {
-        return filter(e -> keyPredicate.test(e.getKey()) && valuePredicate.test(e.getValue())).toDefaultMap(defaultFunction, Function.identity());
+        return filter(e -> keyPredicate.test(e.getKey()) && valuePredicate.test(e.getValue())).asDefaultMap(defaultFunction, Function.identity());
     }
 
     @Override

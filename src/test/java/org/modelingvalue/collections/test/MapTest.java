@@ -54,8 +54,8 @@ public class MapTest {
         assertNotEquals(map1, map2);
         assertNotEquals(map1, map4);
         assertNotEquals(map2, map4);
-        Set<String> keySet1 = map1.toKeys().toSet();
-        Set<String> keySet2 = map2.toKeys().toSet();
+        Set<String> keySet1 = map1.toKeys().asSet();
+        Set<String> keySet2 = map2.toKeys().asSet();
         assertEquals(keySet1, keySet2);
         assertEquals(set, keySet2);
         assertEquals(keySet2, set);
@@ -65,7 +65,7 @@ public class MapTest {
     public void compareTest() {
         Map<String, String> map1 = Map.of(Entry.of("A", "xxxxx"), Entry.of("B", "yyyyy"), Entry.of("C", "ccccc"), Entry.of("D", "ddddd"));
         Map<String, String> map2 = Map.of(Entry.of("A", "aaaaa"), Entry.of("B", "bbbbb"), Entry.of("C", "ccccc"), Entry.of("D", "ddddd"));
-        System.err.println(map1.compare(map2).map(a -> Pair.of(a[0], a[1])).toSet().toString());
+        System.err.println(map1.compare(map2).map(a -> Pair.of(a[0], a[1])).asSet().toString());
         System.err.println(map1.diff(map2).toString());
     }
 

@@ -32,7 +32,7 @@ public class ListTest {
     @Test
     public void sorted1() {
         List<String> l = List.of("n", "k", "c", "y", "a", "b");
-        assertEquals(List.of("a", "b", "c", "k", "n", "y"), l.sorted().toList());
+        assertEquals(List.of("a", "b", "c", "k", "n", "y"), l.sorted().asList());
     }
 
     @Test
@@ -40,7 +40,7 @@ public class ListTest {
         StringBuilder l1 = new StringBuilder();
         StringBuilder l2 = new StringBuilder();
         Collection.of("n", "k", "c", "y", "a", "b").sorted().forEach(l1::append);
-        Collection.of("n", "k", "c", "y", "a", "b").sorted().toList().forEach(l2::append);
+        Collection.of("n", "k", "c", "y", "a", "b").sorted().asList().forEach(l2::append);
 
         assertEquals(l2.toString(), l1.toString());
     }
@@ -49,8 +49,8 @@ public class ListTest {
     public void sorted3() {
         StringBuilder       l1 = new StringBuilder();
         StringBuilder       l2 = new StringBuilder();
-        Collection.of("n", "k", "c", "y", "a", "b").toMap(c -> Entry.of(c, new Object())).toKeys().sorted().forEachOrdered(l1::append);
-        Collection.of("n", "k", "c", "y", "a", "b").toMap(c -> Entry.of(c, new Object())).toKeys().sorted().toList().forEachOrdered(l2::append);
+        Collection.of("n", "k", "c", "y", "a", "b").asMap(c -> Entry.of(c, new Object())).toKeys().sorted().forEachOrdered(l1::append);
+        Collection.of("n", "k", "c", "y", "a", "b").asMap(c -> Entry.of(c, new Object())).toKeys().sorted().asList().forEachOrdered(l2::append);
 
         assertEquals(l2.toString(), l1.toString());
     }
@@ -73,11 +73,11 @@ public class ListTest {
     public void reuseTest() {
         List<String[]> ab1 = List.of(new String[]{"a"}, new String[]{"b"});
         System.err.println(ab1);
-        System.err.println(ab1.map(Object::hashCode).toList());
+        System.err.println(ab1.map(Object::hashCode).asList());
         List<String>   axb = List.of("b", "b");
         List<String[]> ab2 = axb.reuse(ab1, (t, s) -> t[0].equals(s), (t, s) -> t[0] = s, t -> 0L, (t, s) -> true, (s, i) -> new String[1]);
         System.err.println(ab2);
-        System.err.println(ab2.map(Object::hashCode).toList());
+        System.err.println(ab2.map(Object::hashCode).asList());
     }
 
     static class MyClass {
@@ -120,16 +120,16 @@ public class ListTest {
         assertEquals(List.of("c", "y", "a", "b"), list10, "list10 should be ['c' 'y','a','b']");
 
         Collection<Integer> list    = List.of(2);
-        Collection<Integer> indexes = list10.indexesOfList(List.of("a")).toList();
+        Collection<Integer> indexes = list10.indexesOfList(List.of("a")).asList();
         assertEquals(list, indexes, "list10 indexesOfList should be [2]");
 
     }
 
     @Test
     public void orderSpliteratorTest() {
-        List<Integer> list1 = Collection.of(IntStream.range(0, 100000)).toList();
-        List<Integer> list2 = list1.map(e -> 10).toList();
-        List<Integer> list3 = Collection.of(IntStream.range(100000, 200000)).map(e -> 10).toList();
+        List<Integer> list1 = Collection.of(IntStream.range(0, 100000)).asList();
+        List<Integer> list2 = list1.map(e -> 10).asList();
+        List<Integer> list3 = Collection.of(IntStream.range(100000, 200000)).map(e -> 10).asList();
         assertEquals(list3.size(), list2.size());
         assertEquals(list2.hashCode(), list3.hashCode());
         assertEquals(list2, list3);
@@ -138,17 +138,17 @@ public class ListTest {
 
     @Test
     public void random() {
-        List<Integer> list = Collection.of(IntStream.range(0, 64)).toList();
+        List<Integer> list = Collection.of(IntStream.range(0, 64)).asList();
         for (int i = 0; i < 10; i++) {
-            System.err.println(list.random().toList());
+            System.err.println(list.random().asList());
         }
     }
 
     @Test
     public void reverse() {
-        List<Integer> list1 = Collection.of(IntStream.range(0, 100000)).toList();
-        List<Integer> list2 = list1.sorted((a, b) -> Integer.compare(b, a)).toList();
-        List<Integer> list3 = list1.reverse().toList();
+        List<Integer> list1 = Collection.of(IntStream.range(0, 100000)).asList();
+        List<Integer> list2 = list1.sorted((a, b) -> Integer.compare(b, a)).asList();
+        List<Integer> list3 = list1.reverse().asList();
         assertEquals(list3.size(), list2.size());
         assertEquals(list2.hashCode(), list3.hashCode());
         assertEquals(list2, list3);
@@ -224,7 +224,7 @@ public class ListTest {
         assertEquals(5, list7.firstIndexOf(1, 8, "a"));
         assertEquals(8, list7.lastIndexOf("a"));
 
-        assertEquals(List.of(2, 10), list7.indexesOfList(List.of("c", "d")).sorted().toList());
+        assertEquals(List.of(2, 10), list7.indexesOfList(List.of("c", "d")).sorted().asList());
 
         List<String> bcde = abcdef.sublist(1, 5);
         assertEquals(List.of("b", "c", "d", "e"), bcde);

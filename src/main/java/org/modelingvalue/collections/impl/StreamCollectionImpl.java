@@ -97,17 +97,17 @@ public final class StreamCollectionImpl<T> extends CollectionImpl<T> implements 
 
     @Override
     public <R> Collection<R> linked(TriFunction<T, T, T, R> function) {
-        return toList().linked(function);
+        return asList().linked(function);
     }
 
     @Override
     public void linked(TriConsumer<T, T, T> consumer) {
-        toList().linked(consumer);
+        asList().linked(consumer);
     }
 
     @Override
     public <R> Collection<R> indexed(BiFunction<T, Integer, R> function) {
-        return toList().indexed(function);
+        return asList().indexed(function);
     }
 
     @Override

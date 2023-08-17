@@ -139,29 +139,29 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
     @Override
     void forEach(Consumer<? super T> action);
 
-    default Set<T> toSet() {
+    default Set<T> asSet() {
         return reduce(Set.of(), Set::add, Set::addAll);
     }
 
-    default List<T> toList() {
+    default List<T> asList() {
         return reduce(List.of(), List::append, List::appendList);
     }
 
-    default <K, V> Map<K, V> toMap(Function<T, Entry<K, V>> entry) {
+    default <K, V> Map<K, V> asMap(Function<T, Entry<K, V>> entry) {
         return reduce(Map.of(), (s, a) -> s.put(entry.apply(a)), Map::putAll);
     }
 
-    default <K, V> DefaultMap<K, V> toDefaultMap(SerializableFunction<K, V> defaultFunction, Function<T, Entry<K, V>> entry) {
+    default <K, V> DefaultMap<K, V> asDefaultMap(SerializableFunction<K, V> defaultFunction, Function<T, Entry<K, V>> entry) {
         return reduce(DefaultMap.of(defaultFunction), (s, a) -> s.put(entry.apply(a)), DefaultMap::putAll);
     }
 
     @SuppressWarnings("unchecked")
-    default <K, V> QualifiedSet<K, V> toQualifiedSet(SerializableFunction<V, K> qualifier) {
+    default <K, V> QualifiedSet<K, V> asQualifiedSet(SerializableFunction<V, K> qualifier) {
         return reduce(QualifiedSet.of(qualifier), (s, a) -> s.add((V) a), QualifiedSet::addAll);
     }
 
     @SuppressWarnings("unchecked")
-    default <K, V> QualifiedDefaultSet<K, V> toQualifiedDefaultSet(SerializableFunction<V, K> qualifier, SerializableFunction<K, V> defaultFunction) {
+    default <K, V> QualifiedDefaultSet<K, V> asQualifiedDefaultSet(SerializableFunction<V, K> qualifier, SerializableFunction<K, V> defaultFunction) {
         return reduce(QualifiedDefaultSet.of(qualifier, defaultFunction), (s, a) -> s.add((V) a), QualifiedDefaultSet::addAll);
     }
 
