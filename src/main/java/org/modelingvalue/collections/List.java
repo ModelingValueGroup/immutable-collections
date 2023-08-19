@@ -115,7 +115,7 @@ public interface List<T> extends ContainingCollection<T>, Mergeable<List<T>> {
     <B extends List<T>> StreamCollection<Object[]> compareAll(B... branches);
 
     @Override
-    default List<T> toList() {
+    default List<T> asList() {
         return this;
     }
 
@@ -150,7 +150,7 @@ public interface List<T> extends ContainingCollection<T>, Mergeable<List<T>> {
     java.util.List<T> toMutable();
 
     static <E> List<E> fromMutable(java.util.Collection<E> mutable) {
-        return mutable instanceof MutableList ? ((MutableList<E>) mutable).toImmutable() : Collection.of(mutable).toList();
+        return mutable instanceof MutableList ? ((MutableList<E>) mutable).toImmutable() : Collection.of(mutable).asList();
     }
 
 }

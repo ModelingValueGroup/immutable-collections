@@ -97,18 +97,18 @@ public class SetTest {
     public void randomtest() {
         Random random = new Random();
         random.setSeed(SEED);
-        Set<Integer> set1 = Collection.of((Supplier<Integer>) random::nextInt).limit(5_000_000).toSet();
+        Set<Integer> set1 = Collection.of((Supplier<Integer>) random::nextInt).limit(5_000_000).asSet();
         assertEquals(4_997_213, set1.size());
         random.setSeed(SEED);
-        Set<Integer> set2 = Collection.of((Supplier<Integer>) random::nextInt).limit(5_000_000).toSet();
+        Set<Integer> set2 = Collection.of((Supplier<Integer>) random::nextInt).limit(5_000_000).asSet();
         assertEquals(4_997_213, set2.size());
     }
 
     @Test
     public void equaltest() {
         int max = 1_000_000;
-        Set<Integer> set1 = Collection.of(IntStream.range(0, max)).toSet();
-        Set<Integer> set2 = Collection.of(IntStream.range(0, max).map(i -> max - i - 1)).toSet();
+        Set<Integer> set1 = Collection.of(IntStream.range(0, max)).asSet();
+        Set<Integer> set2 = Collection.of(IntStream.range(0, max).map(i -> max - i - 1)).asSet();
         Random random = new Random();
         java.util.Set<Integer> set = Collections.synchronizedSet(new HashSet<>());
         Set<Integer> set3 = Collection.of(() -> {
@@ -117,7 +117,7 @@ public class SetTest {
                 r = random.nextInt(max);
             }
             return r;
-        }).limit(max).toSet();
+        }).limit(max).asSet();
         set1.forEachOrdered(obj -> assertTrue(set2.contains(obj)));
         set1.forEachOrdered(obj -> assertTrue(set3.contains(obj)));
         long start = System.currentTimeMillis();
@@ -133,13 +133,13 @@ public class SetTest {
     @Test
     public void subsetTest() {
         int max = 500_000;
-        Set<Integer> set0 = Collection.of(IntStream.range(0, max * 2)).toSet();
+        Set<Integer> set0 = Collection.of(IntStream.range(0, max * 2)).asSet();
         assertEquals(max * 2, set0.size());
 
-        Set<Integer> set1 = Collection.of(IntStream.range(0, max).map(i -> i * 2)).toSet();
-        Set<Integer> set2 = Collection.of(IntStream.range(0, max).map(i -> i * 2 + 1)).toSet();
-        Set<Integer> set3 = Collection.of(IntStream.range(0, max)).toSet();
-        Set<Integer> set4 = Collection.of(IntStream.range(max, max * 2)).toSet();
+        Set<Integer> set1 = Collection.of(IntStream.range(0, max).map(i -> i * 2)).asSet();
+        Set<Integer> set2 = Collection.of(IntStream.range(0, max).map(i -> i * 2 + 1)).asSet();
+        Set<Integer> set3 = Collection.of(IntStream.range(0, max)).asSet();
+        Set<Integer> set4 = Collection.of(IntStream.range(max, max * 2)).asSet();
 
         Set<Integer> set1a2 = set1.addAll(set2);
         Set<Integer> set3a4 = set3.addAll(set4);
@@ -238,8 +238,8 @@ public class SetTest {
         Set<Integer> all = set1.addAll(set0).addAll(set2);
         assertNotEquals(all, merged);
 
-        Set<Long> lset0 = Collection.of(LongStream.range(20, 100)).toSet();
-        Set<Long> lset1 = Collection.of(LongStream.range(40, 120)).toSet();
+        Set<Long> lset0 = Collection.of(LongStream.range(20, 100)).asSet();
+        Set<Long> lset1 = Collection.of(LongStream.range(40, 120)).asSet();
 
         System.err.println();
         lset0.compare(lset1).forEachOrdered(c -> System.err.println(Arrays.deepToString(c)));
@@ -254,7 +254,7 @@ public class SetTest {
     public void contains() {
         int max = 10_000_000;
         int step = Integer.MAX_VALUE / max;
-        Set<Integer> set = Collection.of(IntStream.range(-max, max).map(i -> i * step)).toSet();
+        Set<Integer> set = Collection.of(IntStream.range(-max, max).map(i -> i * step)).asSet();
         assertTrue(IntStream.range(-max, max).map(i -> i * step).allMatch(set::contains));
     }
 
@@ -263,8 +263,8 @@ public class SetTest {
         int max = 10_000_000;
         int step = Integer.MAX_VALUE / max;
         int half = step / 2;
-        Set<Integer> set1 = Collection.of(IntStream.range(-max, max).map(i -> i * step)).toSet();
-        Set<Integer> set2 = Collection.of(IntStream.range(-max, max).map(i -> i * step + half)).toSet();
+        Set<Integer> set1 = Collection.of(IntStream.range(-max, max).map(i -> i * step)).asSet();
+        Set<Integer> set2 = Collection.of(IntStream.range(-max, max).map(i -> i * step + half)).asSet();
         Set<Integer> set3 = Set.<Integer> of().merge(set1, set2);
         assertTrue(IntStream.range(-max, max).map(i -> i * step).allMatch(i -> set3.contains(i) && set3.contains(i + half)));
     }
@@ -275,8 +275,8 @@ public class SetTest {
         int min = 10;
         int step = Integer.MAX_VALUE / max;
         int half = step / 2;
-        Set<Integer> set1 = Collection.of(IntStream.range(-min, min).map(i -> i * step)).toSet();
-        Set<Integer> set2 = Collection.of(IntStream.range(-max, max).map(i -> i * step + half)).toSet();
+        Set<Integer> set1 = Collection.of(IntStream.range(-min, min).map(i -> i * step)).asSet();
+        Set<Integer> set2 = Collection.of(IntStream.range(-max, max).map(i -> i * step + half)).asSet();
         Set<Integer> set3 = Set.<Integer> of().merge(set1, set2);
         assertTrue(IntStream.range(-min, min).map(i -> i * step).allMatch(set3::contains));
         assertTrue(IntStream.range(-max, max).map(i -> i * step + half).allMatch(set3::contains));
@@ -286,7 +286,7 @@ public class SetTest {
     @Test
     public void checkHashIntegrity() {
         int max = 10_000;
-        Set<HashSharingInteger> set = Collection.of(IntStream.range(-max, max)).map(i -> new HashSharingInteger(i, i - i % 5)).toSet();
+        Set<HashSharingInteger> set = Collection.of(IntStream.range(-max, max)).map(i -> new HashSharingInteger(i, i - i % 5)).asSet();
         assertNull(((HashCollectionImpl) set).checkHashIntegrity());
     }
 

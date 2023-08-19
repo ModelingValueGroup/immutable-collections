@@ -226,14 +226,14 @@ public class MutableList<T> implements java.util.List<T>, Mutable<T> {
     @Override
     public boolean addAll(java.util.Collection<? extends T> c) {
         List<T> pre = list;
-        list = list.appendList(Collection.of(c).toList());
+        list = list.appendList(Collection.of(c).asList());
         return pre != list;
     }
 
     @Override
     public boolean addAll(int index, java.util.Collection<? extends T> c) {
         List<T> pre = list;
-        list = list.insertList(index, Collection.of(c).toList());
+        list = list.insertList(index, Collection.of(c).asList());
         return pre != list;
     }
 
