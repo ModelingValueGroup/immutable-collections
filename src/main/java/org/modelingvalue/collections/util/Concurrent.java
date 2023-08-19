@@ -22,6 +22,8 @@ import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
+import org.modelingvalue.collections.Collection;
+
 public class Concurrent<T> {
 
     public static <V> Concurrent<V> of(V value) {
@@ -74,7 +76,7 @@ public class Concurrent<T> {
             //noinspection SynchronizeOnNonFinalField
             synchronized (states) {
                 T t = states[ContextThread.POOL_SIZE];
-                T value = oper.apply(t);
+                T value = Collection.getSequential(() -> oper.apply(t)); // TODO @Wim: come up with an alternative
                 if (t != value) {
                     states[ContextThread.POOL_SIZE] = value;
                     return true;
@@ -83,7 +85,8 @@ public class Concurrent<T> {
                 }
             }
         } else {
-            T value = oper.apply(states[i]);
+
+            T value = Collection.getSequential(() -> oper.apply(states[i])); // TODO @Wim: come up with an alternative
             if (states[i] != value) {
                 states[i] = value;
                 return true;
@@ -116,7 +119,7 @@ public class Concurrent<T> {
                     if (pre == states[ContextThread.POOL_SIZE]) {
                         states[ContextThread.POOL_SIZE] = value;
                     } else if (pre instanceof Mergeable) {
-                        states[ContextThread.POOL_SIZE] = (T) ((Mergeable) pre).merge(states[ContextThread.POOL_SIZE], value);
+                        states[ContextThread.POOL_SIZE] = (T) Collection.getSequential(() -> ((Mergeable) pre).merge(states[ContextThread.POOL_SIZE], value));
                     } else {
                         throw new ConcurrentModificationException();
                     }
@@ -208,5 +211,4 @@ public class Concurrent<T> {
             throw new ConcurrentModificationException();
         }
     }
-
 }

@@ -932,18 +932,15 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
 
         private Object visitUnequalHashes(BiFunction<? super Object[], Integer, Object> visitor, byte level, int index, int len, byte dep) {
             Object result = null, val;
-            int resultIdx = -1, idx, prev = 0;
-            byte it, maxLevel = -1;
+            int resultIdx = -1, prev = 0, init = -1, it, length;
             long downMask, mask = 0;
             for (it = 0; it < len; it++) {
                 if (keep[dep][it]) {
                     val = values[dep][it];
-                    // use 'idx' for current length
-                    idx = val instanceof HashMultiValue && ((HashMultiValue) val).level == level ? ((HashMultiValue) val).values.length : val != null ? 1 : 0;
-                    if (idx > prev) {
-                        prev = idx;
-                        // use 'maxLevel' for selected init value
-                        maxLevel = it;
+                    length = val instanceof HashMultiValue && ((HashMultiValue) val).level == level ? ((HashMultiValue) val).values.length : val != null ? 1 : 0;
+                    if (length > prev) {
+                        prev = length;
+                        init = it;
                         resultIdx = (ids[dep][it] & PART_MASKS[level]) >>> PART_SHIFTS[level];
                         result = val;
                     }
@@ -952,10 +949,12 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
             for (it = 0; it < len; it++) {
                 downMask = mask(values[dep][it], ids[dep][it], level);
                 masks[dep][it] = downMask;
-                if (it != maxLevel) {
+                if (it != init) {
                     mask |= downMask;
                 }
             }
+            int idx;
+            byte maxLevel = -1;
             for (idx = Long.numberOfTrailingZeros(mask); idx < Long.SIZE; idx++, idx += Long.numberOfTrailingZeros(mask >>> idx)) {
                 maxLevel = NR_OF_PARTS;
                 for (it = 0; it < len; it++) {
