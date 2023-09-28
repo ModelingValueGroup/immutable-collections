@@ -553,17 +553,6 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
             return b.append(']').toString();
         }
 
-        protected Object getDeep(int idx) {
-            int len = 0;
-            for (Object val : values) {
-                int valSize = size(val);
-                if (len + valSize > idx) {
-                    return TreeCollectionImpl.getDeep(val, idx - len);
-                }
-                len += valSize;
-            }
-            throw new IndexOutOfBoundsException();
-        }
     }
 
     @SuppressWarnings("unchecked")
@@ -575,11 +564,22 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
     protected static Object getDeep(Object obj, int idx) {
         if (idx < 0) {
             throw new IndexOutOfBoundsException();
-        } else if (obj instanceof MultiValue) {
-            return ((MultiValue) obj).getDeep(idx);
-        } else if (obj != null && idx == 0) {
-            return obj;
-        } else {
+        }
+        outer: while (true){
+            if (obj instanceof MultiValue) {
+                int len = 0;
+                for (Object val : ((MultiValue) obj).values) {
+                    int valSize = size(val);
+                    if (len + valSize > idx) {
+                        obj = val;
+                        idx = idx - len;
+                        continue outer;
+                    }
+                    len += valSize;
+                }
+            } else if (obj != null && idx == 0) {
+                return obj;
+            }
             throw new IndexOutOfBoundsException();
         }
     }
