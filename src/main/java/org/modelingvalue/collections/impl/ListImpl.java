@@ -470,8 +470,9 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     @Override
     public int firstIndexOf(Object element) {
         int i = 0;
-        for(var o: this) {
-            if(o.equals(element)) return i;
+        for (var o : this) {
+            if (o.equals(element))
+                return i;
             i++;
         }
         return -1;
