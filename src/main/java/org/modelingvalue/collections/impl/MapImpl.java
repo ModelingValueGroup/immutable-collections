@@ -169,7 +169,7 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     @SuppressWarnings("rawtypes")
     @Override
     public Map<K, V> removeAllKey(Collection<?> c) {
-        return create(remove(value, key(), ((SetImpl) c.toSet()).value, identity()));
+        return create(remove(value, key(), ((SetImpl) c.asSet()).value, identity()));
     }
 
     @SuppressWarnings("rawtypes")
@@ -207,7 +207,7 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public Map<K, V> addAll(Collection<? extends Entry<K, V>> es) {
-        return addAll(es instanceof Map ? (Map) es : es.toMap(e -> e), (a, b) -> Mergeables.merge(null, a, b));
+        return addAll(es instanceof Map ? (Map) es : es.asMap(e -> e), (a, b) -> Mergeables.merge(null, a, b));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -225,7 +225,7 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public Map<K, V> removeAll(Collection<?> es) {
-        return removeAll(es instanceof Map ? (Map) es : es.map(e -> e instanceof Entry ? (Entry) e : null).notNull().toMap(e -> e), //
+        return removeAll(es instanceof Map ? (Map) es : es.map(e -> e instanceof Entry ? (Entry) e : null).notNull().asMap(e -> e), //
                 (a, b) -> Mergeables.merge(b, null, a));
     }
 
@@ -246,7 +246,7 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
     }
 
     protected Object mergeEntry(Map<K, V> map1, Map<K, V> map2, BinaryOperator<V> merger) {
-        return ((MapImpl<K, V>) map1.toMap(e1 -> {
+        return ((MapImpl<K, V>) map1.asMap(e1 -> {
             Entry<K, V> e2 = map2.getEntry(e1.getKey());
             V val = merger.apply(e1.getValue(), e2.getValue());
             return Objects.equals(val, e1.getValue()) ? e1 : Objects.equals(val, e2.getValue()) ? e2 : Entry.of(e1.getKey(), val);
@@ -309,7 +309,7 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
             } else if (a[1] == null) {
                 return a[0].map(e -> Entry.of(e.getKey(), Pair.of(a[0].get(e.getKey()), null)));
             } else {
-                return a[0].toKeys().toSet().addAll(a[1].toKeys()).map(k -> Entry.of(k, Pair.of(a[0].get(k), a[1].get(k))));
+                return a[0].toKeys().asSet().addAll(a[1].toKeys()).map(k -> Entry.of(k, Pair.of(a[0].get(k), a[1].get(k))));
             }
         });
     }
@@ -366,7 +366,7 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
 
     @Override
     public Map<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate) {
-        return filter(e -> keyPredicate.test(e.getKey()) && valuePredicate.test(e.getValue())).toMap(Function.identity());
+        return filter(e -> keyPredicate.test(e.getKey()) && valuePredicate.test(e.getValue())).asMap(Function.identity());
     }
 
     @Override

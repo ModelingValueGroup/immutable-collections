@@ -70,8 +70,8 @@ public class QualifiedSetTest {
     public void testQualifiedSet1() {
         QualifiedSet<String, O> qset1 = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"));
         QualifiedSet<String, O> qset2 = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"), O.of("jet"), O.of("jet"));
-        Set<String> qset1keys = qset1.map(a -> a.v).sequential().toSet();
-        Set<String> qset2keys = qset2.map(a -> a.v).sequential().toSet();
+        Set<String> qset1keys = qset1.map(a -> a.v).sequential().asSet();
+        Set<String> qset2keys = qset2.map(a -> a.v).sequential().asSet();
 
         assertEquals(5, qset1.size());
         assertEquals(5, qset2.size());
@@ -117,7 +117,7 @@ public class QualifiedSetTest {
                 Object ctx = new Object();
                 CONTEXT.run(ctx, () -> {
                     QualifiedSet<String, Long> set = QualifiedSet.of(Object::toString, Collection.of(LongStream.range(Long.MAX_VALUE - 10_000_000, Long.MAX_VALUE)).collect(Collectors.toSet()));
-                    Double sum = set.toSet().reduce(0d, (s, e) -> {
+                    Double sum = set.asSet().reduce(0d, (s, e) -> {
                         assertEquals(ctx, CONTEXT.get());
                         return s + e;
                     }, (s1, s2) -> {
@@ -153,14 +153,14 @@ public class QualifiedSetTest {
     @Test
     public void subsetTest() {
         int max = 500_000;
-        Set<Integer> set0 = Collection.of(IntStream.range(0, max * 2)).toSet();
+        Set<Integer> set0 = Collection.of(IntStream.range(0, max * 2)).asSet();
         SerializableFunction<Integer, String> f = Object::toString;
         QualifiedSet<String, Integer> qset0 = QualifiedSet.of(f, set0.collect(Collectors.toSet()));
 
-        Set<Integer> set1 = Collection.of(IntStream.range(0, max).map(i -> i * 2)).toSet();
-        Set<Integer> set2 = Collection.of(IntStream.range(0, max).map(i -> i * 2 + 1)).toSet();
-        Set<Integer> set3 = Collection.of(IntStream.range(0, max)).toSet();
-        Set<Integer> set4 = Collection.of(IntStream.range(max, max * 2)).toSet();
+        Set<Integer> set1 = Collection.of(IntStream.range(0, max).map(i -> i * 2)).asSet();
+        Set<Integer> set2 = Collection.of(IntStream.range(0, max).map(i -> i * 2 + 1)).asSet();
+        Set<Integer> set3 = Collection.of(IntStream.range(0, max)).asSet();
+        Set<Integer> set4 = Collection.of(IntStream.range(max, max * 2)).asSet();
 
         QualifiedSet<String, Integer> qset1 = QualifiedSet.of(f, set1.collect(Collectors.toSet()));
         QualifiedSet<String, Integer> qset2 = QualifiedSet.of(f, set2.collect(Collectors.toSet()));

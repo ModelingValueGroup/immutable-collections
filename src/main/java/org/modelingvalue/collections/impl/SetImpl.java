@@ -89,7 +89,7 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
         if (c instanceof SetImpl) {
             return create(retain(value, key(), ((SetImpl) c).value, key()));
         } else {
-            return retainAll(c.toSet());
+            return retainAll(c.asSet());
         }
     }
 
@@ -99,7 +99,7 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
         if (c instanceof SetImpl) {
             return create(exclusive(value, key(), ((SetImpl) c).value, key()));
         } else {
-            return exclusiveAll(c.toSet());
+            return exclusiveAll(c.asSet());
         }
     }
 
@@ -109,7 +109,7 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
         if (c instanceof SetImpl) {
             return c.isEmpty() ? this : create(add(value, key(), ((SetImpl) c).value, key()));
         } else {
-            return addAll(c.toSet());
+            return addAll(c.asSet());
         }
     }
 
@@ -119,7 +119,7 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
         if (c instanceof SetImpl) {
             return create(remove(value, key(), ((SetImpl) c).value, key()));
         } else {
-            return removeAll(c.toSet());
+            return removeAll(c.asSet());
         }
     }
 
@@ -129,7 +129,7 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
         if (c instanceof SetImpl) {
             return c.size() == size(retain(value, key(), ((SetImpl) c).value, key()));
         } else {
-            return containsAll(c.toSet());
+            return containsAll(c.asSet());
         }
     }
 

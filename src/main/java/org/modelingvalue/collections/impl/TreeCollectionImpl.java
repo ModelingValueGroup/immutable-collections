@@ -15,18 +15,6 @@
 
 package org.modelingvalue.collections.impl;
 
-import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.ContainingCollection;
-import org.modelingvalue.collections.StreamCollection;
-import org.modelingvalue.collections.util.Age;
-import org.modelingvalue.collections.util.ContextThread;
-import org.modelingvalue.collections.util.Deserializer;
-import org.modelingvalue.collections.util.Internable;
-import org.modelingvalue.collections.util.Serializer;
-import org.modelingvalue.collections.util.StringUtil;
-import org.modelingvalue.collections.util.TriConsumer;
-import org.modelingvalue.collections.util.TriFunction;
-
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.Iterator;
@@ -43,11 +31,16 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.ContainingCollection;
+import org.modelingvalue.collections.StreamCollection;
+import org.modelingvalue.collections.util.*;
+
 public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements ContainingCollection<T> {
-    private static final   long         serialVersionUID = 7999808719969099597L;
-    protected static final int          CHARACTERISTICS  = Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL;
-    private static final   int          SPLIT_START      = Integer.getInteger("SPLIT_START", 64);
-    private static final   Predicate<?> ALL_INTERNABLE   = e -> e instanceof Internable && ((Internable) e).isInternable();
+    private static final long         serialVersionUID = 7999808719969099597L;
+    protected static final int        CHARACTERISTICS  = Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL;
+    private static final int          SPLIT_START      = Integer.getInteger("SPLIT_START", 64);
+    private static final Predicate<?> ALL_INTERNABLE   = e -> e instanceof Internable && ((Internable) e).isInternable();
 
     protected static boolean split(int amount) {
         if (!PARALLEL_COLLECTIONS) {
@@ -183,15 +176,15 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
     private static final class IntSpliterator implements OfInt {
         private static final int INT_CHARACTERISTICS = Spliterator.DISTINCT | Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL;
 
-        private final boolean[] stop;
-        private       int       min, total;
+        private final boolean[]  stop;
+        private int              min, total;
 
-        private final int max;
+        private final int        max;
 
         private IntSpliterator(int min, int max, boolean[] stop, int total) {
-            this.stop  = stop;
-            this.min   = min;
-            this.max   = max;
+            this.stop = stop;
+            this.min = min;
+            this.max = max;
             this.total = total;
         }
 
@@ -286,15 +279,15 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
 
     protected static abstract class CollectionSpliterator<T> implements Spliterator<T> {
 
-        private Object value;
-        private int    min, max, size;
+        private Object        value;
+        private int           min, max, size;
         private final boolean reverse;
 
         protected CollectionSpliterator(Object value, int min, int max, int size, boolean reverse) {
-            this.value   = value;
-            this.min     = min;
-            this.max     = max;
-            this.size    = size;
+            this.value = value;
+            this.min = min;
+            this.max = max;
+            this.size = size;
             this.reverse = reverse;
         }
 
@@ -306,7 +299,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
                 if (value instanceof CollectionIterator) {
                     ct = (CollectionIterator<T>) value;
                 } else {
-                    ct    = new CollectionIterator<>(value, reverse ? max : min);
+                    ct = new CollectionIterator<>(value, reverse ? max : min);
                     value = ct;
                 }
                 if (!reverse && ct.index[0] < max && ct.hasNext()) {
@@ -336,10 +329,10 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
         @Override
         public Spliterator<T> trySplit() {
             if (max - min > 1 && TreeCollectionImpl.split(size)) {
-                MultiValue multi  = (MultiValue) value;
-                int        half   = size / 2;
-                int        amount = 0;
-                for (int i = min; i < max - 1; ) {
+                MultiValue multi = (MultiValue) value;
+                int half = size / 2;
+                int amount = 0;
+                for (int i = min; i < max - 1;) {
                     amount += size(multi.values[i++]);
                     if (amount >= half && amount < size) {
                         Spliterator<T> prefix;
@@ -352,8 +345,8 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
                             }
                             if (i - min == 1) {
                                 value = multi.values[min];
-                                min   = 0;
-                                max   = length(value);
+                                min = 0;
+                                max = length(value);
                             } else {
                                 max = i;
                             }
@@ -367,8 +360,8 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
                             }
                             if (max - i == 1) {
                                 value = multi.values[i];
-                                min   = 0;
-                                max   = length(value);
+                                min = 0;
+                                max = length(value);
                             } else {
                                 min = i;
                             }
@@ -393,11 +386,11 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
 
         private final int[]    index;
         private final Object[] stack;
-        private       int      level;
+        private int            level;
 
         private CollectionIterator(Object value, int cursor) {
-            index    = new int[depth(value)];
-            stack    = new Object[index.length];
+            index = new int[depth(value)];
+            stack = new Object[index.length];
             stack[0] = value;
             index[0] = cursor;
         }
@@ -422,7 +415,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
             if (hasNext()) {
                 while (stack[level] instanceof MultiValue) {
                     stack[level + 1] = ((MultiValue) stack[level]).values[index[level]];
-                    index[++level]   = 0;
+                    index[++level] = 0;
                 }
                 index[level]++;
                 return (T) stack[level];
@@ -451,7 +444,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
             if (hasPrevious()) {
                 while (stack[level] instanceof MultiValue) {
                     stack[level + 1] = ((MultiValue) stack[level]).values[index[level] - 1];
-                    index[++level]   = length(stack[level]);
+                    index[++level] = length(stack[level]);
                 }
                 index[level]--;
                 return (T) stack[level];
@@ -490,16 +483,16 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
 
         private static final long serialVersionUID = -901414039518935454L;
 
-        protected final Object[] values;
-        protected final int      size;
-        protected final int      hash;
-        protected final byte     depth;
+        protected final Object[]  values;
+        protected final int       size;
+        protected final int       hash;
+        protected final byte      depth;
 
         protected MultiValue(Object[] values, int size, int hash, byte depth) {
             this.values = values;
-            this.size   = size;
-            this.hash   = hash;
-            this.depth  = depth;
+            this.size = size;
+            this.hash = hash;
+            this.depth = depth;
         }
 
         @Override
@@ -553,17 +546,6 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
             return b.append(']').toString();
         }
 
-        protected Object getDeep(int idx) {
-            int len = 0;
-            for (Object val : values) {
-                int valSize = size(val);
-                if (len + valSize > idx) {
-                    return TreeCollectionImpl.getDeep(val, idx - len);
-                }
-                len += valSize;
-            }
-            throw new IndexOutOfBoundsException();
-        }
     }
 
     @SuppressWarnings("unchecked")
@@ -575,11 +557,23 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
     protected static Object getDeep(Object obj, int idx) {
         if (idx < 0) {
             throw new IndexOutOfBoundsException();
-        } else if (obj instanceof MultiValue) {
-            return ((MultiValue) obj).getDeep(idx);
-        } else if (obj != null && idx == 0) {
-            return obj;
-        } else {
+        }
+        outer:
+        while (true) {
+            if (obj instanceof MultiValue) {
+                int len = 0;
+                for (Object val : ((MultiValue) obj).values) {
+                    int valSize = size(val);
+                    if (len + valSize > idx) {
+                        obj = val;
+                        idx = idx - len;
+                        continue outer;
+                    }
+                    len += valSize;
+                }
+            } else if (obj != null && idx == 0) {
+                return obj;
+            }
             throw new IndexOutOfBoundsException();
         }
     }
@@ -597,7 +591,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
 
     @SuppressWarnings("unchecked")
     private static <R extends ContainingCollection<T>, T> R[] createCompare(Object[] values, R[] compare, TreeCollectionImpl<T> base) {
-next:
+        next:
         for (int i = 0; i < values.length; i++) {
             if (values[i] != null) {
                 for (int ii = 0; ii < i; ii++) {
@@ -650,7 +644,7 @@ next:
     public void javaDeserialize(Deserializer s) {
         int size = s.readInt();
         for (int i = 0; i < size; i++) {
-            T                     e      = s.readObject();
+            T e = s.readObject();
             TreeCollectionImpl<T> newSet = (TreeCollectionImpl<T>) add(e);
             this.value = newSet.value;
         }

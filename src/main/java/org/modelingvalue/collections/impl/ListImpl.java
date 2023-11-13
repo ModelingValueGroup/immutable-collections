@@ -469,7 +469,13 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
 
     @Override
     public int firstIndexOf(Object element) {
-        return firstIndexOf(0, size(), element);
+        int i = 0;
+        for (var o : this) {
+            if (o.equals(element))
+                return i;
+            i++;
+        }
+        return -1;
     }
 
     @Override
@@ -698,7 +704,7 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
 
     @Override
     public List<T> addAll(Collection<? extends T> e) {
-        return appendList(e.toList());
+        return appendList(e.asList());
     }
 
     @SuppressWarnings("unchecked")
@@ -716,11 +722,11 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     @SuppressWarnings("unchecked")
     @Override
     protected StreamCollection<Object[]> getCompareStream(ContainingCollection<? extends T> toCompare) {
-        return (StreamCollection<Object[]>) toSet().compare((ContainingCollection<T>) toCompare.toSet()).map(a -> {
+        return (StreamCollection<Object[]>) asSet().compare((ContainingCollection<T>) toCompare.asSet()).map(a -> {
             Object[] b = new Object[a.length];
             for (int i = 0; i < a.length; i++) {
                 if (a[i] != null) {
-                    b[i] = ((ListImpl<T>) a[i].toList()).value;
+                    b[i] = ((ListImpl<T>) a[i].asList()).value;
                 } else {
                     b[i] = null;
                 }

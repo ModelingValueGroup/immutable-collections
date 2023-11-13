@@ -101,7 +101,7 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
     @SuppressWarnings("rawtypes")
     @Override
     public QualifiedDefaultSet<K, V> removeAllKey(Collection<K> c) {
-        return create(remove(value, key(), ((SetImpl) c.toSet()).value, identity()));
+        return create(remove(value, key(), ((SetImpl) c.asSet()).value, identity()));
     }
 
     @SuppressWarnings("rawtypes")
@@ -124,7 +124,7 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
 
     @Override
     public QualifiedDefaultSet<K, V> addAll(Collection<? extends V> e) {
-        return addAll(e.toQualifiedDefaultSet(qualifier, defaultFunction));
+        return addAll(e.asQualifiedDefaultSet(qualifier, defaultFunction));
     }
 
     @Override
@@ -241,7 +241,7 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
 
     @Override
     public QualifiedDefaultSet<K, V> filter(Predicate<? super K> keyPredicate, Predicate<? super V> valuePredicate) {
-        return filter(v -> keyPredicate.test(qualifier.apply(v)) && valuePredicate.test(v)).toQualifiedDefaultSet(qualifier, defaultFunction);
+        return filter(v -> keyPredicate.test(qualifier.apply(v)) && valuePredicate.test(v)).asQualifiedDefaultSet(qualifier, defaultFunction);
     }
 
     @SuppressWarnings("rawtypes")
@@ -250,7 +250,7 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
         if (c instanceof QualifiedDefaultSetImpl) {
             return c.size() == size(retain(value, key(), ((QualifiedDefaultSetImpl) c).value, key()));
         } else {
-            return containsAll(c.toQualifiedSet(qualifier));
+            return containsAll(c.asQualifiedSet(qualifier));
         }
     }
 
@@ -260,7 +260,7 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
         if (c instanceof QualifiedDefaultSetImpl) {
             return create(exclusive(value, key(), ((QualifiedDefaultSetImpl) c).value, key()));
         } else {
-            return exclusiveAll(c.toQualifiedSet(qualifier));
+            return exclusiveAll(c.asQualifiedSet(qualifier));
         }
     }
 
@@ -270,7 +270,7 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
         if (c instanceof QualifiedDefaultSetImpl) {
             return create(retain(value, key(), ((QualifiedDefaultSetImpl) c).value, key()));
         } else {
-            return retainAll(c.toQualifiedSet(qualifier));
+            return retainAll(c.asQualifiedSet(qualifier));
         }
     }
 
