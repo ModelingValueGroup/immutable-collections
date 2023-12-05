@@ -15,21 +15,16 @@
 
 package org.modelingvalue.collections.util;
 
-import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory;
-import java.util.concurrent.ForkJoinWorkerThread;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicIntegerArray;
-
 import org.modelingvalue.collections.Collection;
 
+import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory;
+
 @SuppressWarnings("unused")
-public final class ContextThread extends ForkJoinWorkerThread {
-    public static final String                WORKER_THREAD_NAME_TEMPLATE = "dclare-p%02d-w%02d";
-    public static final int                   POOL_SIZE                   = Integer.getInteger("POOL_SIZE", Collection.PARALLELISM * 2 + 2);
+public final class ContextThread extends DclareWorkerThread {
+    public static final  String                      WORKER_THREAD_NAME_TEMPLATE          = "dclare-p%02d-w%02d";
+    public static final  int                         POOL_SIZE                            = Integer.getInteger("POOL_SIZE", Collection.PARALLELISM * 2 + 2);
     //
-    private static final ContextThreadFactory FACTORY                     = new ContextThreadFactory();
-    private static final AtomicInteger        POOL_COUNTER                = new AtomicInteger();
+    private static final ForkJoinWorkerThreadFactory FACTORY                              = pool -> ((ContextPool) pool).newThread();
 
     public static ContextPool createPool() {
         return new ContextPool(Collection.PARALLELISM, FACTORY, null, false);
@@ -58,18 +53,19 @@ public final class ContextThread extends ForkJoinWorkerThread {
         return setContext(context, +1);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public static Object[] setDecrement(Object[] context) {
         return setContext(context, -1);
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public static Object[] setContext(Object[] context) {
         return setContext(context, 0);
     }
 
     private static Object[] setContext(Object[] context, int delta) {
         Thread currentThread = Thread.currentThread();
-        if (currentThread instanceof ContextThread) {
-            ContextThread contextThread = (ContextThread) currentThread;
+        if (currentThread instanceof ContextThread contextThread) {
             Object[] pre = contextThread.getCtx();
             contextThread.setCtx(context, delta);
             return pre;
@@ -80,25 +76,22 @@ public final class ContextThread extends ForkJoinWorkerThread {
         }
     }
 
-    public static int getNr() {
-        Thread currentThread = Thread.currentThread();
-        if (currentThread instanceof ContextThread) {
-            return ((ContextThread) currentThread).nr;
+    public static int getCurrentNr() {
+        if (Thread.currentThread() instanceof ContextThread ctxThread) {
+            return ctxThread.getNr();
         } else {
             return -1;
         }
     }
 
-    public int nrOfRunningThreads() {
-        return getPool().runningThreads();
+    public static boolean isCurrentAContextThread() {
+        return Thread.currentThread() instanceof ContextThread;
     }
 
-    private final int nr;
-    private Object[]  context;
+    private Object[] context;
 
-    private ContextThread(ForkJoinPool pool, int nr) {
-        super(pool);
-        this.nr = nr;
+    ContextThread(ContextPool pool, int nr) {
+        super(pool, nr, WORKER_THREAD_NAME_TEMPLATE);
     }
 
     private Object[] getCtx() {
@@ -108,95 +101,23 @@ public final class ContextThread extends ForkJoinWorkerThread {
     private void setCtx(Object[] context, int delta) {
         this.context = context;
         if (delta != 0) {
-            ContextPool pool = getPool();
-            pool.activity[nr] += delta;
-            if (pool.activity[nr] == 0 || pool.activity[nr] == 1) {
-                pool.running = -1;
-            }
+            getPool().adjustDelta(nr, delta);
         }
     }
 
     @Override
-    public ContextPool getPool() {
-        return (ContextPool) super.getPool();
-    }
-
-    @Override
     protected void onTermination(Throwable exception) {
-        getPool().counter.set(nr, 0);
+        getPool().workerTerminated(nr);
         context = null;
         if (exception != null) {
             UncaughtExceptionHandler handler = getPool().getUncaughtExceptionHandler();
             if (handler != null) {
                 handler.uncaughtException(this, exception);
             } else {
-                exception.printStackTrace();
+                System.err.println("Uncaught exception in thread " + this.getName());
+                exception.printStackTrace(System.err);
             }
         }
         super.onTermination(exception);
-    }
-
-    public static final class ContextPool extends ForkJoinPool {
-        private final AtomicIntegerArray counter       = new AtomicIntegerArray(POOL_SIZE);
-        private final int                poolNr;
-        private final AtomicInteger      numInOverflow = new AtomicInteger();
-        private final int[]              activity      = new int[POOL_SIZE];
-        private int                      running       = -1;
-
-        private ContextPool(int parallelism, ForkJoinWorkerThreadFactory factory, UncaughtExceptionHandler handler, boolean asyncMode) {
-            super(parallelism, factory, handler, asyncMode);
-            poolNr = POOL_COUNTER.getAndIncrement();
-        }
-
-        public int runningThreads() {
-            int nr = running;
-            if (nr < 0) {
-                for (int value : activity) {
-                    if (value > 0) {
-                        nr++;
-                    }
-                }
-                running = nr;
-            }
-            return nr;
-        }
-
-        public int poolNr() {
-            return poolNr;
-        }
-
-        public int getNumInOverflow() {
-            return numInOverflow.get();
-        }
-
-        public int incrementAndGetNumInOverflow() {
-            return numInOverflow.incrementAndGet();
-        }
-
-        @Override
-        public String toString() {
-            return String.format("pool%02d-%s", poolNr, super.toString().replaceFirst(".*\\[", "").replaceFirst("].*", ""));
-        }
-    }
-
-    private static final class ContextThreadFactory implements ForkJoinWorkerThreadFactory {
-        private int numInOverflow;
-
-        @Override
-        public ForkJoinWorkerThread newThread(ForkJoinPool pool) {
-            ContextPool contextPool = (ContextPool) pool;
-            for (int i = 0; i < POOL_SIZE; i++) {
-                if (contextPool.counter.compareAndSet(i, 0, 1)) {
-                    ContextThread thread = new ContextThread(pool, i);
-                    thread.setName(String.format(WORKER_THREAD_NAME_TEMPLATE, contextPool.poolNr(), i));
-                    return thread;
-                }
-            }
-            int numInOverflow = contextPool.incrementAndGetNumInOverflow();
-            System.err.println("WARNING: Overflow ForkJoinWorkerThread created, consider increasing POOL_SIZE (=" + POOL_SIZE + ") to at least " + (POOL_SIZE + numInOverflow));
-            ForkJoinWorkerThread thread = ForkJoinPool.defaultForkJoinWorkerThreadFactory.newThread(pool);
-            thread.setName(String.format(WORKER_THREAD_NAME_TEMPLATE, contextPool.poolNr(), POOL_SIZE + numInOverflow) + "-OVERFLOW");
-            return thread;
-        }
     }
 }

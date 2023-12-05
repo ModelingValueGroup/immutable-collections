@@ -37,22 +37,22 @@ public class Reusable<C, T, P> {
     }
 
     public T open(C cls, P parent) {
-        if (ContextThread.getNr() < 0) {
+        if (ContextThread.isCurrentAContextThread()) {
+            return doOpen(cls, parent);
+        } else {
             synchronized (list) {
                 return doOpen(cls, parent);
             }
-        } else {
-            return doOpen(cls, parent);
         }
     }
 
     public void close(T tx) {
-        if (ContextThread.getNr() < 0) {
+        if (ContextThread.isCurrentAContextThread()) {
+            doClose(tx);
+        } else {
             synchronized (list) {
                 doClose(tx);
             }
-        } else {
-            doClose(tx);
         }
     }
 

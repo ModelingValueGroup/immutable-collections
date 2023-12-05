@@ -15,14 +15,14 @@
 
 package org.modelingvalue.collections.util;
 
+import org.modelingvalue.collections.Collection;
+
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import java.util.ConcurrentModificationException;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
-
-import org.modelingvalue.collections.Collection;
 
 public class Concurrent<T> {
 
@@ -71,7 +71,7 @@ public class Concurrent<T> {
         if (pre == null) {
             throw new ConcurrentModificationException();
         }
-        int i = ContextThread.getNr();
+        int i = ContextThread.getCurrentNr();
         if (i < 0) {
             //noinspection SynchronizeOnNonFinalField
             synchronized (states) {
@@ -85,7 +85,6 @@ public class Concurrent<T> {
                 }
             }
         } else {
-
             T value = Collection.getSequential(() -> oper.apply(states[i])); // TODO @Wim: come up with an alternative
             if (states[i] != value) {
                 states[i] = value;
@@ -100,7 +99,7 @@ public class Concurrent<T> {
         if (pre == null) {
             throw new ConcurrentModificationException();
         }
-        int i = ContextThread.getNr();
+        int i = ContextThread.getCurrentNr();
         return i < 0 ? states[ContextThread.POOL_SIZE] : states[i];
     }
 
@@ -109,7 +108,7 @@ public class Concurrent<T> {
         if (pre == null) {
             throw new ConcurrentModificationException();
         }
-        int i = ContextThread.getNr();
+        int i = ContextThread.getCurrentNr();
         if (i < 0) {
             // this is a synchronize on a non-final field and this is on purpose
             // the states field is only assigned once in one of the init methods
