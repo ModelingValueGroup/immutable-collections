@@ -50,6 +50,8 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
 
     Entry<K, V> getEntry(K key);
 
+    Set<Entry<K, V>> allWithEqualhash(K key);
+
     Collection<V> getAll(Set<K> keys);
 
     Map<K, V> put(Entry<K, V> entry);

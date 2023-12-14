@@ -294,6 +294,11 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
         return get(value, key(), key);
     }
 
+    @Override
+    public Set<Entry<K, V>> allWithEqualhash(K k) {
+        return allWithEqualhash(value, key(), k);
+    }
+
     @SuppressWarnings("rawtypes")
     @Override
     public Collection<V> getAll(Set<K> keys) {

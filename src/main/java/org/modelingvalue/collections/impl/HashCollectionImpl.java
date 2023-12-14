@@ -26,6 +26,7 @@ import java.util.function.Function;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.ContainingCollection;
+import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.StreamCollection;
 import org.modelingvalue.collections.util.Age;
 import org.modelingvalue.collections.util.Concurrent;
@@ -35,44 +36,47 @@ import org.modelingvalue.collections.util.StringUtil;
 
 @SuppressWarnings("unused")
 public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
+
     @Serial
-    private static final long serialVersionUID = 3453919290764033219L;
+    private static final long                      serialVersionUID             = 3453919290764033219L;
 
-    private static final int EQUAL_HASHCODE_WARNING_LEVEL = Integer.getInteger("EQUAL_HASHCODE_WARNING_LEVEL", 16);
+    private static Object[]                        EMPTY_ARRAY                  = new Object[0];
 
-    @SuppressWarnings("rawtypes")
-    private static final BiFunction RETURN_2    = (v1, v2) -> v1.equals(v2) ? v1 : v2;
-    @SuppressWarnings("rawtypes")
-    private static final BiFunction RETURN_1    = (v1, v2) -> v1;
-    @SuppressWarnings("rawtypes")
-    private static final BiFunction RETURN_NULL = (v1, v2) -> null;
+    public static final int                        EQUAL_HASHCODE_WARNING_LEVEL = Integer.getInteger("EQUAL_HASHCODE_WARNING_LEVEL", 16);
 
     @SuppressWarnings("rawtypes")
-    private static final BiFunction PRUNE = (v1, v2) -> {
-        // the result of this equals call is purposely ignored
-        // the importance is in the side-effect that sharing is discovered and accomplished in parts of v1 and v2
-        //noinspection ResultOfMethodCallIgnored
-        v1.equals(v2);
-        // null is returned here on purpose to create as little overhead as possible
-        return null;
-    };
+    private static final BiFunction                RETURN_2                     = (v1, v2) -> v1.equals(v2) ? v1 : v2;
+    @SuppressWarnings("rawtypes")
+    private static final BiFunction                RETURN_1                     = (v1, v2) -> v1;
+    @SuppressWarnings("rawtypes")
+    private static final BiFunction                RETURN_NULL                  = (v1, v2) -> null;
 
-    private static final int   PART_SIZE   = Integer.getInteger("HASH_PARTITION_SIZE", 6);
-    private static final int   PART_REST   = Integer.SIZE % PART_SIZE == 0 ? 0 : PART_SIZE - Integer.SIZE % PART_SIZE;
-    private static final byte  NR_OF_PARTS = (byte) (Integer.SIZE / PART_SIZE + (PART_REST == 0 ? 0 : 1));
-    private static final int[] PART_MASKS  = new int[NR_OF_PARTS];
-    private static final int[] INDEX_MASKS = new int[NR_OF_PARTS];
-    private static final int[] PART_SHIFTS = new int[NR_OF_PARTS];
+    @SuppressWarnings("rawtypes")
+    private static final BiFunction                PRUNE                        = (v1, v2) -> {
+                                                                                    // the result of this equals call is purposely ignored
+                                                                                    // the importance is in the side-effect that sharing is discovered and accomplished in parts of v1 and v2
+                                                                                    //noinspection ResultOfMethodCallIgnored
+                                                                                    v1.equals(v2);
+                                                                                    // null is returned here on purpose to create as little overhead as possible
+                                                                                    return null;
+                                                                                };
 
-    private static final int            COMPARE_MAX = Integer.getInteger("COMPARE_MAX", ContextThread.POOL_SIZE * 2);
-    private static final HashMultiValue DUMMY       = new HashMultiValue(new Object[0], 0, 0, (byte) 1, 0, (byte) 0, 0);
-    private static       Object[][]     SINGLES     = new Object[COMPARE_MAX][COMPARE_MAX];
+    private static final int                       PART_SIZE                    = Integer.getInteger("HASH_PARTITION_SIZE", 6);
+    private static final int                       PART_REST                    = Integer.SIZE % PART_SIZE == 0 ? 0 : PART_SIZE - Integer.SIZE % PART_SIZE;
+    private static final byte                      NR_OF_PARTS                  = (byte) (Integer.SIZE / PART_SIZE + (PART_REST == 0 ? 0 : 1));
+    private static final int[]                     PART_MASKS                   = new int[NR_OF_PARTS];
+    private static final int[]                     INDEX_MASKS                  = new int[NR_OF_PARTS];
+    private static final int[]                     PART_SHIFTS                  = new int[NR_OF_PARTS];
 
-    private static final Concurrent<CompareStates> COMPARE_STATES = Concurrent.of(CompareStates::new);
+    private static final int                       COMPARE_MAX                  = Integer.getInteger("COMPARE_MAX", ContextThread.POOL_SIZE * 2);
+    private static final HashMultiValue            DUMMY                        = new HashMultiValue(EMPTY_ARRAY, 0, 0, (byte) 1, 0, (byte) 0, 0);
+    private static Object[][]                      SINGLES                      = new Object[COMPARE_MAX][COMPARE_MAX];
+
+    private static final Concurrent<CompareStates> COMPARE_STATES               = Concurrent.of(CompareStates::new);
 
     static {
         int normal = Integer.MAX_VALUE << (Integer.SIZE - PART_SIZE);
-        int small  = normal << 1;
+        int small = normal << 1;
         for (int i = 0; i < NR_OF_PARTS; i++) {
             if (i < PART_REST) {
                 PART_MASKS[i] = small >>> (i * (PART_SIZE - 1));
@@ -143,15 +147,15 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
 
     private static final class HashMultiValue extends MultiValue {
         private static final long serialVersionUID = 3238646981697101095L;
-        private final        int  index;
-        private final        byte level;
-        private final        long mask;
+        private final int         index;
+        private final byte        level;
+        private final long        mask;
 
         private HashMultiValue(Object[] values, int size, int hash, byte depth, int index, byte level, long mask) {
             super(values, size, hash, depth);
             this.index = index;
             this.level = level;
-            this.mask  = level < NR_OF_PARTS ? mask : 0;
+            this.mask = level < NR_OF_PARTS ? mask : 0;
         }
 
         @Override
@@ -172,7 +176,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
             if (hash != other.hash || index != other.index || level != other.level || size != other.size || depth != other.depth || mask != other.mask) {
                 return false;
             } else if (level == NR_OF_PARTS) {
-outer:
+                outer:
                 for (int ia = 0; ia < values.length; ia++) {
                     for (int ib = 0; ib < values.length; ib++) {
                         if (stop[0]) {
@@ -282,7 +286,7 @@ outer:
                 result[si] = set;
                 if (result.length > EQUAL_HASHCODE_WARNING_LEVEL) {
                     System.err.println("WARNING: " + result.length + " non equal objects with equal hashcode " + //
-                                       StringUtil.toString(Arrays.copyOf(result, EQUAL_HASHCODE_WARNING_LEVEL)));
+                            StringUtil.toString(Arrays.copyOf(result, EQUAL_HASHCODE_WARNING_LEVEL)));
                 }
                 return new HashMultiValue(result, result.length, result.length * index, (byte) 2, index, NR_OF_PARTS, si == values.length ? mask | 1L << si : mask);
             }
@@ -375,7 +379,7 @@ outer:
                         it = getIt(mv.mask, (id & PART_MASKS[mv.level]) >>> PART_SHIFTS[mv.level]);
                         if (it >= 0) {
                             level = mv.level;
-                            v     = mv.values[it];
+                            v = mv.values[it];
                         } else {
                             return null;
                         }
@@ -385,6 +389,34 @@ outer:
                 }
             }
             return key.apply(v).equals(find) ? (T) v : null;
+        }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected static <T> Set<T> allWithEqualhash(Object v, Function key, Object find) {
+        if (v == null) {
+            return Set.of();
+        } else {
+            int id = find.hashCode(), it;
+            byte level = -1;
+            while (v instanceof HashMultiValue mv) {
+                if (mv.level == level + 1 || (id & INDEX_MASKS[mv.level - 1]) == mv.index) {
+                    if (mv.level == NR_OF_PARTS) {
+                        return Set.of((T[]) mv.values);
+                    } else {
+                        it = getIt(mv.mask, (id & PART_MASKS[mv.level]) >>> PART_SHIFTS[mv.level]);
+                        if (it >= 0) {
+                            level = mv.level;
+                            v = mv.values[it];
+                        } else {
+                            return Set.of();
+                        }
+                    }
+                } else {
+                    return Set.of();
+                }
+            }
+            return key.apply(v).hashCode() == id ? Set.of((T) v) : Set.of();
         }
     }
 
@@ -445,14 +477,14 @@ outer:
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static Object setMultiOne(HashMultiValue mv1, Function key1, Function set1, Object val2, Function key2, int id2, Function set2, byte lev, int idx, BiFunction set12, boolean flip) {
-        int    p2  = id2 & PART_MASKS[lev], i = p2 >>> PART_SHIFTS[lev], it1 = getIt(mv1.mask, i);
+        int p2 = id2 & PART_MASKS[lev], i = p2 >>> PART_SHIFTS[lev], it1 = getIt(mv1.mask, i);
         Object val = it1 >= 0 ? mv1.values[it1] : null;
         val = set(val, key1, index(val, key1), set1, val2, key2, id2, set2, (byte) (lev + 1), idx | p2, set12, flip);
         if (set1 == nullFunction()) {
             return val;
         } else if (set1 == identity()) {
-            long downMask  = val == null ? (mv1.mask & ~(1L << i)) : (mv1.mask | 1L << i);
-            int  newLength = Long.bitCount(downMask);
+            long downMask = val == null ? (mv1.mask & ~(1L << i)) : (mv1.mask | 1L << i);
+            int newLength = Long.bitCount(downMask);
             if (newLength == 1) {
                 return mv1.values[getIt(mv1.mask, Long.numberOfTrailingZeros(downMask))];
             } else {
@@ -460,11 +492,11 @@ outer:
             }
         } else {
             Object[] result = null;
-            int      len    = 0, hash = 0, size = 0;
-            byte     depth  = 0;
-            long     mask   = mv1.mask;
-            boolean  eq     = true;
-            Object   v, e;
+            int len = 0, hash = 0, size = 0;
+            byte depth = 0;
+            long mask = mv1.mask;
+            boolean eq = true;
+            Object v, e;
             for (int it = 0; it < mv1.values.length; it++) {
                 v = mv1.values[it];
                 e = it == it1 ? val : set1.apply(v);
@@ -476,9 +508,9 @@ outer:
                         result = new Object[Long.bitCount(mask)];
                     }
                     result[len++] = e;
-                                    hash += hash(e);
-                                    size += size(e);
-                                    depth = max(depth, depth(e));
+                    hash += hash(e);
+                    size += size(e);
+                    depth = max(depth, depth(e));
                 } else {
                     mask &= ~(1L << i);
                 }
@@ -498,11 +530,11 @@ outer:
 
     @SuppressWarnings("rawtypes")
     private static Object setMultiMulti(HashMultiValue mv1, Function key1, Function set1, HashMultiValue mv2, Function key2, Function set2, byte lev, int idx, BiFunction set12, boolean flip) {
-        long     mask   = (mv1.mask & mv2.mask) | (set1 != nullFunction() ? mv1.mask : 0L) | (set2 != nullFunction() ? mv2.mask : 0L);
+        long mask = (mv1.mask & mv2.mask) | (set1 != nullFunction() ? mv1.mask : 0L) | (set2 != nullFunction() ? mv2.mask : 0L);
         Object[] result = null;
-        int      len    = 0, hash = 0, size = 0, i, i1, i2, l;
-        byte     depth  = 0;
-        boolean  eq1    = (mask & mv1.mask) == mv1.mask, eq2 = (mask & mv2.mask) == mv2.mask;
+        int len = 0, hash = 0, size = 0, i, i1, i2, l;
+        byte depth = 0;
+        boolean eq1 = (mask & mv1.mask) == mv1.mask, eq2 = (mask & mv2.mask) == mv2.mask;
         if (set1 == identity()) {
             size += mv1.size;
             hash += mv1.hash;
@@ -567,9 +599,9 @@ outer:
                     result = new Object[Long.bitCount(mask)];
                 }
                 result[len++] = e;
-                                hash += hash(e);
-                                size += size(e);
-                                depth = max(depth, depth(e));
+                hash += hash(e);
+                size += size(e);
+                depth = max(depth, depth(e));
             } else {
                 mask &= ~(1L << i);
             }
@@ -599,11 +631,11 @@ outer:
     private static Object setEqualHashes(Object val1, Function key1, Function set1, Object val2, Function key2, Function set2, int idx, BiFunction set12, boolean flip) {
         int len1 = length(val1), len2 = length(val2);
         if (len1 + len2 > 2) {
-            Object   e1, k1, e2, k2, e;
+            Object e1, k1, e2, k2, e;
             Object[] result = null;
-            int      len    = 0, i1, i2;
-            boolean  eq1    = true, eq2 = true;
-next1:
+            int len = 0, i1, i2;
+            boolean eq1 = true, eq2 = true;
+            next1:
             for (i1 = 0; i1 < len1; i1++) {
                 e1 = get(val1, i1);
                 k1 = key1.apply(e1);
@@ -640,7 +672,7 @@ next1:
                 }
             }
             if (set2 != nullFunction()) {
-next2:
+                next2:
                 for (i2 = 0; i2 < len2; i2++) {
                     e2 = get(val2, i2);
                     k2 = key2.apply(e2);
@@ -650,7 +682,7 @@ next2:
                             continue next2;
                         }
                     }
-                    e   = set2.apply(e2);
+                    e = set2.apply(e2);
                     eq1 = false;
                     if (e != e2) {
                         eq2 = false;
@@ -675,7 +707,7 @@ next2:
                 result = len == result.length ? result : Arrays.copyOf(result, len);
                 if (len > EQUAL_HASHCODE_WARNING_LEVEL) {
                     System.err.println("WARNING: " + len + " non equal objects with equal hashcode " + //
-                                       StringUtil.toString(Arrays.copyOf(result, EQUAL_HASHCODE_WARNING_LEVEL)));
+                            StringUtil.toString(Arrays.copyOf(result, EQUAL_HASHCODE_WARNING_LEVEL)));
                 }
                 return new HashMultiValue(result, len, len * idx, (byte) 2, idx, NR_OF_PARTS, 0);
             }
@@ -738,19 +770,19 @@ next2:
         private static final int VISIT_CHARACTERISTICS = Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL;
 
         @SuppressWarnings("rawtypes")
-        private final Function key1;
+        private final Function   key1;
         @SuppressWarnings("rawtypes")
-        private final Function key2;
-        private final Object   val1;
-        private final Object   val2;
-        private final int      total;
+        private final Function   key2;
+        private final Object     val1;
+        private final Object     val2;
+        private final int        total;
 
         @SuppressWarnings("rawtypes")
         private Comparer(Function key1, Object val1, Function key2, Object val2, int total) {
-            this.key1  = key1;
-            this.key2  = key2;
-            this.val1  = val1;
-            this.val2  = val2;
+            this.key1 = key1;
+            this.key2 = key2;
+            this.val1 = val1;
+            this.val2 = val2;
             this.total = total;
         }
 
@@ -823,16 +855,16 @@ next2:
         cs.open(len);
         try {
             cs.values[0][0] = value;
-            cs.keys[0][0]   = key();
-            cs.ids[0][0]    = index(value, key());
+            cs.keys[0][0] = key();
+            cs.ids[0][0] = index(value, key());
             byte maxLevel = level(value);
             cs.keep[0][0] = visitor.apply(SINGLES[0], len) == DUMMY;
             for (int i = 1; i < len; i++) {
                 HashCollectionImpl<T> other = (HashCollectionImpl<T>) others[i - 1];
                 cs.values[0][i] = other.value;
-                cs.keys[0][i]   = other.key();
-                cs.ids[0][i]    = index(other.value, other.key());
-                                  maxLevel = min(maxLevel, level(other.value));
+                cs.keys[0][i] = other.key();
+                cs.ids[0][i] = index(other.value, other.key());
+                maxLevel = min(maxLevel, level(other.value));
                 cs.keep[0][i] = visitor.apply(SINGLES[i], len) == DUMMY;
             }
             return cs.visit(visitor, maxLevel, (byte) 0, 0, len, (byte) 0);
@@ -859,23 +891,23 @@ next2:
         private int[][]      ids;
         private long[][]     masks;
 
-        private int length = -1;
+        private int          length = -1;
 
         private CompareState() {
             values = new Object[NR_OF_PARTS + 2][COMPARE_MAX];
-            keys   = new Function[NR_OF_PARTS + 2][COMPARE_MAX];
-            keep   = new boolean[NR_OF_PARTS + 2][COMPARE_MAX];
-            ids    = new int[NR_OF_PARTS + 2][COMPARE_MAX];
-            masks  = new long[NR_OF_PARTS + 2][COMPARE_MAX];
+            keys = new Function[NR_OF_PARTS + 2][COMPARE_MAX];
+            keep = new boolean[NR_OF_PARTS + 2][COMPARE_MAX];
+            ids = new int[NR_OF_PARTS + 2][COMPARE_MAX];
+            masks = new long[NR_OF_PARTS + 2][COMPARE_MAX];
         }
 
         private void open(int length) {
             if (length > values[0].length) {
                 values = new Object[NR_OF_PARTS + 2][length];
-                keys   = new Function[NR_OF_PARTS + 2][length];
-                keep   = new boolean[NR_OF_PARTS + 2][length];
-                ids    = new int[NR_OF_PARTS + 2][length];
-                masks  = new long[NR_OF_PARTS + 2][length];
+                keys = new Function[NR_OF_PARTS + 2][length];
+                keep = new boolean[NR_OF_PARTS + 2][length];
+                ids = new int[NR_OF_PARTS + 2][length];
+                masks = new long[NR_OF_PARTS + 2][length];
                 if (length > SINGLES.length) {
                     Object[][] singles = new Object[length][length];
                     for (int i = 0; i < length; i++) {
@@ -905,7 +937,7 @@ next2:
                 return visitor.apply(values[dep], newLen);
             } else {
                 newLen = -newLen;
-stop:
+                stop:
                 for (int cnt = 0, idx, newIndex = index; level < maxLevel; cnt = 0, index = newIndex, level++) {
                     for (int i = 0; i < newLen; i++) {
                         if (values[dep][i] != null) {
@@ -929,29 +961,29 @@ stop:
         }
 
         private Object visitUnequalHashes(BiFunction<? super Object[], Integer, Object> visitor, byte level, int index, int len, byte dep) {
-            Object result         = null, val;
-            int    resultIdx      = -1, prev = 0, init = -1, it, length;
-            long   downMask, mask = 0;
+            Object result = null, val;
+            int resultIdx = -1, prev = 0, init = -1, it, length;
+            long downMask, mask = 0;
             for (it = 0; it < len; it++) {
                 if (keep[dep][it]) {
-                    val    = values[dep][it];
+                    val = values[dep][it];
                     length = val instanceof HashMultiValue && ((HashMultiValue) val).level == level ? ((HashMultiValue) val).values.length : val != null ? 1 : 0;
                     if (length > prev) {
-                        prev      = length;
-                        init      = it;
+                        prev = length;
+                        init = it;
                         resultIdx = (ids[dep][it] & PART_MASKS[level]) >>> PART_SHIFTS[level];
-                        result    = val;
+                        result = val;
                     }
                 }
             }
             for (it = 0; it < len; it++) {
-                downMask       = mask(values[dep][it], ids[dep][it], level);
+                downMask = mask(values[dep][it], ids[dep][it], level);
                 masks[dep][it] = downMask;
                 if (it != init) {
                     mask |= downMask;
                 }
             }
-            int  idx;
+            int idx;
             byte maxLevel = -1;
             for (idx = Long.numberOfTrailingZeros(mask); idx < Long.SIZE; idx++, idx += Long.numberOfTrailingZeros(mask >>> idx)) {
                 maxLevel = NR_OF_PARTS;
@@ -962,27 +994,27 @@ stop:
                     prev = getIt(masks[dep][it], idx);
                     if (prev >= 0) {
                         values[dep + 1][it] = get(values[dep][it], level, prev);
-                        ids[dep + 1][it]    = values[dep + 1][it] == values[dep][it] ? ids[dep][it] : index(values[dep + 1][it], keys[dep][it]);
-                        maxLevel            = min(level(values[dep + 1][it]), maxLevel);
+                        ids[dep + 1][it] = values[dep + 1][it] == values[dep][it] ? ids[dep][it] : index(values[dep + 1][it], keys[dep][it]);
+                        maxLevel = min(level(values[dep + 1][it]), maxLevel);
                     } else {
                         values[dep + 1][it] = null;
-                        ids[dep + 1][it]    = 0;
+                        ids[dep + 1][it] = 0;
                     }
                 }
                 val = visit(visitor, maxLevel, level, index, len, (byte) (dep + 1));
                 if (result == null) {
                     resultIdx = idx;
-                    result    = val;
+                    result = val;
                 } else if (result instanceof HashMultiValue && ((HashMultiValue) result).level == level && index == ((HashMultiValue) result).index) {
                     downMask = val == null ? (((HashMultiValue) result).mask & ~(1L << idx)) : (((HashMultiValue) result).mask | 1L << idx);
                     // use 'maxlevel' as new length
                     maxLevel = (byte) Long.bitCount(downMask);
                     if (maxLevel == 1) {
                         resultIdx = Long.numberOfTrailingZeros(downMask);
-                        result    = ((HashMultiValue) result).values[getIt(((HashMultiValue) result).mask, resultIdx)];
+                        result = ((HashMultiValue) result).values[getIt(((HashMultiValue) result).mask, resultIdx)];
                     } else {
                         resultIdx = -1;
-                        result    = ((HashMultiValue) result).set(idx, val, getIt(((HashMultiValue) result).mask, idx), downMask, maxLevel);
+                        result = ((HashMultiValue) result).set(idx, val, getIt(((HashMultiValue) result).mask, idx), downMask, maxLevel);
                     }
                 } else if (idx == resultIdx) {
                     result = val;
@@ -1002,14 +1034,14 @@ stop:
         @SuppressWarnings("unchecked")
         private Object visitEqualHashes(BiFunction<? super Object[], Integer, Object> visitor, int index, int len, byte dep) {
             Object obj, other, key, result = null;
-            int    it, length, base        = -1, prev = -1;
+            int it, length, base = -1, prev = -1;
             for (it = 0; it < len; it++) {
                 if (keep[dep][it]) {
-                    obj    = values[dep][it];
+                    obj = values[dep][it];
                     length = obj instanceof HashMultiValue && ((HashMultiValue) obj).level == NR_OF_PARTS ? ((HashMultiValue) obj).values.length : obj != null ? 1 : 0;
                     if (length > prev) {
-                        base   = it;
-                        prev   = length;
+                        base = it;
+                        prev = length;
                         result = values[dep][it];
                     }
                 }
@@ -1017,14 +1049,14 @@ stop:
             for (int i = 0; i < len; i++) {
                 if (i != base) {
                     length = length(values[dep][i]);
-next:
+                    next:
                     for (int ii = 0; ii < length; ii++) {
                         values[dep + 1][i] = get(values[dep][i], ii);
-                        key                = keys[dep][i].apply(values[dep + 1][i]);
+                        key = keys[dep][i].apply(values[dep + 1][i]);
                         for (int iii = 0; iii < len; iii++) {
                             if (iii != i) {
                                 values[dep + 1][iii] = null;
-                                it                   = length(values[dep][iii]);
+                                it = length(values[dep][iii]);
                                 for (int iiii = 0; iiii < it; iiii++) {
                                     other = get(values[dep][iii], iiii);
                                     if (key.equals(keys[dep][iii].apply(other))) {
@@ -1057,20 +1089,20 @@ next:
         }
 
         private int equalKeys(int len, byte dep) {
-            Object  prev  = null;
-            int     l     = 0, i, ii;
+            Object prev = null;
+            int l = 0, i, ii;
             boolean equal = true;
             for (i = 0; i < len; i++) {
                 for (ii = 0; ii < l; ii++) {
                     if (keep[dep][i] == keep[dep][ii] && ids[dep][i] == ids[dep][ii] && //
-                        keys[dep][i] == keys[dep][ii] && values[dep][i] == values[dep][ii]) {
+                            keys[dep][i] == keys[dep][ii] && values[dep][i] == values[dep][ii]) {
                         break;
                     }
                 }
                 if (ii == l) {
-                    keep[dep][l]   = keep[dep][i];
-                    ids[dep][l]    = ids[dep][i];
-                    keys[dep][l]   = keys[dep][i];
+                    keep[dep][l] = keep[dep][i];
+                    ids[dep][l] = ids[dep][i];
+                    keys[dep][l] = keys[dep][i];
                     values[dep][l] = values[dep][i];
                     if (equal && values[dep][l] != null) {
                         Object key = key(values[dep][l], keys[dep][l]);

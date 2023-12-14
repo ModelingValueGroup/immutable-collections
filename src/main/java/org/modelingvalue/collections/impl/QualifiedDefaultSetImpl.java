@@ -137,6 +137,11 @@ public class QualifiedDefaultSetImpl<K, V> extends HashCollectionImpl<V> impleme
         return get(value, key(), k);
     }
 
+    @Override
+    public Set<V> allWithEqualhash(K k) {
+        return allWithEqualhash(value, key(), k);
+    }
+
     @SuppressWarnings("rawtypes")
     @Override
     public Collection<V> getAll(Set<K> keys) {

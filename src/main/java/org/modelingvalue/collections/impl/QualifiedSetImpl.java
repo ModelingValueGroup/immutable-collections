@@ -138,6 +138,11 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
         return get(value, key(), k);
     }
 
+    @Override
+    public Set<V> allWithEqualhash(K k) {
+        return allWithEqualhash(value, key(), k);
+    }
+
     @SuppressWarnings("rawtypes")
     @Override
     public Collection<V> getAll(Set<K> keys) {

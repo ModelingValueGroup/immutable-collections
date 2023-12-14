@@ -43,6 +43,8 @@ public interface QualifiedSet<K, V> extends ContainingCollection<V>, Mergeable<Q
 
     V get(K key);
 
+    Set<V> allWithEqualhash(K key);
+
     Collection<V> getAll(Set<K> keys);
 
     @Override

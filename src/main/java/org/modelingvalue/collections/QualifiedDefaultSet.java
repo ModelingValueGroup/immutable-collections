@@ -43,6 +43,8 @@ public interface QualifiedDefaultSet<K, V> extends ContainingCollection<V>, Merg
 
     V get(K key);
 
+    Set<V> allWithEqualhash(K key);
+
     Collection<V> getAll(Set<K> keys);
 
     @Override

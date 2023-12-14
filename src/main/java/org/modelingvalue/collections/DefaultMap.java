@@ -37,6 +37,8 @@ public interface DefaultMap<K, V> extends ContainingCollection<Entry<K, V>>, Mer
 
     Entry<K, V> getEntry(K key);
 
+    Set<Entry<K, V>> allWithEqualhash(K key);
+
     Collection<V> getAll(Set<K> keys);
 
     DefaultMap<K, V> put(Entry<K, V> entry);
