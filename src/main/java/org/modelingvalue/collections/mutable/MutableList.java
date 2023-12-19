@@ -16,38 +16,19 @@
 package org.modelingvalue.collections.mutable;
 
 import java.lang.reflect.Array;
+import java.util.AbstractList;
 import java.util.Iterator;
 import java.util.ListIterator;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.List;
 
-public class MutableList<T> implements java.util.List<T>, Mutable<T> {
+public class MutableList<T> extends AbstractList<T> implements Mutable<T> {
 
     private List<T> list;
 
     public MutableList(List<T> list) {
         this.list = list;
-    }
-
-    @Override
-    public int hashCode() {
-        return list.hashCode();
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        } else if (obj == null) {
-            return false;
-        } else if (getClass() != obj.getClass()) {
-            return false;
-        } else {
-            MutableList other = (MutableList) obj;
-            return list.equals(other.list);
-        }
     }
 
     @Override

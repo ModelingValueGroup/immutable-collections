@@ -16,36 +16,17 @@
 package org.modelingvalue.collections.mutable;
 
 import java.lang.reflect.Array;
+import java.util.AbstractSet;
 import java.util.Iterator;
 
 import org.modelingvalue.collections.Set;
 
-public class MutableSet<T> implements java.util.Set<T>, Mutable<T> {
+public class MutableSet<T> extends AbstractSet<T> implements Mutable<T> {
 
     private Set<T> set;
 
     public MutableSet(Set<T> set) {
         this.set = set;
-    }
-
-    @Override
-    public int hashCode() {
-        return set.hashCode();
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        } else if (obj == null) {
-            return false;
-        } else if (getClass() != obj.getClass()) {
-            return false;
-        } else {
-            MutableSet other = (MutableSet) obj;
-            return set.equals(other.set);
-        }
     }
 
     @Override

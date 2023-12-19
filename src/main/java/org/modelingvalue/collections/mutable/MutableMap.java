@@ -16,6 +16,7 @@
 package org.modelingvalue.collections.mutable;
 
 import java.lang.reflect.Array;
+import java.util.AbstractMap;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
@@ -25,32 +26,12 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 
-public class MutableMap<K, V> implements java.util.Map<K, V>, Mutable<Entry<K, V>> {
+public class MutableMap<K, V> extends AbstractMap<K, V> implements Mutable<Entry<K, V>> {
 
     private Map<K, V> map;
 
     public MutableMap(Map<K, V> map) {
         this.map = map;
-    }
-
-    @Override
-    public int hashCode() {
-        return map.hashCode();
-    }
-
-    @SuppressWarnings("rawtypes")
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        } else if (obj == null) {
-            return false;
-        } else if (getClass() != obj.getClass()) {
-            return false;
-        } else {
-            MutableMap other = (MutableMap) obj;
-            return map.equals(other.map);
-        }
     }
 
     @Override
