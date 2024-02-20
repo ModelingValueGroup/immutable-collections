@@ -15,15 +15,18 @@
 
 package org.modelingvalue.collections.test;
 
-import org.junit.jupiter.api.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Random;
+import java.util.stream.IntStream;
+
+import org.junit.jupiter.api.Test;
 import org.modelingvalue.collections.Collection;
+import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.List;
-import org.modelingvalue.collections.*;
-
-import java.util.*;
-import java.util.stream.*;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class ListTest {
 
@@ -47,8 +50,8 @@ public class ListTest {
 
     @Test
     public void sorted3() {
-        StringBuilder       l1 = new StringBuilder();
-        StringBuilder       l2 = new StringBuilder();
+        StringBuilder l1 = new StringBuilder();
+        StringBuilder l2 = new StringBuilder();
         Collection.of("n", "k", "c", "y", "a", "b").asMap(c -> Entry.of(c, new Object())).toKeys().sorted().forEachOrdered(l1::append);
         Collection.of("n", "k", "c", "y", "a", "b").asMap(c -> Entry.of(c, new Object())).toKeys().sorted().asList().forEachOrdered(l2::append);
 
@@ -74,7 +77,7 @@ public class ListTest {
         List<String[]> ab1 = List.of(new String[]{"a"}, new String[]{"b"});
         System.err.println(ab1);
         System.err.println(ab1.map(Object::hashCode).asList());
-        List<String>   axb = List.of("b", "b");
+        List<String> axb = List.of("b", "b");
         List<String[]> ab2 = axb.reuse(ab1, (t, s) -> t[0].equals(s), (t, s) -> t[0] = s, t -> 0L, (t, s) -> true, (s, i) -> new String[1]);
         System.err.println(ab2);
         System.err.println(ab2.map(Object::hashCode).asList());
@@ -100,12 +103,12 @@ public class ListTest {
         Collection<String> list4 = list3.distinct();
         assertEquals(1, list4.filter(a -> a.equals("a")).size(), "list4 should contains one 'a' ");
 
-        MyClass       c1    = new MyClass(1);
-        MyClass       c2    = new MyClass(2);
+        MyClass c1 = new MyClass(1);
+        MyClass c2 = new MyClass(2);
         List<MyClass> list5 = List.of(c1, c2);
         assertEquals(1, list5.filter(a -> a.equals(c1)).size(), "list5 should contains c1 ");
 
-        MyClass       c3    = new MyClass(3);
+        MyClass c3 = new MyClass(3);
         List<MyClass> list6 = list5.insert(1, c3);
         assertEquals(c3, list6.get(1), "list6 should have c3 at index 1 ");
         Collection<MyClass> list7 = list6.appendList(list5).distinct();
@@ -119,7 +122,7 @@ public class ListTest {
         List<String> list10 = list9.replaceList(1, 2, List.of("y"));
         assertEquals(List.of("c", "y", "a", "b"), list10, "list10 should be ['c' 'y','a','b']");
 
-        Collection<Integer> list    = List.of(2);
+        Collection<Integer> list = List.of(2);
         Collection<Integer> indexes = list10.indexesOfList(List.of("a")).asList();
         assertEquals(list, indexes, "list10 indexesOfList should be [2]");
 
@@ -151,6 +154,17 @@ public class ListTest {
         List<Integer> list3 = list1.reverse().asList();
         assertEquals(list3.size(), list2.size());
         assertEquals(list2.hashCode(), list3.hashCode());
+        assertEquals(list2, list3);
+    }
+
+    @Test
+    public void testNull() {
+        List<String> list0 = List.of(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "a", null, "b", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        List<String> list1 = List.of(null, "a", null, "b", null, null);
+        List<String> list2 = List.of("a", "b");
+        List<String> list3 = list1.notNull().asList();
+        assertEquals(list0, list1);
+        assertEquals(list1, list2);
         assertEquals(list2, list3);
     }
 
@@ -188,12 +202,12 @@ public class ListTest {
         assertEquals(12, list8.size());
         assertEquals(list7, list8);
 
-        List<String> empty  = List.of();
-        List<String> a      = empty.append("a");
-        List<String> ab     = a.append("b");
-        List<String> abc    = ab.append("c");
-        List<String> abcd   = abc.append("d");
-        List<String> abcde  = abcd.append("e");
+        List<String> empty = List.of();
+        List<String> a = empty.append("a");
+        List<String> ab = a.append("b");
+        List<String> abc = ab.append("c");
+        List<String> abcd = abc.append("d");
+        List<String> abcde = abcd.append("e");
         List<String> abcdef = abcde.append("f");
         assertEquals(abcdef, list4);
 
@@ -246,15 +260,15 @@ public class ListTest {
         for (int i = LONG - 1; i >= 0; i--) {
             longList2 = longList2.prepend(i);
         }
-        List<Integer>    longList3 = List.of();
-        Random           random    = new Random();
-        HashSet<Integer> hashSet   = new HashSet<>();
+        List<Integer> longList3 = List.of();
+        Random random = new Random();
+        HashSet<Integer> hashSet = new HashSet<>();
         for (int i1 = 0; i1 < LONG; i1++) {
-            int     v           = nextInt(random, hashSet);
+            int v = nextInt(random, hashSet);
             boolean higherFound = false;
             for (int i2 = 0; i2 < longList3.size(); i2++) {
                 if (longList3.get(i2) > v) {
-                    longList3   = longList3.insert(i2, v);
+                    longList3 = longList3.insert(i2, v);
                     higherFound = true;
                     break;
                 }
@@ -277,7 +291,7 @@ public class ListTest {
         }
 
         for (int t = 0; t < 100; t++) {
-            int           shift     = random.nextInt(LONG / 10);
+            int shift = random.nextInt(LONG / 10);
             List<Integer> longList4 = longList1.sublist(LONG / 4 + shift, LONG - (LONG / 4) - shift);
             assertEquals(longList4.size(), LONG / 2 - 2 * shift);
             for (int i = 0; i < LONG / 2 - 2 * shift; i++) {

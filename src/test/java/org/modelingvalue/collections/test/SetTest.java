@@ -15,10 +15,7 @@
 
 package org.modelingvalue.collections.test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -248,6 +245,17 @@ public class SetTest {
         Set<Integer> setB = Set.of(10);
         System.err.println();
         setA.compare(setB).forEachOrdered(c -> System.err.println(Arrays.deepToString(c)));
+    }
+
+    @Test
+    public void testNull() {
+        Set<String> set0 = Set.of(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "a", null, "b", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        Set<String> set1 = Set.of(null, "a", null, "b", null, null);
+        Set<String> set2 = Set.of("a", "b");
+        Set<String> set3 = set1.notNull().asSet();
+        assertEquals(set0, set1);
+        assertEquals(set1, set2);
+        assertEquals(set2, set3);
     }
 
     @Test

@@ -81,6 +81,8 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
 
     Collection<T> notNull();
 
+    Collection<T> requireNonNull();
+
     @Override
     Collection<T> filter(Predicate<? super T> predicate);
 

@@ -33,17 +33,6 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
         return elements.length == 0 ? SetImpl.EMPTY : new SetImpl<>(elements);
     }
 
-    @SafeVarargs
-    static <T> Set<T> notNull(T... elements) {
-        Set<T> result = Set.of();
-        for (int i = 0; i < elements.length; i++) {
-            if (elements[i] != null) {
-                result = result.add(elements[i]);
-            }
-        }
-        return result;
-    }
-
     @SuppressWarnings("unchecked")
     static <F, T> Set<T> of(Function<F, T> function, F[] f) {
         T[] e = (T[]) new Object[f.length];

@@ -20,17 +20,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.function.ToDoubleFunction;
-import java.util.function.ToIntFunction;
-import java.util.function.ToLongFunction;
+import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
@@ -51,6 +41,11 @@ public abstract class CollectionImpl<T> implements Collection<T> {
 
     @SuppressWarnings("rawtypes")
     private static final Predicate                  NOT_NULL             = Objects::nonNull;
+    @SuppressWarnings("rawtypes")
+    private static final Predicate                  REQUIRE_NOT_NULL     = e -> {
+                                                                             Objects.requireNonNull(e);
+                                                                             return true;
+                                                                         };
 
     @Override
     public boolean isParallel() {
@@ -62,9 +57,19 @@ public abstract class CollectionImpl<T> implements Collection<T> {
         return NOT_NULL;
     }
 
+    @SuppressWarnings("unchecked")
+    protected static <E> Predicate<E> requireNonNullFunction() {
+        return REQUIRE_NOT_NULL;
+    }
+
     @Override
     public Collection<T> notNull() {
         return filter(notNullFunction());
+    }
+
+    @Override
+    public Collection<T> requireNonNull() {
+        return filter(requireNonNullFunction());
     }
 
     @SuppressWarnings("unchecked")

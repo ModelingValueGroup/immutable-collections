@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -134,7 +133,6 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     }
 
     private static Object insert(Object obj, Object inserted, int index) {
-        Objects.requireNonNull(inserted);
         if (obj instanceof ListMultivalue) {
             return ((ListMultivalue) obj).insert(inserted, index);
         } else if (obj != null) {
@@ -319,9 +317,12 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     public static final List EMPTY = new ListImpl((Object) null);
 
     public ListImpl(T[] es) {
-        if (es.length > MULTI_MAX_LENGTH) {
-            for (int i = 0; i < es.length; i++) {
-                value = insert(value, es[i], i);
+        if (es.length > MULTI_MAX_LENGTH || arrayContainsNull(es)) {
+            int t = 0;
+            for (int s = 0; s < es.length; s++) {
+                if (es[s] != null) {
+                    value = insert(value, es[s], t++);
+                }
             }
         } else {
             value = es.length == 1 ? es[0] : ListMultivalue.of(Arrays.copyOf(es, es.length, Object[].class));
@@ -329,15 +330,26 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
     }
 
     public ListImpl(java.util.Collection<? extends T> coll) {
-        if (coll.size() > MULTI_MAX_LENGTH) {
+        if (coll.size() > MULTI_MAX_LENGTH || coll.contains(null)) {
             int i = 0;
             for (T e : coll) {
-                value = insert(value, e, i++);
+                if (e != null) {
+                    value = insert(value, e, i++);
+                }
             }
         } else {
             Object[] es = coll.toArray();
-            value = /* TODO WIM as.length==0?EMPTY : */ es.length == 1 ? es[0] : ListMultivalue.of(es);
+            value = es.length == 1 ? es[0] : ListMultivalue.of(es);
         }
+    }
+
+    private boolean arrayContainsNull(T[] es) {
+        for (int i = 0; i < es.length; i++) {
+            if (es[i] == null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private ListImpl(Object value) {
