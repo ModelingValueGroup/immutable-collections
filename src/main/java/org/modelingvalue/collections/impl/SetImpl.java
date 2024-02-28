@@ -108,11 +108,11 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
         }
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public Set<T> addAll(Collection<? extends T> c) {
         if (c instanceof SetImpl) {
-            return c.isEmpty() ? this : create(add(value, key(), ((SetImpl) c).value, key()));
+            return c.isEmpty() ? this : isEmpty() ? ((Set) c) : create(add(value, key(), ((SetImpl) c).value, key()));
         } else {
             return addAll(c.asSet());
         }
