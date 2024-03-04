@@ -71,7 +71,7 @@ public final class StreamCollectionImpl<T> extends CollectionImpl<T> implements 
 
     @Override
     public boolean isEmpty() {
-        return stream.findFirst().isEmpty();
+        return stream.findAny().isEmpty();
     }
 
     @Override
