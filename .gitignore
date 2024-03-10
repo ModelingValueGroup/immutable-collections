@@ -91,3 +91,6 @@ gradle-app.setting
 **/*_gen
 **/*_gen.caches
 .mps/workspace.xml
+
+# GitHub Copilot persisted chat sessions
+/.idea/copilot/chatSessions
