@@ -48,9 +48,6 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
     private static final Predicate<?> ALL_INTERNABLE   = e -> e instanceof Internable && ((Internable) e).isInternable();
 
     protected static boolean split(int amount) {
-        if (!PARALLEL_COLLECTIONS) {
-            return false;
-        }
         Thread thread = Thread.currentThread();
         if (!(thread instanceof ContextThread)) {
             return false;
@@ -175,7 +172,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
     }
 
     protected static IntStream getIntStream(int min, int max, boolean[] stop, int total) {
-        return StreamSupport.intStream(new IntSpliterator(min, max, stop, total), PARALLEL_COLLECTIONS && !SEQUENTIAL_ONLY.get());
+        return StreamSupport.intStream(new IntSpliterator(min, max, stop, total), CollectionImpl.runParallel());
     }
 
     private static final class IntSpliterator implements OfInt {

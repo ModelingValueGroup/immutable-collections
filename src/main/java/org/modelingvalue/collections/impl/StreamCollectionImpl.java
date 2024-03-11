@@ -39,7 +39,7 @@ public final class StreamCollectionImpl<T> extends CollectionImpl<T> implements 
     private final Stream<T> stream;
 
     protected StreamCollectionImpl(Stream<T> stream) {
-        this.stream = SEQUENTIAL_ONLY.get() ? stream.sequential() : stream;
+        this.stream = runParallel() ? stream : stream.sequential();
     }
 
     @SuppressWarnings("rawtypes")
@@ -48,7 +48,7 @@ public final class StreamCollectionImpl<T> extends CollectionImpl<T> implements 
     }
 
     public StreamCollectionImpl(Spliterator<T> spliterator) {
-        this(spliterator, PARALLEL_COLLECTIONS);
+        this(spliterator, runParallel());
     }
 
     public StreamCollectionImpl(Spliterator<T> spliterator, boolean parallel) {
@@ -56,7 +56,7 @@ public final class StreamCollectionImpl<T> extends CollectionImpl<T> implements 
     }
 
     public StreamCollectionImpl(Iterable<T> it) {
-        this(it.spliterator(), PARALLEL_COLLECTIONS);
+        this(it.spliterator(), runParallel());
     }
 
     @Override

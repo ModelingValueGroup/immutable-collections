@@ -52,9 +52,23 @@ public abstract class CollectionImpl<T> implements Collection<T> {
                                                                              return true;
                                                                          };
 
+    protected static boolean runParallel() {
+        if (!PARALLEL_COLLECTIONS) {
+            return false;
+        }
+        Thread thread = Thread.currentThread();
+        if (!(thread instanceof ContextThread)) {
+            return false;
+        }
+        if (SEQUENTIAL_ONLY.get()) {
+            return false;
+        }
+        return true;
+    }
+
     @Override
     public boolean isParallel() {
-        return PARALLEL_COLLECTIONS;
+        return runParallel();
     }
 
     @SuppressWarnings("unchecked")
