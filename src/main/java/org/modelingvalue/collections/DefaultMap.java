@@ -33,15 +33,47 @@ import org.modelingvalue.collections.util.SerializableFunction;
 @SuppressWarnings("unused")
 public interface DefaultMap<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<DefaultMap<K, V>> {
 
+    /**
+     * Constructs an immutable map with the specified key-value pairs and returns it.
+     *
+     * @param defaultFunction a {@code SerializableFunction} to use whenever
+     *      * {@link DefaultMap#get(Object)} is called with a key that does not exist in the map
+     * @param e array of key-value pairs to be added
+     * @return the constructed immutable map
+     * @throws NullPointerException if null is passed in as a key-value pair
+     */
     @SafeVarargs
     static <K, V> DefaultMap<K, V> of(SerializableFunction<K, V> defaultFunction, Entry<K, V>... e) {
         return new DefaultMapImpl<>(e, defaultFunction);
     }
 
+    /**
+     * Returns the value that the provided key maps to in this map. If this key does not exist in
+     * the map, the key is passed through the {@code defaultFunction} and the result is returned.
+     *
+     * @param key key to be checked
+     * @return the value in the key-value pair with the provided key if it exists,
+     * otherwise, the result of passing {@code key} through the {@code defaultFunction}
+     */
     V get(K key);
 
+    /**
+     * Returns the key-value pair that contains the provided key as its key. If the provided key
+     * does not exist in this map, {@code null} is returned.
+     *
+     * @param key key to be checked
+     * @return the key-value pair with the provided key if it exists, otherwise {@code null} is
+     * returned
+     */
     Entry<K, V> getEntry(K key);
 
+
+    /**
+     * Returns a set of key-value pairs that have equal hashes for their keys.
+     *
+     * @param key key whose hash is to be checked
+     * @return a set of key-value pairs that have equal hashes for their keys
+     */
     Set<Entry<K, V>> allWithEqualhash(K key);
 
     Collection<V> getAll(Set<K> keys);
