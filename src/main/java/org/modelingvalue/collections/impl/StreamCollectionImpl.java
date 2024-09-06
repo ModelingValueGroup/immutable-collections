@@ -30,6 +30,7 @@ import java.util.stream.StreamSupport;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.StreamCollection;
+import org.modelingvalue.collections.util.ContextSpliterator;
 import org.modelingvalue.collections.util.TriConsumer;
 import org.modelingvalue.collections.util.TriFunction;
 
@@ -56,7 +57,15 @@ public final class StreamCollectionImpl<T> extends CollectionImpl<T> implements 
     }
 
     public StreamCollectionImpl(Iterable<T> it) {
-        this(it.spliterator(), runParallel());
+        this(wrappedStream(it));
+    }
+
+    private static <A> Stream<A> wrappedStream(Iterable<A> it) {
+        if (runParallel()) {
+            return StreamSupport.stream(ContextSpliterator.of(it.spliterator()), true);
+        } else {
+            return StreamSupport.stream(it.spliterator(), false);
+        }
     }
 
     @Override
