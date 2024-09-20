@@ -60,7 +60,7 @@ public final class Dag<N> {
             for (E in : vertex.ins()) {
                 Vertex<E> vin = vertices.get(in);
                 Set<E> outs = vin.outs().remove(vertex.node());
-                pruned = pruned.put(Vertex.of(vin.node(), vin.ins(), outs));
+                pruned = pruned.put(Vertex.of(in, vin.ins(), outs));
                 if (outs.isEmpty()) {
                     startEnd[1] = startEnd[1].add(in);
                 }
@@ -71,8 +71,14 @@ public final class Dag<N> {
         } else {
             for (E out : vertex.outs()) {
                 Vertex<E> vout = vertices.get(out);
-                if (vout.ins().size() == 1) {
+                if (vout.ins().size() <= 1) {
                     pruned = pruneOuts(pruned, vout, startEnd);
+                } else {
+                    Set<E> ins = vout.ins().remove(vertex.node());
+                    pruned = pruned.put(Vertex.of(out, ins, vout.outs()));
+                    if (ins.isEmpty()) {
+                        startEnd[0] = startEnd[0].add(out);
+                    }
                 }
             }
         }
@@ -87,7 +93,7 @@ public final class Dag<N> {
             for (E out : vertex.outs()) {
                 Vertex<E> vout = vertices.get(out);
                 Set<E> ins = vout.ins().remove(vertex.node());
-                pruned = pruned.put(Vertex.of(vout.node(), ins, vout.outs()));
+                pruned = pruned.put(Vertex.of(out, ins, vout.outs()));
                 if (ins.isEmpty()) {
                     startEnd[0] = startEnd[0].add(out);
                 }
@@ -95,8 +101,14 @@ public final class Dag<N> {
         }
         for (E in : vertex.ins()) {
             Vertex<E> vin = vertices.get(in);
-            if (vin.outs().size() == 1) {
+            if (vin.outs().size() <= 1) {
                 pruned = pruneIns(pruned, vin, startEnd);
+            } else {
+                Set<E> outs = vin.outs().remove(vertex.node());
+                pruned = pruned.put(Vertex.of(in, vin.ins(), outs));
+                if (outs.isEmpty()) {
+                    startEnd[1] = startEnd[1].add(in);
+                }
             }
         }
         return pruned;
