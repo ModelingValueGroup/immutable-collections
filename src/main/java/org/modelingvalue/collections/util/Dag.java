@@ -76,9 +76,6 @@ public final class Dag<N> {
                 } else {
                     Set<E> ins = vout.ins().remove(vertex.node());
                     pruned = pruned.put(Vertex.of(out, ins, vout.outs()));
-                    if (ins.isEmpty()) {
-                        startEnd[0] = startEnd[0].add(out);
-                    }
                 }
             }
         }
@@ -106,9 +103,6 @@ public final class Dag<N> {
             } else {
                 Set<E> outs = vin.outs().remove(vertex.node());
                 pruned = pruned.put(Vertex.of(in, vin.ins(), outs));
-                if (outs.isEmpty()) {
-                    startEnd[1] = startEnd[1].add(in);
-                }
             }
         }
         return pruned;
