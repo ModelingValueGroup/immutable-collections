@@ -46,6 +46,10 @@ public interface QualifiedSet<K, V> extends ContainingCollection<V>, Mergeable<Q
         }
     }
 
+    default boolean containsKey(K key) {
+        return get(key) != null;
+    }
+
     V get(K key);
 
     Set<V> allWithEqualhash(K key);
