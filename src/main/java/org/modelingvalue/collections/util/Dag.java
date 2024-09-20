@@ -96,13 +96,17 @@ public final class Dag<N> {
                 }
             }
         }
-        for (E in : vertex.ins()) {
-            Vertex<E> vin = vertices.get(in);
-            if (vin.outs().size() <= 1) {
-                pruned = pruneIns(pruned, vin, startEnd);
-            } else {
-                Set<E> outs = vin.outs().remove(vertex.node());
-                pruned = pruned.put(Vertex.of(in, vin.ins(), outs));
+        if (vertex.ins().isEmpty()) {
+            startEnd[0] = startEnd[0].remove(vertex.node());
+        } else {
+            for (E in : vertex.ins()) {
+                Vertex<E> vin = vertices.get(in);
+                if (vin.outs().size() <= 1) {
+                    pruned = pruneIns(pruned, vin, startEnd);
+                } else {
+                    Set<E> outs = vin.outs().remove(vertex.node());
+                    pruned = pruned.put(Vertex.of(in, vin.ins(), outs));
+                }
             }
         }
         return pruned;
