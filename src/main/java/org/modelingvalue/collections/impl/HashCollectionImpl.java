@@ -733,8 +733,8 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         return set(value, key1, identity(), added, key2, identity(), RETURN_1);
     }
 
-    protected static <T1, T2> Object put(Object value, Function<T1, Object> key1, Object added, Function<T2, Object> key2) {
-        return set(value, key1, identity(), added, key2, identity(), RETURN_2);
+    protected static <T1, T2> Object put(Object value, Function<T1, Object> key1, Object putted, Function<T2, Object> key2) {
+        return set(value, key1, identity(), putted, key2, identity(), RETURN_2);
     }
 
     protected static <T1, T2> Object remove(Object value, Function<T1, Object> key1, Object removed, Function<T2, Object> key2) {
