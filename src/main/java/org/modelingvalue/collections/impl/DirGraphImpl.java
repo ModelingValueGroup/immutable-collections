@@ -278,43 +278,25 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
 
     @Override
     public DirGraph<N> removeNode(N node) {
-        Vertex<N> rv = vertices.get(node);
-        if (rv == null) {
-            return this;
+        if (containsNode(node)) {
+            return construct(begin.remove(node), end.remove(node), clear(node).vertices().removeKey(node));
         } else {
-            Set<N> b = begin, e = end;
-            QualifiedSet<N, Vertex<N>> v = vertices.removeKey(node);
-            for (N in : rv.ins()) {
-                Vertex<N> iv = v.get(in);
-                Set<N> outs = iv.outs().remove(node);
-                v.put(Vertex.of(in, iv.ins(), outs));
-                if (outs.isEmpty()) {
-                    e = e.add(in);
-                }
-            }
-            for (N out : rv.outs()) {
-                Vertex<N> ov = v.get(out);
-                Set<N> ins = ov.ins().remove(node);
-                v.put(Vertex.of(out, ins, ov.outs()));
-                if (ins.isEmpty()) {
-                    b = b.add(out);
-                }
-
-            }
-            return construct(b, e, v);
+            return this;
         }
     }
 
     @Override
     public DirGraph<N> addEdge(N from, N to) {
         Set<N> fouts = outs(from);
-        if (!fouts.contains(to)) {
-            Set<N> tins = ins(to);
+        if (fouts.contains(to)) {
+            return this;
+        } else {
             Set<N> b = begin, e = end;
             QualifiedSet<N, Vertex<N>> v = vertices;
             if (fouts.isEmpty()) {
                 e = e.remove(from);
             }
+            Set<N> tins = ins(to);
             if (tins.isEmpty()) {
                 b = b.remove(to);
             }
@@ -322,29 +304,29 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             v = v.put(Vertex.of(to, tins.add(from), outs(to)));
             return new DirGraphImpl<N>(b, e, v);
         }
-        return this;
+
     }
 
     @Override
     public DirGraph<N> removeEdge(N from, N to) {
-        Vertex<N> f = vertices.get(from);
-        if (f != null && f.outs().contains(to)) {
-            Vertex<N> t = vertices.get(to);
+        Set<N> fouts = outs(from);
+        if (fouts.contains(to)) {
             Set<N> b = begin, e = end;
             QualifiedSet<N, Vertex<N>> v = vertices;
-            Set<N> fo = f.outs().remove(to);
+            Set<N> fo = fouts.remove(to);
             if (fo.isEmpty()) {
                 e = e.add(from);
             }
-            Set<N> ti = t.ins().remove(from);
+            Set<N> ti = ins(to).remove(from);
             if (ti.isEmpty()) {
                 b = b.add(to);
             }
-            v = v.put(Vertex.of(from, f.ins(), fo));
-            v = v.put(Vertex.of(to, ti, t.outs()));
+            v = v.put(Vertex.of(from, ins(from), fo));
+            v = v.put(Vertex.of(to, ti, outs(to)));
             return construct(b, e, v);
+        } else {
+            return this;
         }
-        return this;
     }
 
     @Override
