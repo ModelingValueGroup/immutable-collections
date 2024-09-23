@@ -34,8 +34,8 @@ public class DagImpl<N> extends DirGraphImpl<N> implements Dag<N> {
     }
 
     @Override
-    protected Dag<N> construct(Set<N> begin, Set<N> end, QualifiedSet<N, Vertex<N>> vertices) {
-        return new DagImpl<N>(begin, end, vertices);
+    protected Dag<N> construct(Set<N>[] beginEnd, QualifiedSet<N, Vertex<N>> vertices) {
+        return new DagImpl<N>(beginEnd[0], beginEnd[1], vertices);
     }
 
     @Override
@@ -55,18 +55,8 @@ public class DagImpl<N> extends DirGraphImpl<N> implements Dag<N> {
     }
 
     @Override
-    public Dag<N> addNode(N node) {
-        return (Dag<N>) super.addNode(node);
-    }
-
-    @Override
     public Dag<N> removeEdge(N from, N to) {
         return (Dag<N>) super.removeEdge(from, to);
-    }
-
-    @Override
-    public Dag<N> removeNode(N node) {
-        return (Dag<N>) super.removeNode(node);
     }
 
     @Override

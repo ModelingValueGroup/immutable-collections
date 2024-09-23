@@ -13,36 +13,36 @@
 //  Contributors:                                                                                                        ~
 //      Ronald Krijgsheld ✝, Arjan Kok, Carel Bast                                                                       ~
 // --------------------------------------------------------------------------------------------------------------------- ~
-//  In Memory of Ronald Krijgsheld, 1972 - 2023                                                                          ~
+//  In Memory of Ronald Krijgsheld972 - 2023                                                                          ~
 //      Ronald was suddenly and unexpectedly taken from us. He was not only our long-term colleague and team member      ~
 //      but also our friend. "He will live on in many of the lines of code you see below."                               ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-package org.modelingvalue.collections;
+package org.modelingvalue.collections.test;
 
-public interface Dag<N> extends DirGraph<N> {
-    @Override
-    Dag<N> prune(N node);
+import static org.junit.jupiter.api.Assertions.*;
 
-    @Override
-    Dag<N> removeEdge(N from, N to);
+import org.junit.jupiter.api.Test;
+import org.modelingvalue.collections.DirGraph;
+import org.modelingvalue.collections.util.Pair;
 
-    @Override
-    Dag<N> clear(N node);
+public class DirGraphTest {
+    @Test
+    public void constructor() {
+        DirGraph<String> graph = DirGraph.of(Pair.of("a", "b"), Pair.of("b", "c"));
+        assertTrue(graph.containsEdge("a", "b"));
+        assertTrue(graph.containsEdge("b", "c"));
+        assertFalse(graph.containsEdge("a", "c"));
+        assertFalse(graph.containsEdge("a", "d"));
+    }
 
-    @Override
-    Dag<N> clearOuts(N node);
-
-    @Override
-    Dag<N> clearIns(N node);
-
-    @Override
-    Dag<N> remove(N node, Set<N> ins, Set<N> outs);
-
-    @Override
-    Dag<N> removeOuts(N node, Set<N> outs);
-
-    @Override
-    Dag<N> removeIns(N node, Set<N> ins);
+    @Test
+    public void emptyGraph() {
+        DirGraph<String> graph1 = DirGraph.of();
+        DirGraph<String> graph2 = DirGraph.of();
+        assertNotNull(graph1);
+        assertEquals(0, graph1.size());
+        assertTrue(graph1 == graph2);
+    }
 
 }

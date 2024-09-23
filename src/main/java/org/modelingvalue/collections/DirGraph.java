@@ -29,17 +29,25 @@ public interface DirGraph<N> extends Collection<Vertex<N>>, Mergeable<DirGraph<N
 
     @SuppressWarnings("rawtypes")
     SerializableFunction<Vertex, Object> NODE_OF_VERTEX = Vertex::node;
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     Dag                                  EMPTY          = new DagImpl(Set.of(), Set.of(), QualifiedSet.of(NODE_OF_VERTEX));
 
     @SuppressWarnings("unchecked")
-    static <E> Dag<E> empty() {
-        return EMPTY;
+    @SafeVarargs
+    static <E> DirGraph<E> of(Pair<E, E>... edges) {
+        DirGraph<E> result = EMPTY;
+        for (Pair<E, E> edge : edges) {
+            result = result.addEdge(edge.a(), edge.b());
+        }
+        return result;
     }
 
     Set<N> begin();
 
     Set<N> end();
+
+    Collection<N> nodes();
 
     QualifiedSet<N, Vertex<N>> vertices();
 
@@ -49,13 +57,9 @@ public interface DirGraph<N> extends Collection<Vertex<N>>, Mergeable<DirGraph<N
 
     DirGraph<N> prune(N node);
 
-    boolean containsNode(N node);
-
     boolean containsEdge(N from, N to);
 
-    DirGraph<N> addNode(N node);
-
-    DirGraph<N> removeNode(N node);
+    boolean containsNode(N node);
 
     DirGraph<N> addEdge(N from, N to);
 
