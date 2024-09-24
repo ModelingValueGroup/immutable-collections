@@ -34,6 +34,7 @@ import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.QualifiedSet;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.Vertex;
+import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.SerializableFunction;
 import org.modelingvalue.collections.util.TriConsumer;
 import org.modelingvalue.collections.util.TriFunction;
@@ -230,7 +231,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
             return this;
         } else {
             Set<N>[] be = beginEnd();
-            return construct(be, put(vertices, node, is, os, ins, outs, be));
+            return construct(be, put(vertices, node, is, os, ins, outs, be, true));
         }
     }
 
@@ -243,7 +244,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
         } else {
             Set<N>[] be = beginEnd();
             Set<N> is = ins(v);
-            return construct(be, put(vertices, node, is, os, is, outs, be));
+            return construct(be, put(vertices, node, is, os, is, outs, be, false));
         }
     }
 
@@ -256,7 +257,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
         } else {
             Set<N>[] be = beginEnd();
             Set<N> os = outs(v);
-            return construct(be, put(vertices, node, is, os, ins, os, be));
+            return construct(be, put(vertices, node, is, os, ins, os, be, false));
         }
     }
 
@@ -269,7 +270,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
             return this;
         } else {
             Set<N>[] be = beginEnd();
-            return construct(be, put(vertices, node, is, os, Set.of(), Set.of(), be));
+            return construct(be, put(vertices, node, is, os, Set.of(), Set.of(), be, true));
         }
     }
 
@@ -282,7 +283,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
         } else {
             Set<N>[] be = beginEnd();
             Set<N> is = ins(v);
-            return construct(be, put(vertices, node, is, os, is, Set.of(), be));
+            return construct(be, put(vertices, node, is, os, is, Set.of(), be, true));
         }
     }
 
@@ -295,7 +296,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
         } else {
             Set<N>[] be = beginEnd();
             Set<N> os = outs(v);
-            return construct(be, put(vertices, node, is, os, Set.of(), os, be));
+            return construct(be, put(vertices, node, is, os, Set.of(), os, be, false));
         }
     }
 
@@ -308,7 +309,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
         } else {
             Set<N>[] be = beginEnd();
             Set<N> is = ins(v);
-            return construct(be, put(vertices, from, is, os, is, os.add(to), be));
+            return construct(be, put(vertices, from, is, os, is, os.add(to), be, true));
         }
     }
 
@@ -319,7 +320,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
         if (os.contains(to)) {
             Set<N>[] be = beginEnd();
             Set<N> is = ins(v);
-            return construct(be, put(vertices, from, is, os, is, os.remove(to), be));
+            return construct(be, put(vertices, from, is, os, is, os.remove(to), be, true));
         } else {
             return this;
         }
@@ -337,7 +338,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
                 return this;
             } else {
                 Set<N>[] be = beginEnd();
-                return construct(be, put(vertices, node, is, os, is.addAll(ins), os.addAll(outs), be));
+                return construct(be, put(vertices, node, is, os, is.addAll(ins), os.addAll(outs), be, true));
             }
         }
     }
@@ -354,7 +355,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
             } else {
                 Set<N>[] be = beginEnd();
                 Set<N> is = ins(v);
-                return construct(be, put(vertices, node, is, os, is, os.addAll(outs), be));
+                return construct(be, put(vertices, node, is, os, is, os.addAll(outs), be, true));
             }
         }
     }
@@ -371,7 +372,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
             } else {
                 Set<N>[] be = beginEnd();
                 Set<N> nouts = outs(v);
-                return construct(be, put(vertices, node, nins, nouts, nins.addAll(ins), nouts, be));
+                return construct(be, put(vertices, node, nins, nouts, nins.addAll(ins), nouts, be, false));
             }
         }
     }
@@ -388,7 +389,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
                 return this;
             } else {
                 Set<N>[] be = beginEnd();
-                return construct(be, put(vertices, node, is, os, is.removeAll(ins), os.removeAll(outs), be));
+                return construct(be, put(vertices, node, is, os, is.removeAll(ins), os.removeAll(outs), be, true));
             }
         }
     }
@@ -405,7 +406,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
             } else {
                 Set<N>[] be = beginEnd();
                 Set<N> is = ins(v);
-                return construct(be, put(vertices, node, is, os, is, os.removeAll(outs), be));
+                return construct(be, put(vertices, node, is, os, is, os.removeAll(outs), be, true));
             }
         }
     }
@@ -422,7 +423,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
             } else {
                 Set<N>[] be = beginEnd();
                 Set<N> os = outs(v);
-                return construct(be, put(vertices, node, is, os, is.removeAll(ins), os, be));
+                return construct(be, put(vertices, node, is, os, is.removeAll(ins), os, be, false));
             }
         }
     }
@@ -457,7 +458,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
             Vertex<E> v = vs.get(edges[i]);
             Set<E> ins = ins(v);
             Set<E> outs = outs(v);
-            vs = put(vs, edges[i], ins, outs, ins, outs.add(edges[i + 1]), be);
+            vs = put(vs, edges[i], ins, outs, ins, outs.add(edges[i + 1]), be, true);
         }
         return vs;
     }
@@ -466,7 +467,11 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
     private static <E, A> A dfs(QualifiedSet<E, Vertex<E>> vs, Set<E> b, Set<E> e, A acc, TriFunction<A, E, E, A> func, boolean frwrd) {
         int size = vs.size();
         BitSet temp = new BitSet(size), perm = new BitSet(size);
-        for (E n : frwrd ? b : e) {
+        return dfs(vs, frwrd ? b : e, acc, func, temp, perm, frwrd);
+    }
+
+    private static <A, E> A dfs(QualifiedSet<E, Vertex<E>> vs, Set<E> b, A acc, TriFunction<A, E, E, A> func, BitSet temp, BitSet perm, boolean frwrd) {
+        for (E n : b) {
             acc = visit(vs, acc, n, null, func, temp, perm, frwrd);
         }
         return acc;
@@ -491,7 +496,28 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
         }
     }
 
-    private static <E> QualifiedSet<E, Vertex<E>> put(QualifiedSet<E, Vertex<E>> vs, E n, Set<E> pi, Set<E> po, Set<E> ni, Set<E> no, Set<E>[] be) {
+    private static <E> QualifiedSet<E, Vertex<E>> removeCycles(QualifiedSet<E, Vertex<E>> vs, E n, Set<E> as, Set<E>[] be, boolean frwrd) {
+        for (E a : as) {
+            if (outs(vs.get(a)).isEmpty()) {
+                as = as.remove(a);
+            }
+        }
+        if (!as.isEmpty()) {
+            int size = vs.size();
+            BitSet temp = new BitSet(size), perm = new BitSet(size);
+            temp.set(vs.index(vs.get(n)));
+            Set<Pair<E, E>> cycles = dfs(vs, as, Set.of(), (cs, t, f) -> f != null ? cs.add(Pair.of(f, t)) : cs, temp, perm, frwrd);
+            for (Pair<E, E> edge : cycles) {
+                Vertex<E> v = vs.get(edge.a());
+                Set<E> ins = ins(v);
+                Set<E> outs = outs(v);
+                vs = put(vs, edge.a(), ins, outs, ins, outs.remove(edge.b()), be, frwrd);
+            }
+        }
+        return vs;
+    }
+
+    private static <E> QualifiedSet<E, Vertex<E>> put(QualifiedSet<E, Vertex<E>> vs, E n, Set<E> pi, Set<E> po, Set<E> ni, Set<E> no, Set<E>[] be, boolean frwrd) {
         if (!pi.equals(ni) || !po.equals(no)) {
             if (ni.isEmpty() && no.isEmpty()) {
                 be[0] = be[0].remove(n);
@@ -507,7 +533,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
                     Vertex<E> v = vs.get(in);
                     Set<E> ins = ins(v);
                     Set<E> outs = outs(v);
-                    vs = put(vs, in, ins, outs, ins, outs.remove(n), be);
+                    vs = put(vs, in, ins, outs, ins, outs.remove(n), be, frwrd);
                 }
             }
             for (E in : ni) {
@@ -515,7 +541,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
                     Vertex<E> v = vs.get(in);
                     Set<E> ins = ins(v);
                     Set<E> outs = outs(v);
-                    vs = put(vs, in, ins, outs, ins, outs.add(n), be);
+                    vs = put(vs, in, ins, outs, ins, outs.add(n), be, frwrd);
                 }
             }
             for (E out : po) {
@@ -523,7 +549,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
                     Vertex<E> v = vs.get(out);
                     Set<E> ins = ins(v);
                     Set<E> outs = outs(v);
-                    vs = put(vs, out, ins, outs, ins.remove(n), outs, be);
+                    vs = put(vs, out, ins, outs, ins.remove(n), outs, be, frwrd);
                 }
             }
             for (E out : no) {
@@ -531,8 +557,14 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
                     Vertex<E> v = vs.get(out);
                     Set<E> ins = ins(v);
                     Set<E> outs = outs(v);
-                    vs = put(vs, out, ins, outs, ins.add(n), outs, be);
+                    vs = put(vs, out, ins, outs, ins.add(n), outs, be, frwrd);
                 }
+            }
+            if (frwrd && !ni.isEmpty()) {
+                vs = removeCycles(vs, n, no.removeAll(po), be, frwrd);
+            }
+            if (!frwrd && !no.isEmpty()) {
+                vs = removeCycles(vs, n, ni.removeAll(pi), be, frwrd);
             }
         }
         return vs;
