@@ -13,7 +13,7 @@
 //  Contributors:                                                                                                        ~
 //      Ronald Krijgsheld ✝, Arjan Kok, Carel Bast                                                                       ~
 // --------------------------------------------------------------------------------------------------------------------- ~
-//  In Memory of Ronald Krijgsheld972 - 2023                                                                          ~
+//  In Memory of Ronald Krijgsheld, 1972 - 2023                                                                          ~
 //      Ronald was suddenly and unexpectedly taken from us. He was not only our long-term colleague and team member      ~
 //      but also our friend. "He will live on in many of the lines of code you see below."                               ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
