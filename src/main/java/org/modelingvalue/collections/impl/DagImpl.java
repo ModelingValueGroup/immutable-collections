@@ -449,6 +449,65 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> removeEdges(N... edges) {
+        if (edges.length == 0) {
+            return this;
+        } else {
+            Set<N>[] be = beginEnd();
+            return construct(be, removeEdges(vertices, edges, be));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> putBegin(N node, N... outs) {
+        return putBegin(node, Set.of(outs));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> putEnd(N node, N... ins) {
+        return putEnd(node, Set.of(ins));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> putOuts(N node, N... outs) {
+        return putOuts(node, Set.of(outs));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> putIns(N node, N... ins) {
+        return putIns(node, Set.of(ins));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> addOuts(N node, N... outs) {
+        return outs.length == 0 ? this : addOuts(node, Set.of(outs));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> addIns(N node, N... ins) {
+        return ins.length == 0 ? this : addIns(node, Set.of(ins));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> removeOuts(N node, N... outs) {
+        return outs.length == 0 ? this : removeOuts(node, Set.of(outs));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> removeIns(N node, N... ins) {
+        return ins.length == 0 ? this : removeIns(node, Set.of(ins));
+    }
+
     // private utility methods
 
     @SuppressWarnings("unchecked")
@@ -478,6 +537,20 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
             Set<E> ins = ins(v);
             Set<E> outs = outs(v);
             vs = put(vs, edges[i], ins, outs, ins, outs.add(edges[i + 1]), be, true);
+        }
+        return vs;
+    }
+
+    private static <E> QualifiedSet<E, Vertex<E>> removeEdges(QualifiedSet<E, Vertex<E>> vs, E[] edges, Set<E>[] be) {
+        int l = edges.length;
+        if (l % 2 != 0) {
+            throw new IllegalArgumentException("Edges lengths should be divisible by 2, is " + l);
+        }
+        for (int i = 0; i < l; i += 2) {
+            Vertex<E> v = vs.get(edges[i]);
+            Set<E> ins = ins(v);
+            Set<E> outs = outs(v);
+            vs = put(vs, edges[i], ins, outs, ins, outs.remove(edges[i + 1]), be, true);
         }
         return vs;
     }

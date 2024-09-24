@@ -52,9 +52,6 @@ public interface Dag<N> extends Collection<Vertex<N>>, Mergeable<Dag<N>> {
 
     boolean containsNode(N node);
 
-    @SuppressWarnings("unchecked")
-    Dag<N> addEdges(N... edges);
-
     Dag<N> addEdge(N from, N to);
 
     Dag<N> removeEdge(N from, N to);
@@ -86,6 +83,36 @@ public interface Dag<N> extends Collection<Vertex<N>>, Mergeable<Dag<N>> {
     Dag<N> removeOuts(N node, Set<N> outs);
 
     Dag<N> removeIns(N node, Set<N> ins);
+
+    @SuppressWarnings("unchecked")
+    Dag<N> addEdges(N... edges);
+
+    @SuppressWarnings("unchecked")
+    Dag<N> removeEdges(N... edges);
+
+    @SuppressWarnings("unchecked")
+    Dag<N> putBegin(N node, N... outs);
+
+    @SuppressWarnings("unchecked")
+    Dag<N> putEnd(N node, N... ins);
+
+    @SuppressWarnings("unchecked")
+    Dag<N> putOuts(N node, N... outs);
+
+    @SuppressWarnings("unchecked")
+    Dag<N> putIns(N node, N... ins);
+
+    @SuppressWarnings("unchecked")
+    Dag<N> addOuts(N node, N... outs);
+
+    @SuppressWarnings("unchecked")
+    Dag<N> addIns(N node, N... ins);
+
+    @SuppressWarnings("unchecked")
+    Dag<N> removeOuts(N node, N... outs);
+
+    @SuppressWarnings("unchecked")
+    Dag<N> removeIns(N node, N... ins);
 
     List<N> topological();
 
