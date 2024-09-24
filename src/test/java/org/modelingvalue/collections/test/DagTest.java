@@ -78,10 +78,10 @@ public class DagTest {
 
     @RepeatedTest(10)
     public void bigDag() {
-        int size = 100;
+        int size = 100_000;
         Dag<Integer> dag = Dag.of();
         Random random = new Random(System.currentTimeMillis());
-        for (int i = 0; i < size * size; i++) {
+        for (int i = 0; i < size; i++) {
             dag = dag.addEdge(random.nextInt(size), random.nextInt(size));
         }
         dag.topological();
