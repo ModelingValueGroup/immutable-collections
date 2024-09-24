@@ -23,13 +23,13 @@ package org.modelingvalue.collections.test;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
-import org.modelingvalue.collections.DirGraph;
+import org.modelingvalue.collections.Dag;
 import org.modelingvalue.collections.util.Pair;
 
 public class DirGraphTest {
     @Test
     public void constructor() {
-        DirGraph<String> graph = DirGraph.of(Pair.of("a", "b"), Pair.of("b", "c"));
+        Dag<String> graph = Dag.of(Pair.of("a", "b"), Pair.of("b", "c"));
         assertTrue(graph.containsEdge("a", "b"));
         assertTrue(graph.containsEdge("b", "c"));
         assertFalse(graph.containsEdge("a", "c"));
@@ -38,8 +38,8 @@ public class DirGraphTest {
 
     @Test
     public void emptyGraph() {
-        DirGraph<String> graph1 = DirGraph.of();
-        DirGraph<String> graph2 = DirGraph.of();
+        Dag<String> graph1 = Dag.of();
+        Dag<String> graph2 = Dag.of();
         assertNotNull(graph1);
         assertEquals(0, graph1.size());
         assertTrue(graph1 == graph2);

@@ -20,29 +20,79 @@
 
 package org.modelingvalue.collections;
 
-public interface Dag<N> extends DirGraph<N> {
-    @Override
+import org.modelingvalue.collections.impl.DagImpl;
+import org.modelingvalue.collections.util.Mergeable;
+import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.SerializableFunction;
+
+public interface Dag<N> extends Collection<Vertex<N>>, Mergeable<Dag<N>> {
+
+    @SuppressWarnings("rawtypes")
+    SerializableFunction<Vertex, Object> NODE_OF_VERTEX = Vertex::node;
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    Dag                                  EMPTY          = new DagImpl(Set.of(), Set.of(), QualifiedSet.of(NODE_OF_VERTEX));
+
+    @SuppressWarnings("unchecked")
+    @SafeVarargs
+    static <E> Dag<E> of(Pair<E, E>... edges) {
+        Dag<E> result = EMPTY;
+        for (Pair<E, E> edge : edges) {
+            result = result.addEdge(edge.a(), edge.b());
+        }
+        return result;
+    }
+
+    Set<N> begin();
+
+    Set<N> end();
+
+    Collection<N> nodes();
+
+    QualifiedSet<N, Vertex<N>> vertices();
+
+    Set<N> ins(N node);
+
+    Set<N> outs(N node);
+
     Dag<N> prune(N node);
 
-    @Override
+    boolean containsEdge(N from, N to);
+
+    boolean containsNode(N node);
+
+    Dag<N> addEdge(N from, N to);
+
     Dag<N> removeEdge(N from, N to);
 
-    @Override
     Dag<N> clear(N node);
 
-    @Override
     Dag<N> clearOuts(N node);
 
-    @Override
     Dag<N> clearIns(N node);
 
-    @Override
+    Dag<N> put(N node, Set<N> ins, Set<N> outs);
+
+    Dag<N> putOuts(N node, Set<N> outs);
+
+    Dag<N> putIns(N node, Set<N> ins);
+
+    Dag<N> add(N node, Set<N> ins, Set<N> outs);
+
+    Dag<N> addOuts(N node, Set<N> outs);
+
+    Dag<N> addIns(N node, Set<N> ins);
+
     Dag<N> remove(N node, Set<N> ins, Set<N> outs);
 
-    @Override
     Dag<N> removeOuts(N node, Set<N> outs);
 
-    @Override
     Dag<N> removeIns(N node, Set<N> ins);
+
+    Set<Pair<N, N>> cycles();
+
+    List<N> topological();
+
+    Dag<N> removeCycles();
 
 }
