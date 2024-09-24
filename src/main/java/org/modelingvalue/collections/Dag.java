@@ -65,6 +65,10 @@ public interface Dag<N> extends Collection<Vertex<N>>, Mergeable<Dag<N>> {
 
     Dag<N> clearIns(N node);
 
+    Dag<N> putBegin(N node, Set<N> outs);
+
+    Dag<N> putEnd(N node, Set<N> ins);
+
     Dag<N> put(N node, Set<N> ins, Set<N> outs);
 
     Dag<N> putOuts(N node, Set<N> outs);

@@ -223,6 +223,16 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
     // change methods
 
     @Override
+    public Dag<N> putBegin(N node, Set<N> outs) {
+        return put(node, Set.of(), outs);
+    }
+
+    @Override
+    public Dag<N> putEnd(N node, Set<N> ins) {
+        return put(node, ins, Set.of());
+    }
+
+    @Override
     public Dag<N> put(N node, Set<N> ins, Set<N> outs) {
         Vertex<N> v = vertices.get(node);
         Set<N> is = ins(v);
