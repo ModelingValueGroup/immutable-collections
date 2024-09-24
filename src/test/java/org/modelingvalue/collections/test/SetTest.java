@@ -297,6 +297,18 @@ public class SetTest {
 
     @SuppressWarnings("rawtypes")
     @Test
+    public void checkIndex() {
+        int max = 1_000_000;
+        Set<Integer> set = Collection.of(IntStream.range(0, max)).map(Integer::valueOf).asSet();
+        assertEquals(-1, set.index(-1));
+        assertEquals(0, set.index(0));
+        assertEquals(max - 1, set.index(max - 1));
+        assertEquals(-1, set.index(max));
+        Collection.of(IntStream.range(0, max)).map(Integer::valueOf).forEach(i -> assertEquals(set.index(i), i.intValue()));
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Test
     public void checkHashIntegrity() {
         int max = 10_000;
         Set<HashSharingInteger> set = Collection.of(IntStream.range(-max, max)).map(i -> new HashSharingInteger(i, i - i % 5)).asSet();
