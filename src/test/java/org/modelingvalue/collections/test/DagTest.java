@@ -74,8 +74,31 @@ public class DagTest {
                 "7", "8");
         assertEquals(Set.of("1", "2"), dag.begin());
         assertEquals(Set.of("6", "8"), dag.end());
+        assertEquals(8, dag.size());
+
         List<String> top = dag.topological();
         assertEquals(List.of("2", "5", "4", "7", "8", "1", "3", "6"), top);
+    }
+
+    @Test
+    public void putBeginEnd() {
+        Dag<String> dag1 = Dag.of(//
+                "1", "3", //
+                "3", "6", //
+                "2", "4", //
+                "2", "5", //
+                "4", "6", //
+                "4", "7", //
+                "5", "7", //
+                "7", "8");
+        assertEquals(8, dag1.size());
+        assertEquals(Set.of("1", "2"), dag1.begin());
+        assertEquals(Set.of("6", "8"), dag1.end());
+
+        Dag<String> dag2 = dag1.putBegin("x", "1", "2").putEnd("y", "6", "8");
+        assertEquals(10, dag2.size());
+        assertEquals(Set.of("x"), dag2.begin());
+        assertEquals(Set.of("y"), dag2.end());
     }
 
 }
