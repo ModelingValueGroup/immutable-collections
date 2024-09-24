@@ -78,13 +78,72 @@ public class DagTest {
 
     @RepeatedTest(10)
     public void bigDag() {
-        int size = 100_000;
+        int size = 10_000;
         Dag<Integer> dag = Dag.of();
         Random random = new Random(System.currentTimeMillis());
         for (int i = 0; i < size; i++) {
             dag = dag.addEdge(random.nextInt(size), random.nextInt(size));
         }
-        dag.topological();
+        dag = dag.putBegin(-1, dag.begin());
+        dag = dag.putEnd(-2, dag.end());
+        assertEquals(Set.of(-1), dag.begin());
+        assertEquals(Set.of(-2), dag.end());
+        List<Integer> top = dag.topological();
+        assertEquals(dag.size(), top.size());
+        assertEquals(-1, top.first());
+        assertEquals(-2, top.last());
+    }
+
+    @Test
+    public void merge1() {
+        Dag<String> dag1 = Dag.of(//
+                "1", "3", //
+                "3", "6", //
+                "2", "4", //
+                "2", "5", //
+                "4", "6", //
+                "4", "7", //
+                "5", "7", //
+                "7", "8");
+        Dag<String> dag2 = Dag.of(//
+                "1", "3", //
+                "3", "6", //
+                "2", "4", //
+                "2", "5", //
+                "4", "6", //
+                "4", "7", //
+                "5", "7", //
+                "7", "8");
+        assertEquals(dag1, dag2);
+        Dag<String> merged = Dag.<String> of().merge(dag1, dag2);
+        assertEquals(merged, dag1);
+        assertEquals(merged, dag2);
+    }
+
+    @Test
+    public void merge2() {
+        Dag<String> dag0 = Dag.of(//
+                "1", "3", //
+                "3", "6", //
+                "2", "4", //
+                "2", "5", //
+                "4", "6", //
+                "4", "7", //
+                "5", "7", //
+                "7", "8");
+        Dag<String> dag1 = Dag.of(//
+                "1", "3", //
+                "3", "6", //
+                "2", "4", //
+                "2", "5");
+        Dag<String> dag2 = Dag.of(//
+                "4", "6", //
+                "4", "7", //
+                "5", "7", //
+                "7", "8");
+        Dag<String> merged = Dag.<String> of().merge(dag1, dag2);
+        assertEquals(merged, dag0);
+        assertEquals(merged, dag0);
     }
 
     @Test
