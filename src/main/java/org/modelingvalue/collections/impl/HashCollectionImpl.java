@@ -364,6 +364,43 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
+    protected static <T> int index(Object v, Function key, Object find) {
+        if (v == null) {
+            return -1;
+        } else {
+            int id = find.hashCode(), it, i, index = 0;
+            byte level = -1;
+            while (v instanceof HashMultiValue mv) {
+                if (mv.level == level + 1 || (id & INDEX_MASKS[mv.level - 1]) == mv.index) {
+                    if (mv.level == NR_OF_PARTS) {
+                        for (i = 0; i < mv.values.length; i++) {
+                            v = mv.values[i];
+                            if (key.apply(v).equals(find)) {
+                                return index + i;
+                            }
+                        }
+                        return -1;
+                    } else {
+                        it = getIt(mv.mask, (id & PART_MASKS[mv.level]) >>> PART_SHIFTS[mv.level]);
+                        if (it >= 0) {
+                            for (i = 0; i < it; i++) {
+                                index += size(mv.values[i]);
+                            }
+                            level = mv.level;
+                            v = mv.values[it];
+                        } else {
+                            return -1;
+                        }
+                    }
+                } else {
+                    return -1;
+                }
+            }
+            return key.apply(v).equals(find) ? index : -1;
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
     protected static <T> T get(Object v, Function key, Object find) {
         if (v == null) {
             return null;
@@ -839,6 +876,11 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     @Override
     public boolean contains(Object e) {
         return get(value, key(), e) != null;
+    }
+
+    @Override
+    public int index(Object e) {
+        return index(value, key(), e);
     }
 
     @Override

@@ -926,4 +926,9 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
         return new MutableList<>(this);
     }
 
+    @Override
+    public int index(Object e) {
+        return firstIndexOf(e);
+    }
+
 }

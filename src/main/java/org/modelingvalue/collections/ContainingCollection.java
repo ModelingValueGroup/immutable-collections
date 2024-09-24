@@ -32,6 +32,8 @@ public interface ContainingCollection<T> extends Collection<T>, Internable {
 
     <R extends ContainingCollection<T>> StreamCollection<R[]> compare(R other);
 
+    int index(Object e);
+
     T get(int index);
 
     ContainingCollection<T> remove(Object e);

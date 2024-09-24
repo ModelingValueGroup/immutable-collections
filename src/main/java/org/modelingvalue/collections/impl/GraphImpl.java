@@ -698,4 +698,9 @@ public class GraphImpl<V, E> extends CollectionImpl<Triple<V, E, V>> implements 
             throw new UnsupportedOperationException();
         }
     }
+
+    @Override
+    public int index(Object e) {
+        throw new UnsupportedOperationException();
+    }
 }

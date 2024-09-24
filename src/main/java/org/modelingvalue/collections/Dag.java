@@ -22,25 +22,18 @@ package org.modelingvalue.collections;
 
 import org.modelingvalue.collections.impl.DagImpl;
 import org.modelingvalue.collections.util.Mergeable;
-import org.modelingvalue.collections.util.Pair;
-import org.modelingvalue.collections.util.SerializableFunction;
+import org.modelingvalue.collections.util.TriFunction;
 
 public interface Dag<N> extends Collection<Vertex<N>>, Mergeable<Dag<N>> {
 
-    @SuppressWarnings("rawtypes")
-    SerializableFunction<Vertex, Object> NODE_OF_VERTEX = Vertex::node;
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    Dag                                  EMPTY          = new DagImpl(Set.of(), Set.of(), QualifiedSet.of(NODE_OF_VERTEX));
-
     @SuppressWarnings("unchecked")
     @SafeVarargs
-    static <E> Dag<E> of(Pair<E, E>... edges) {
-        Dag<E> result = EMPTY;
-        for (Pair<E, E> edge : edges) {
-            result = result.addEdge(edge.a(), edge.b());
+    static <E> Dag<E> of(E... edges) {
+        if (edges.length == 0) {
+            return DagImpl.EMPTY;
+        } else {
+            return new DagImpl<E>(edges);
         }
-        return result;
     }
 
     Set<N> begin();
@@ -54,8 +47,6 @@ public interface Dag<N> extends Collection<Vertex<N>>, Mergeable<Dag<N>> {
     Set<N> ins(N node);
 
     Set<N> outs(N node);
-
-    Dag<N> prune(N node);
 
     boolean containsEdge(N from, N to);
 
@@ -89,10 +80,7 @@ public interface Dag<N> extends Collection<Vertex<N>>, Mergeable<Dag<N>> {
 
     Dag<N> removeIns(N node, Set<N> ins);
 
-    Set<Pair<N, N>> cycles();
-
     List<N> topological();
 
-    Dag<N> removeCycles();
-
+    <A> A dfs(A acc, TriFunction<A, N, N, A> func, boolean frwrd);
 }

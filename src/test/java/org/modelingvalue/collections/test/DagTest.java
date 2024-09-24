@@ -24,12 +24,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 import org.modelingvalue.collections.Dag;
-import org.modelingvalue.collections.util.Pair;
 
 public class DagTest {
     @Test
     public void constructor() {
-        Dag<String> graph = Dag.of(Pair.of("a", "b"), Pair.of("b", "c"));
+        Dag<String> graph = Dag.of("a", "b", "b", "c");
         assertTrue(graph.containsEdge("a", "b"));
         assertTrue(graph.containsEdge("b", "c"));
         assertFalse(graph.containsEdge("a", "c"));
