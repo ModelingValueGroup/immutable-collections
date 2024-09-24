@@ -22,6 +22,7 @@ package org.modelingvalue.collections;
 
 import org.modelingvalue.collections.impl.DagImpl;
 import org.modelingvalue.collections.util.Mergeable;
+import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.TriFunction;
 
 public interface Dag<N> extends Collection<Vertex<N>>, Mergeable<Dag<N>> {
@@ -41,6 +42,8 @@ public interface Dag<N> extends Collection<Vertex<N>>, Mergeable<Dag<N>> {
     Set<N> end();
 
     Collection<N> nodes();
+
+    Collection<Pair<N, N>> edges();
 
     QualifiedSet<N, Vertex<N>> vertices();
 

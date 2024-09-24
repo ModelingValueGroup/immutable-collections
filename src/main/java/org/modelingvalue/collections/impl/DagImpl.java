@@ -117,6 +117,11 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
     }
 
     @Override
+    public Collection<Pair<N, N>> edges() {
+        return vertices.flatMap(v -> v.outs().map(o -> Pair.of(v.node(), o)));
+    }
+
+    @Override
     public boolean contains(Object object) {
         return vertices.contains(object);
     }
