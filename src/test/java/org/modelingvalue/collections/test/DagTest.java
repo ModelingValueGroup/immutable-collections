@@ -22,6 +22,9 @@ package org.modelingvalue.collections.test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Random;
+
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.modelingvalue.collections.Dag;
 import org.modelingvalue.collections.List;
@@ -30,7 +33,10 @@ import org.modelingvalue.collections.Set;
 public class DagTest {
     @Test
     public void constructor() {
-        Dag<String> dag = Dag.of("c", "a", "a", "b", "b", "c");
+        Dag<String> dag = Dag.of(//
+                "c", "a", //
+                "a", "b", //
+                "b", "c");
         assertFalse(dag.containsEdge("a", "b"));
         assertTrue(dag.containsEdge("b", "c"));
         assertTrue(dag.containsEdge("c", "a"));
@@ -51,14 +57,34 @@ public class DagTest {
     @Test
     public void rmoveEdges() {
         Dag<String> dag1 = Dag.of();
-        Dag<String> dag2 = Dag.of("a", "b", "b", "c", "c", "d");
-        Dag<String> dag3 = dag1.addEdges("a", "b", "b", "c", "c", "d");
+        Dag<String> dag2 = Dag.of(//
+                "a", "b", //
+                "b", "c", //
+                "c", "d");
+        Dag<String> dag3 = dag1.addEdges(//
+                "a", "b", //
+                "b", "c", //
+                "c", "d");
         assertEquals(0, dag1.size());
         assertEquals(4, dag2.size());
         assertEquals(4, dag3.size());
         assertEquals(dag2, dag3);
-        dag2 = dag2.removeEdges("a", "b", "b", "c", "c", "d");
+        dag2 = dag2.removeEdges(//
+                "a", "b", //
+                "b", "c", //
+                "c", "d");
         assertTrue(dag1 == dag2);
+    }
+
+    @RepeatedTest(10)
+    public void bigDag() {
+        int size = 100;
+        Dag<Integer> dag = Dag.of();
+        Random random = new Random(System.currentTimeMillis());
+        for (int i = 0; i < size * size; i++) {
+            dag = dag.addEdge(random.nextInt(size), random.nextInt(size));
+        }
+        dag.topological();
     }
 
     @Test

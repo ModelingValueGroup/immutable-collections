@@ -560,12 +560,16 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
     private static <E, A> A dfs(QualifiedSet<E, Vertex<E>> vs, Set<E> b, Set<E> e, A acc, TriFunction<A, E, E, A> func, boolean frwrd) {
         int size = vs.size();
         BitSet temp = new BitSet(size), perm = new BitSet(size);
-        return dfs(vs, frwrd ? b : e, acc, (a, f, t, c) -> func.apply(a, f, t), temp, perm, frwrd);
+        return dfs(vs, null, frwrd ? b : e, acc, (a, f, t, c) -> c ? throwCycleError(a, f, t) : func.apply(a, f, t), temp, perm, frwrd);
     }
 
-    private static <A, E> A dfs(QualifiedSet<E, Vertex<E>> vs, Set<E> b, A acc, QuadFunction<A, E, E, Boolean, A> func, BitSet temp, BitSet perm, boolean frwrd) {
+    private static <E, A> A throwCycleError(A a, E f, E t) {
+        throw new IllegalStateException("Cycle detected " + f + " -> " + t);
+    }
+
+    private static <A, E> A dfs(QualifiedSet<E, Vertex<E>> vs, E a, Set<E> b, A acc, QuadFunction<A, E, E, Boolean, A> func, BitSet temp, BitSet perm, boolean frwrd) {
         for (E n : b) {
-            acc = visit(vs, acc, null, n, func, temp, perm, frwrd);
+            acc = visit(vs, acc, a, n, func, temp, perm, frwrd);
         }
         return acc;
     }
@@ -599,7 +603,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
             int size = vs.size();
             BitSet temp = new BitSet(size), perm = new BitSet(size);
             temp.set(vs.index(vs.get(n)));
-            Set<Pair<E, E>> cycles = dfs(vs, as, Set.of(), (cs, f, t, c) -> c ? cs.add(Pair.of(f, t)) : cs, temp, perm, frwrd);
+            Set<Pair<E, E>> cycles = dfs(vs, n, as, Set.of(), (cs, f, t, c) -> c ? cs.add(Pair.of(f, t)) : cs, temp, perm, frwrd);
             for (Pair<E, E> edge : cycles) {
                 Vertex<E> v = vs.get(edge.a());
                 Set<E> ins = ins(v);
