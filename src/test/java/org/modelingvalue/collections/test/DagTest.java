@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 import org.modelingvalue.collections.Dag;
+import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Set;
 
 public class DagTest {
@@ -35,15 +36,46 @@ public class DagTest {
         assertTrue(dag.containsEdge("c", "a"));
         assertEquals(Set.of("b"), dag.begin());
         assertEquals(Set.of("a"), dag.end());
+        assertEquals(3, dag.size());
     }
 
     @Test
-    public void emptyGraph() {
+    public void emptyDag() {
         Dag<String> dag1 = Dag.of();
         Dag<String> dag2 = Dag.of();
         assertNotNull(dag1);
         assertEquals(0, dag1.size());
         assertTrue(dag1 == dag2);
+    }
+
+    @Test
+    public void rmoveEdges() {
+        Dag<String> dag1 = Dag.of();
+        Dag<String> dag2 = Dag.of("a", "b", "b", "c", "c", "d");
+        Dag<String> dag3 = dag1.addEdges("a", "b", "b", "c", "c", "d");
+        assertEquals(0, dag1.size());
+        assertEquals(4, dag2.size());
+        assertEquals(4, dag3.size());
+        assertEquals(dag2, dag3);
+        dag2 = dag2.removeEdges("a", "b", "b", "c", "c", "d");
+        assertTrue(dag1 == dag2);
+    }
+
+    @Test
+    public void topologicalSort() {
+        Dag<String> dag = Dag.of(//
+                "1", "3", //
+                "3", "6", //
+                "2", "4", //
+                "2", "5", //
+                "4", "6", //
+                "4", "7", //
+                "5", "7", //
+                "7", "8");
+        assertEquals(Set.of("1", "2"), dag.begin());
+        assertEquals(Set.of("6", "8"), dag.end());
+        List<String> top = dag.topological();
+        assertEquals(List.of("2", "5", "4", "7", "8", "1", "3", "6"), top);
     }
 
 }

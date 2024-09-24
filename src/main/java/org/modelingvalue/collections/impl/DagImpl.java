@@ -35,6 +35,7 @@ import org.modelingvalue.collections.QualifiedSet;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.Vertex;
 import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.QuadFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
 import org.modelingvalue.collections.util.TriConsumer;
 import org.modelingvalue.collections.util.TriFunction;
@@ -82,7 +83,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public List<N> topological() {
-        return dfs(List.of(), (l, n, c) -> c != null ? l : l.prepend(n), true);
+        return dfs(List.of(), (l, f, t) -> l.prepend(t), true);
     }
 
     @Override
@@ -559,32 +560,32 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
     private static <E, A> A dfs(QualifiedSet<E, Vertex<E>> vs, Set<E> b, Set<E> e, A acc, TriFunction<A, E, E, A> func, boolean frwrd) {
         int size = vs.size();
         BitSet temp = new BitSet(size), perm = new BitSet(size);
-        return dfs(vs, frwrd ? b : e, acc, func, temp, perm, frwrd);
+        return dfs(vs, frwrd ? b : e, acc, (a, f, t, c) -> func.apply(a, f, t), temp, perm, frwrd);
     }
 
-    private static <A, E> A dfs(QualifiedSet<E, Vertex<E>> vs, Set<E> b, A acc, TriFunction<A, E, E, A> func, BitSet temp, BitSet perm, boolean frwrd) {
+    private static <A, E> A dfs(QualifiedSet<E, Vertex<E>> vs, Set<E> b, A acc, QuadFunction<A, E, E, Boolean, A> func, BitSet temp, BitSet perm, boolean frwrd) {
         for (E n : b) {
-            acc = visit(vs, acc, n, null, func, temp, perm, frwrd);
+            acc = visit(vs, acc, null, n, func, temp, perm, frwrd);
         }
         return acc;
     }
 
-    private static <E, A> A visit(QualifiedSet<E, Vertex<E>> vs, A a, E n, E c, TriFunction<A, E, E, A> f, BitSet temp, BitSet perm, boolean frwrd) {
-        Vertex<E> v = vs.get(n);
+    private static <E, A> A visit(QualifiedSet<E, Vertex<E>> vs, A a, E f, E t, QuadFunction<A, E, E, Boolean, A> func, BitSet temp, BitSet perm, boolean frwrd) {
+        Vertex<E> v = vs.get(t);
         int i = vs.index(v);
         if (perm.get(i)) {
             return a;
         } else if (temp.get(i)) {
             // cycle
-            assert c != null;
-            return f.apply(a, n, c);
+            assert f != null;
+            return func.apply(a, f, t, true);
         } else {
             temp.set(i);
             for (E o : frwrd ? v.outs() : v.ins()) {
-                a = visit(vs, a, o, n, f, temp, perm, frwrd);
+                a = visit(vs, a, t, o, func, temp, perm, frwrd);
             }
             perm.set(i);
-            return f.apply(a, v.node(), null);
+            return func.apply(a, f, t, false);
         }
     }
 
@@ -598,7 +599,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
             int size = vs.size();
             BitSet temp = new BitSet(size), perm = new BitSet(size);
             temp.set(vs.index(vs.get(n)));
-            Set<Pair<E, E>> cycles = dfs(vs, as, Set.of(), (cs, t, f) -> f != null ? cs.add(Pair.of(f, t)) : cs, temp, perm, frwrd);
+            Set<Pair<E, E>> cycles = dfs(vs, as, Set.of(), (cs, f, t, c) -> c ? cs.add(Pair.of(f, t)) : cs, temp, perm, frwrd);
             for (Pair<E, E> edge : cycles) {
                 Vertex<E> v = vs.get(edge.a());
                 Set<E> ins = ins(v);
