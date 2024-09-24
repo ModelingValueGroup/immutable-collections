@@ -428,6 +428,17 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
         }
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> addEdges(N... edges) {
+        if (edges.length == 0) {
+            return this;
+        } else {
+            Set<N>[] be = beginEnd();
+            return construct(be, addEdges(vertices, edges, be));
+        }
+    }
+
     // private utility methods
 
     @SuppressWarnings("unchecked")
@@ -449,9 +460,7 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
 
     private static <E> QualifiedSet<E, Vertex<E>> addEdges(QualifiedSet<E, Vertex<E>> vs, E[] edges, Set<E>[] be) {
         int l = edges.length;
-        if (l == 0) {
-            throw new IllegalArgumentException("Edges lengths should be greater than 0, is " + l);
-        } else if (l % 2 != 0) {
+        if (l % 2 != 0) {
             throw new IllegalArgumentException("Edges lengths should be divisible by 2, is " + l);
         }
         for (int i = 0; i < l; i += 2) {

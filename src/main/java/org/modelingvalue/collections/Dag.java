@@ -52,6 +52,9 @@ public interface Dag<N> extends Collection<Vertex<N>>, Mergeable<Dag<N>> {
 
     boolean containsNode(N node);
 
+    @SuppressWarnings("unchecked")
+    Dag<N> addEdges(N... edges);
+
     Dag<N> addEdge(N from, N to);
 
     Dag<N> removeEdge(N from, N to);
