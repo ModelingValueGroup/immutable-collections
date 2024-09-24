@@ -223,7 +223,8 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
         Set<N> mb = begin.merge(ba);
         Set<N> me = end.merge(ea);
         QualifiedSet<N, Vertex<N>> mv = vertices.merge(va);
-        return new DagImpl<N>(mb.filter(b -> ins(mv.get(b)).isEmpty()).asSet(), me.filter(e -> outs(mv.get(e)).isEmpty()).asSet(), mv);
+        Set<N>[] be = new Set[]{mb.filter(b -> ins(mv.get(b)).isEmpty()).asSet(), me.filter(b -> outs(mv.get(b)).isEmpty()).asSet()};
+        return new DagImpl<N>(be, removeCycles(mv, null, mb, be, true));
     }
 
     // change methods

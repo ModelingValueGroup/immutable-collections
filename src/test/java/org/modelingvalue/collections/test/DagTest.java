@@ -147,6 +147,35 @@ public class DagTest {
     }
 
     @Test
+    public void merge3() {
+        Dag<String> dag0 = Dag.of(//
+                "1", "3", //
+                "3", "6", //
+                "2", "4", //
+                "2", "5", //
+                "4", "6", //
+                "4", "7", //
+                "7", "8", //
+                "8", "5");
+        assertEquals(8, dag0.edges().size());
+        Dag<String> dag1 = Dag.of(//
+                "1", "3", //
+                "3", "6", //
+                "2", "4", //
+                "2", "5", //
+                "8", "5");
+        Dag<String> dag2 = Dag.of(//
+                "4", "6", //
+                "4", "7", //
+                "5", "7", //
+                "7", "8", //
+                "6", "3");
+        Dag<String> merged = Dag.<String> of().merge(dag1, dag2);
+        assertEquals(merged, dag0);
+        assertEquals(merged, dag0);
+    }
+
+    @Test
     public void topologicalSort() {
         Dag<String> dag = Dag.of(//
                 "1", "3", //
