@@ -59,6 +59,14 @@ public class QualifiedSetTest {
     }
 
     @Test
+    public void testContains() {
+        QualifiedSet<String, O> qset = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("noot"));
+
+        assertEquals(2, qset.size());
+        assertFalse(qset.contains("aap"));
+    }
+
+    @Test
     public void testSetSize() {
         Set<O> set1 = Set.of(O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"));
         Set<O> set2 = Set.of(O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"), O.of("teun"));
