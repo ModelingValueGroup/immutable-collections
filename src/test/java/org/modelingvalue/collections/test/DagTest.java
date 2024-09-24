@@ -24,24 +24,26 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 import org.modelingvalue.collections.Dag;
+import org.modelingvalue.collections.Set;
 
 public class DagTest {
     @Test
     public void constructor() {
-        Dag<String> graph = Dag.of("a", "b", "b", "c");
-        assertTrue(graph.containsEdge("a", "b"));
-        assertTrue(graph.containsEdge("b", "c"));
-        assertFalse(graph.containsEdge("a", "c"));
-        assertFalse(graph.containsEdge("a", "d"));
+        Dag<String> dag = Dag.of("c", "a", "a", "b", "b", "c");
+        assertFalse(dag.containsEdge("a", "b"));
+        assertTrue(dag.containsEdge("b", "c"));
+        assertTrue(dag.containsEdge("c", "a"));
+        assertEquals(Set.of("b"), dag.begin());
+        assertEquals(Set.of("a"), dag.end());
     }
 
     @Test
     public void emptyGraph() {
-        Dag<String> graph1 = Dag.of();
-        Dag<String> graph2 = Dag.of();
-        assertNotNull(graph1);
-        assertEquals(0, graph1.size());
-        assertTrue(graph1 == graph2);
+        Dag<String> dag1 = Dag.of();
+        Dag<String> dag2 = Dag.of();
+        assertNotNull(dag1);
+        assertEquals(0, dag1.size());
+        assertTrue(dag1 == dag2);
     }
 
 }

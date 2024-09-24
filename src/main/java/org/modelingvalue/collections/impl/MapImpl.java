@@ -70,6 +70,18 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
         return (Function) KEY;
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public boolean contains(Object e) {
+        return e instanceof Entry ? get(value, key(), key().apply((Entry) e)) != null : false;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public int index(Object e) {
+        return e instanceof Entry ? index(value, key(), key().apply((Entry) e)) : -1;
+    }
+
     @Override
     public Spliterator<Entry<K, V>> spliterator() {
         return new DistinctCollectionSpliterator<>(value, 0, length(value), size(value), false);

@@ -57,6 +57,16 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
     }
 
     @Override
+    public boolean contains(Object e) {
+        return get(value, key(), e) != null;
+    }
+
+    @Override
+    public int index(Object e) {
+        return index(value, key(), e);
+    }
+
+    @Override
     public Spliterator<T> spliterator() {
         return new DistinctCollectionSpliterator<>(value, 0, length(value), size(value), false);
     }

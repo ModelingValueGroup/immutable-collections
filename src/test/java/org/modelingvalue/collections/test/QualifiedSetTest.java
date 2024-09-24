@@ -20,9 +20,7 @@
 
 package org.modelingvalue.collections.test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.concurrent.RecursiveAction;
 import java.util.stream.Collectors;
@@ -85,9 +83,7 @@ public class QualifiedSetTest {
 
         assertTrue(qset1.containsAll(qset2));
         assertTrue(qset2.containsAll(qset1));
-        //TODO: see DCL-151
-        //qset2.forEachOrdered(obj -> assertTrue("qset1 does not contain " + obj, qset1.contains(obj)));
-        //qset1.forEachOrdered(obj -> assertTrue("qset2 does not contain " + obj, qset2.contains(obj)));
+
         qset1.forEachOrdered(obj -> assertTrue(qset2keys.contains(obj.v)));
         qset2.forEachOrdered(obj -> assertTrue(qset1keys.contains(obj.v)));
     }

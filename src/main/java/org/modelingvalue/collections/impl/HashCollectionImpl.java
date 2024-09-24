@@ -874,16 +874,6 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     }
 
     @Override
-    public boolean contains(Object e) {
-        return get(value, key(), e) != null;
-    }
-
-    @Override
-    public int index(Object e) {
-        return index(value, key(), e);
-    }
-
-    @Override
     public ContainingCollection<T> addUnique(T e) {
         return add(e);
     }

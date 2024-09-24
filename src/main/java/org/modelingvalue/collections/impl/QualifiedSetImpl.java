@@ -143,6 +143,30 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
         return get(value, key(), k);
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public boolean contains(Object e) {
+        K k;
+        try {
+            k = qualifier.apply((V) e);
+        } catch (ClassCastException cce) {
+            return false;
+        }
+        return get(value, key(), k) != null;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public int index(Object e) {
+        K k;
+        try {
+            k = qualifier.apply((V) e);
+        } catch (ClassCastException cce) {
+            return -1;
+        }
+        return index(value, key(), k);
+    }
+
     @Override
     public Set<V> allWithEqualhash(K k) {
         return allWithEqualhash(value, key(), k);
