@@ -245,7 +245,7 @@ public class GraphImpl<V, E> extends CollectionImpl<Triple<V, E, V>> implements 
 
     @Override
     public Graph<V, E> removeEdges(V src, V dst) {
-        if (src == null || dst == null || outgoing.getEntry(src) == null || !outgoing.get(src).a().contains(dst))
+        if (src == null || dst == null || outgoing.getEntry(src) == null || !outgoing.get(src).a().containsKey(dst))
             return this;
 
         return new GraphImpl<>(removeEdgesHelper(outgoing, src, dst), removeEdgesHelper(incoming, dst, src));

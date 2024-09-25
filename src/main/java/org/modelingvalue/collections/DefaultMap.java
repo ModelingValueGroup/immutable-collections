@@ -38,6 +38,8 @@ public interface DefaultMap<K, V> extends ContainingCollection<Entry<K, V>>, Mer
         return new DefaultMapImpl<>(e, defaultFunction);
     }
 
+    boolean containsKey(K key);
+
     V get(K key);
 
     Entry<K, V> getEntry(K key);

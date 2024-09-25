@@ -79,7 +79,12 @@ public class DefaultMapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implem
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public boolean contains(Object e) {
-        return e instanceof Entry ? get(value, key(), key().apply((Entry) e)) != null : false;
+        return e instanceof Entry ? containsKey(((Entry<K, V>) e).getKey()) : false;
+    }
+
+    @Override
+    public boolean containsKey(K k) {
+        return getEntry(k) != null;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

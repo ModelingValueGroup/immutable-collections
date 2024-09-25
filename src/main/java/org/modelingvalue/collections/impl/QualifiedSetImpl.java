@@ -143,6 +143,11 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
         return get(value, key(), k);
     }
 
+    @Override
+    public boolean containsKey(K k) {
+        return get(k) != null;
+    }
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public boolean contains(Object e) {
@@ -152,7 +157,7 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
         } catch (ClassCastException cce) {
             return false;
         }
-        return get(value, key(), k) != null;
+        return containsKey(k);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

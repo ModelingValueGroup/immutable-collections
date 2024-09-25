@@ -45,13 +45,11 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
         }
     }
 
+    boolean containsKey(K key);
+
     V get(K key);
 
     V getOrDefault(K key, V defaultValue);
-
-    default boolean containsKey(K key) {
-        return getEntry(key) != null;
-    }
 
     Entry<K, V> getEntry(K key);
 
