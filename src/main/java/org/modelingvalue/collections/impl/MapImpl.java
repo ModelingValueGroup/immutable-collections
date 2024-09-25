@@ -60,10 +60,6 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
         this.value = value;
     }
 
-    public MapImpl(Deserializer s) {
-        javaDeserialize(s);
-    }
-
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     protected final Function<Entry<K, V>, Object> key() {

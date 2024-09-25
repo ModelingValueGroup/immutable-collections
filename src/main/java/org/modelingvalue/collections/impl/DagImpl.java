@@ -22,21 +22,19 @@ package org.modelingvalue.collections.impl;
 
 import java.util.BitSet;
 import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.Objects;
 import java.util.Spliterator;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import org.modelingvalue.collections.Collection;
-import org.modelingvalue.collections.Dag;
-import org.modelingvalue.collections.List;
-import org.modelingvalue.collections.QualifiedSet;
-import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.Vertex;
+import org.modelingvalue.collections.*;
+import org.modelingvalue.collections.util.Deserializer;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
+import org.modelingvalue.collections.util.Serializer;
 import org.modelingvalue.collections.util.TriConsumer;
 import org.modelingvalue.collections.util.TriFunction;
 
@@ -51,9 +49,9 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static final Dag                                   EMPTY            = new DagImpl(Set.of(), Set.of(), EMPTY_VERTICES);
 
-    private final Set<N>                                      begin;
-    private final Set<N>                                      end;
-    private final QualifiedSet<N, Vertex<N>>                  vertices;
+    transient private Set<N>                                  begin;
+    transient private Set<N>                                  end;
+    transient private QualifiedSet<N, Vertex<N>>              vertices;
 
     @SuppressWarnings("unchecked")
     public DagImpl(N[] edges) {
@@ -695,4 +693,173 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
         }
     }
 
+    // ContainingCollection methods
+
+    @Override
+    public <R extends ContainingCollection<Vertex<N>>> StreamCollection<R[]> compare(R other) {
+        return vertices.compare(other);
+    }
+
+    @Override
+    public int index(Object e) {
+        return vertices.index(e);
+    }
+
+    @Override
+    public Vertex<N> get(int index) {
+        return vertices.get(index);
+    }
+
+    @Override
+    public Collection<Vertex<N>> reverse() {
+        return vertices.reverse();
+    }
+
+    @Override
+    public Spliterator<Vertex<N>> reverseSpliterator() {
+        return vertices.reverseSpliterator();
+    }
+
+    @Override
+    public ListIterator<Vertex<N>> listIterator() {
+        return vertices.listIterator();
+    }
+
+    @Override
+    public ListIterator<Vertex<N>> listIterator(int index) {
+        return vertices.listIterator(index);
+    }
+
+    @Override
+    public ListIterator<Vertex<N>> listIteratorAtEnd() {
+        return vertices.listIteratorAtEnd();
+    }
+
+    @Override
+    public Dag<N> add(Vertex<N> av) {
+        QualifiedSet<N, Vertex<N>> vs = vertices;
+        Vertex<N> ev = vs.get(av.node());
+        Set<N> os = outs(av);
+        Set<N> is = ins(ev);
+        if (is.containsAll(av.ins()) && os.containsAll(av.outs())) {
+            return this;
+        } else {
+            Set<N>[] be = beginEnd();
+            return construct(be, put(vs, av.node(), is, os, is.addAll(av.ins()), os.addAll(av.outs()), be, true));
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> addAll(Collection<? extends Vertex<N>> coll) {
+        QualifiedSet<N, Vertex<N>> vs = vertices;
+        Set<N>[] be = beginEnd();
+        for (Vertex<N> av : coll) {
+            Vertex<N> ev = vs.get(av.node());
+            Set<N> ins = ins(ev);
+            Set<N> outs = outs(ev);
+            if (!ins.containsAll(av.ins()) || !outs.containsAll(av.outs())) {
+                vs = put(vs, av.node(), ins, outs, ins.addAll(av.ins()), outs.addAll(av.outs()), be, true);
+            }
+        }
+        return construct(be, vs);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> remove(Object obj) {
+        if (obj instanceof Vertex) {
+            Vertex<N> rv = (Vertex<N>) obj;
+            QualifiedSet<N, Vertex<N>> vs = vertices;
+            Vertex<N> ev = vs.get(rv.node());
+            Set<N> os = outs(ev);
+            Set<N> is = ins(ev);
+            if (!os.isEmpty() || !is.isEmpty()) {
+                Set<N>[] be = beginEnd();
+                vs = put(vs, rv.node(), is, os, Set.of(), Set.of(), be, true);
+                return construct(be, vs);
+            }
+        }
+        return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> removeAll(Collection<?> coll) {
+        QualifiedSet<N, Vertex<N>> vs = vertices;
+        Set<N>[] be = beginEnd();
+        for (Object obj : coll) {
+            if (obj instanceof Vertex) {
+                Vertex<N> rv = (Vertex<N>) obj;
+                Vertex<N> ev = vs.get(rv.node());
+                Set<N> os = outs(ev);
+                Set<N> is = ins(ev);
+                if (!os.isEmpty() || !is.isEmpty()) {
+                    vs = put(vs, rv.node(), is, os, Set.of(), Set.of(), be, true);
+                }
+            }
+        }
+        return construct(be, vs);
+    }
+
+    @Override
+    public Dag<N> addUnique(Vertex<N> av) {
+        return add(av);
+    }
+
+    @Override
+    public Dag<N> addAllUnique(Collection<? extends Vertex<N>> coll) {
+        return addAll(coll);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> replace(Object pre, Vertex<N> post) {
+        Dag<N> result = remove(pre);
+        if (result != this) {
+            result = result.add(post);
+        }
+        return result;
+    }
+
+    @Override
+    public Dag<N> replaceFirst(Object pre, Vertex<N> post) {
+        return replace(pre, post);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> clear() {
+        return EMPTY;
+    }
+
+    @Override
+    public void javaSerialize(Serializer s) {
+        s.writeInt(vertices.size());
+        for (Object e : vertices) {
+            s.writeObject(e);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public void javaDeserialize(Deserializer s) {
+        int size = s.readInt();
+        Set<N> bs = Set.of();
+        Set<N> es = Set.of();
+        QualifiedSet<N, Vertex<N>> vs = EMPTY_VERTICES;
+        for (int i = 0; i < size; i++) {
+            Vertex<N> v = s.readObject();
+            vs = vs.add(v);
+            if (v.ins().isEmpty()) {
+                bs = bs.add(v.node());
+            }
+            if (v.outs().isEmpty()) {
+                es = es.add(v.node());
+            }
+        }
+        this.vertices = vs;
+        this.begin = bs;
+        this.end = es;
+    }
 }

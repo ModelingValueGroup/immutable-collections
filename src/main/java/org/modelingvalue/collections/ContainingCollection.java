@@ -36,6 +36,16 @@ public interface ContainingCollection<T> extends Collection<T>, Internable {
 
     T get(int index);
 
+    Collection<T> reverse();
+
+    Spliterator<T> reverseSpliterator();
+
+    ListIterator<T> listIterator();
+
+    ListIterator<T> listIterator(int index);
+
+    ListIterator<T> listIteratorAtEnd();
+
     ContainingCollection<T> remove(Object e);
 
     ContainingCollection<T> removeAll(Collection<?> e);
@@ -54,24 +64,8 @@ public interface ContainingCollection<T> extends Collection<T>, Internable {
 
     ContainingCollection<T> clear();
 
-    @Override
-    boolean contains(Object e);
-
-    default boolean notContains(Object e) {
-        return !contains(e);
-    }
-
-    Collection<T> reverse();
-
-    Spliterator<T> reverseSpliterator();
-
-    ListIterator<T> listIterator();
-
-    ListIterator<T> listIterator(int index);
-
-    ListIterator<T> listIteratorAtEnd();
-
     void javaSerialize(Serializer s);
 
     void javaDeserialize(Deserializer s);
+
 }

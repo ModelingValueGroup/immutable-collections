@@ -25,7 +25,7 @@ import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.TriFunction;
 
-public interface Dag<N> extends Collection<Vertex<N>>, Mergeable<Dag<N>> {
+public interface Dag<N> extends ContainingCollection<Vertex<N>>, Mergeable<Dag<N>> {
 
     @SuppressWarnings("unchecked")
     @SafeVarargs
@@ -120,4 +120,32 @@ public interface Dag<N> extends Collection<Vertex<N>>, Mergeable<Dag<N>> {
     List<N> topological();
 
     <A> A dfs(A acc, TriFunction<A, N, N, A> func, boolean frwrd);
+
+    @Override
+    Dag<N> remove(Object e);
+
+    @Override
+    Dag<N> removeAll(Collection<?> e);
+
+    @Override
+    Dag<N> add(Vertex<N> e);
+
+    @Override
+    Dag<N> addAll(Collection<? extends Vertex<N>> e);
+
+    @Override
+    Dag<N> addUnique(Vertex<N> e);
+
+    @Override
+    Dag<N> addAllUnique(Collection<? extends Vertex<N>> e);
+
+    @Override
+    Dag<N> replace(Object pre, Vertex<N> post);
+
+    @Override
+    Dag<N> replaceFirst(Object pre, Vertex<N> post);
+
+    @Override
+    Dag<N> clear();
+
 }
