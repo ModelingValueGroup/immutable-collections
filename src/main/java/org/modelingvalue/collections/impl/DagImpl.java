@@ -562,9 +562,11 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
         for (int i = 0; i < l; i += 2) {
             if (!edges[i].equals(edges[i + 1])) {
                 Vertex<E> v = vs.get(edges[i]);
-                Set<E> ins = ins(v);
                 Set<E> outs = outs(v);
-                vs = put(vs, edges[i], ins, outs, ins, outs.add(edges[i + 1]), be, true);
+                if (!outs.contains(edges[i + 1])) {
+                    Set<E> ins = ins(v);
+                    vs = put(vs, edges[i], ins, outs, ins, outs.add(edges[i + 1]), be, true);
+                }
             }
         }
         return vs;
@@ -578,9 +580,11 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
         for (int i = 0; i < l; i += 2) {
             if (!edges[i].equals(edges[i + 1])) {
                 Vertex<E> v = vs.get(edges[i]);
-                Set<E> ins = ins(v);
                 Set<E> outs = outs(v);
-                vs = put(vs, edges[i], ins, outs, ins, outs.remove(edges[i + 1]), be, true);
+                if (outs.contains(edges[i + 1])) {
+                    Set<E> ins = ins(v);
+                    vs = put(vs, edges[i], ins, outs, ins, outs.remove(edges[i + 1]), be, true);
+                }
             }
         }
         return vs;
@@ -645,56 +649,50 @@ public class DagImpl<N> extends CollectionImpl<Vertex<N>> implements Dag<N> {
     }
 
     private static <E> QualifiedSet<E, Vertex<E>> put(QualifiedSet<E, Vertex<E>> vs, E n, Set<E> pi, Set<E> po, Set<E> ni, Set<E> no, Set<E>[] be, boolean frwrd) {
-        if (!pi.equals(ni) || !po.equals(no)) {
-            if (ni.isEmpty() && no.isEmpty()) {
-                be[0] = be[0].remove(n);
-                be[1] = be[1].remove(n);
-                vs = vs.removeKey(n);
-            } else {
-                be[0] = ni.isEmpty() ? be[0].add(n) : be[0].remove(n);
-                be[1] = no.isEmpty() ? be[1].add(n) : be[1].remove(n);
-                vs = vs.put(Vertex.of(n, ni, no));
-            }
-            for (E in : pi) {
-                if (!ni.contains(in)) {
-                    Vertex<E> v = vs.get(in);
-                    Set<E> ins = ins(v);
-                    Set<E> outs = outs(v);
-                    vs = put(vs, in, ins, outs, ins, outs.remove(n), be, frwrd);
-                }
-            }
-            for (E in : ni) {
-                if (!pi.contains(in)) {
-                    Vertex<E> v = vs.get(in);
-                    Set<E> ins = ins(v);
-                    Set<E> outs = outs(v);
-                    vs = put(vs, in, ins, outs, ins, outs.add(n), be, frwrd);
-                }
-            }
-            for (E out : po) {
-                if (!no.contains(out)) {
-                    Vertex<E> v = vs.get(out);
-                    Set<E> ins = ins(v);
-                    Set<E> outs = outs(v);
-                    vs = put(vs, out, ins, outs, ins.remove(n), outs, be, frwrd);
-                }
-            }
-            for (E out : no) {
-                if (!po.contains(out)) {
-                    Vertex<E> v = vs.get(out);
-                    Set<E> ins = ins(v);
-                    Set<E> outs = outs(v);
-                    vs = put(vs, out, ins, outs, ins.add(n), outs, be, frwrd);
-                }
-            }
-            if (frwrd && !ni.isEmpty()) {
-                vs = removeCycles(vs, n, no.removeAll(po), be, true);
-            }
-            if (!frwrd && !no.isEmpty()) {
-                vs = removeCycles(vs, n, ni.removeAll(pi), be, false);
+        vs = putVertex(vs, n, ni, no, be);
+        for (E in : pi) {
+            if (!ni.contains(in)) {
+                Vertex<E> v = vs.get(in);
+                vs = putVertex(vs, in, ins(v), outs(v).remove(n), be);
             }
         }
+        for (E out : po) {
+            if (!no.contains(out)) {
+                Vertex<E> v = vs.get(out);
+                vs = putVertex(vs, out, ins(v).remove(n), outs(v), be);
+            }
+        }
+        for (E in : ni) {
+            if (!pi.contains(in)) {
+                Vertex<E> v = vs.get(in);
+                vs = putVertex(vs, in, ins(v), outs(v).add(n), be);
+            }
+        }
+        for (E out : no) {
+            if (!po.contains(out)) {
+                Vertex<E> v = vs.get(out);
+                vs = putVertex(vs, out, ins(v).add(n), outs(v), be);
+            }
+        }
+        if (frwrd && !ni.isEmpty()) {
+            vs = removeCycles(vs, n, no.removeAll(po), be, true);
+        }
+        if (!frwrd && !no.isEmpty()) {
+            vs = removeCycles(vs, n, ni.removeAll(pi), be, false);
+        }
         return vs;
+    }
+
+    private static <E> QualifiedSet<E, Vertex<E>> putVertex(QualifiedSet<E, Vertex<E>> vs, E n, Set<E> ni, Set<E> no, Set<E>[] be) {
+        if (ni.isEmpty() && no.isEmpty()) {
+            be[0] = be[0].remove(n);
+            be[1] = be[1].remove(n);
+            return vs.removeKey(n);
+        } else {
+            be[0] = ni.isEmpty() ? be[0].add(n) : be[0].remove(n);
+            be[1] = no.isEmpty() ? be[1].add(n) : be[1].remove(n);
+            return vs.put(Vertex.of(n, ni, no));
+        }
     }
 
 }
