@@ -23,7 +23,7 @@ package org.modelingvalue.collections;
 import org.modelingvalue.collections.impl.DirGraphImpl;
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.Pair;
-import org.modelingvalue.collections.util.TriFunction;
+import org.modelingvalue.collections.util.QuadFunction;
 
 public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<DirGraph<N>> {
 
@@ -57,10 +57,18 @@ public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<
 
     List<N> topological();
 
-    <A> A dfs(A acc, TriFunction<A, N, N, A> func, boolean frwrd);
+    <A> A dfs(A acc, QuadFunction<A, N, N, Boolean, A> func, boolean frwrd);
+
+    Dag<N> removeCycles();
+
+    Dag<N> removeCycles(Collection<N> begin);
 
     @Override
     Dag<N> clear();
+
+    DirGraph<N> retainBegin(Set<N> begin);
+
+    DirGraph<N> retainEnd(Set<N> begin);
 
     DirGraph<N> addEdge(N from, N to);
 

@@ -1,6 +1,7 @@
 package org.modelingvalue.collections;
 
 import org.modelingvalue.collections.impl.DirGraphImpl;
+import org.modelingvalue.collections.util.TriFunction;
 
 public interface Dag<N> extends DirGraph<N> {
 
@@ -8,6 +9,14 @@ public interface Dag<N> extends DirGraph<N> {
     static <E> Dag<E> of() {
         return DirGraphImpl.EMPTY;
     }
+
+    <A> A dfs(A acc, TriFunction<A, N, N, A> func, boolean frwrd);
+
+    @Override
+    Dag<N> retainBegin(Set<N> begin);
+
+    @Override
+    Dag<N> retainEnd(Set<N> begin);
 
     @Override
     Dag<N> removeEdge(N from, N to);

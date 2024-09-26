@@ -6,6 +6,7 @@ import org.modelingvalue.collections.DirGraph;
 import org.modelingvalue.collections.QualifiedSet;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.Vertex;
+import org.modelingvalue.collections.util.TriFunction;
 
 public class DagImpl<N> extends DirGraphImpl<N> implements Dag<N> {
 
@@ -15,7 +16,7 @@ public class DagImpl<N> extends DirGraphImpl<N> implements Dag<N> {
         super(begin, end, vertices);
     }
 
-    private DagImpl(Set<N>[] beginEnd, QualifiedSet<N, Vertex<N>> vertices) {
+    protected DagImpl(Set<N>[] beginEnd, QualifiedSet<N, Vertex<N>> vertices) {
         this(beginEnd[0], beginEnd[1], vertices);
     }
 
@@ -26,6 +27,31 @@ public class DagImpl<N> extends DirGraphImpl<N> implements Dag<N> {
         } else {
             return vertices.isEmpty() ? Dag.of() : this.vertices().equals(vertices) ? this : new DagImpl<N>(beginEnd, vertices);
         }
+    }
+
+    @Override
+    public Dag<N> removeCycles() {
+        return this;
+    }
+
+    @Override
+    public Dag<N> removeCycles(Collection<N> start) {
+        return removeAll(begin().removeAll(start));
+    }
+
+    @Override
+    public <A> A dfs(A acc, TriFunction<A, N, N, A> func, boolean frwrd) {
+        return dfs(acc, (a, f, t, c) -> func.apply(a, f, t), frwrd);
+    }
+
+    @Override
+    public Dag<N> retainBegin(Set<N> begin) {
+        return (Dag<N>) super.retainBegin(begin);
+    }
+
+    @Override
+    public Dag<N> retainEnd(Set<N> end) {
+        return (Dag<N>) super.retainEnd(end);
     }
 
     @Override

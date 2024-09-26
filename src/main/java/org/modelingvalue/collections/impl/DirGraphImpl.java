@@ -78,14 +78,25 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     }
 
     @Override
-    public <A> A dfs(A acc, TriFunction<A, N, N, A> func, boolean frwrd) {
-        return dfs(vertices, begin, end, acc, func, frwrd);
+    public <A> A dfs(A acc, QuadFunction<A, N, N, Boolean, A> func, boolean frwrd) {
+        return dfs(vertices, frwrd ? begin : end, acc, func, frwrd);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public List<N> topological() {
-        return dfs(List.of(), (l, f, t) -> l.prepend(t), true);
+        return dfs(List.of(), (l, f, t, c) -> c ? l : l.prepend(t), true);
+    }
+
+    @Override
+    public Dag<N> removeCycles() {
+        return removeCycles(begin());
+    }
+
+    @Override
+    public Dag<N> removeCycles(Collection<N> start) {
+        Set<N>[] be = beginEnd();
+        return new DagImpl<N>(be, removeCycles(vertices, start, be, true));
     }
 
     @Override
@@ -226,10 +237,46 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
         Set<N> me = end.merge(ea);
         QualifiedSet<N, Vertex<N>> mv = vertices.merge(va);
         Set<N>[] be = new Set[]{mb.filter(b -> ins(mv.get(b)).isEmpty()).asSet(), me.filter(b -> outs(mv.get(b)).isEmpty()).asSet()};
-        return new DirGraphImpl<N>(be, removeCycles(mv, null, mb, be, true));
+        return new DirGraphImpl<N>(be, mv);
     }
 
     // change methods
+
+    @Override
+    public DirGraph<N> retainBegin(Set<N> begin) {
+        Set<N> rs = begin().removeAll(begin);
+        if (rs.isEmpty()) {
+            return this;
+        } else {
+            Set<N>[] be = beginEnd();
+            QualifiedSet<N, Vertex<N>> vs = vertices;
+            do {
+                for (N n : rs) {
+                    vs = put(vs, n, Set.of(), outs(vs.get(n)), Set.of(), Set.of(), be, true);
+                }
+                rs = be[0].removeAll(begin);
+            } while (!rs.isEmpty());
+            return construct(be, vs, false);
+        }
+    }
+
+    @Override
+    public DirGraph<N> retainEnd(Set<N> end) {
+        Set<N> rs = end().removeAll(end);
+        if (rs.isEmpty()) {
+            return this;
+        } else {
+            Set<N>[] be = beginEnd();
+            QualifiedSet<N, Vertex<N>> vs = vertices;
+            do {
+                for (N n : rs) {
+                    vs = put(vs, n, ins(vs.get(n)), Set.of(), Set.of(), Set.of(), be, true);
+                }
+                rs = be[1].removeAll(end);
+            } while (!rs.isEmpty());
+            return construct(be, vs, false);
+        }
+    }
 
     @Override
     public DirGraph<N> putBegin(N node, Set<N> outs) {
@@ -588,23 +635,11 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
         return vs;
     }
 
-    @SuppressWarnings("unchecked")
-    private static <E, A> A dfs(QualifiedSet<E, Vertex<E>> vs, Set<E> b, Set<E> e, A acc, TriFunction<A, E, E, A> func, boolean frwrd) {
-        return dfs(vs, null, frwrd ? b : e, acc, (a, f, t, c) -> c ? throwCycleError(a, f, t) : func.apply(a, f, t), frwrd);
-    }
-
-    private static <E, A> A throwCycleError(A a, E f, E t) {
-        throw new IllegalStateException("Cycle detected " + f + " -> " + t);
-    }
-
-    private static <A, E> A dfs(QualifiedSet<E, Vertex<E>> vs, E a, Set<E> b, A acc, QuadFunction<A, E, E, Boolean, A> func, boolean frwrd) {
+    private static <A, E> A dfs(QualifiedSet<E, Vertex<E>> vs, Collection<E> s, A acc, QuadFunction<A, E, E, Boolean, A> func, boolean frwrd) {
         int size = vs.size();
         BitSet temp = new BitSet(size), perm = new BitSet(size);
-        if (a != null) {
-            temp.set(vs.index(vs.get(a)));
-        }
-        for (E n : b) {
-            acc = visit(vs, acc, a, n, func, temp, perm, frwrd);
+        for (E n : s) {
+            acc = visit(vs, acc, null, n, func, temp, perm, frwrd);
         }
         return acc;
     }
@@ -628,20 +663,13 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
         }
     }
 
-    private static <E> QualifiedSet<E, Vertex<E>> removeCycles(QualifiedSet<E, Vertex<E>> vs, E n, Set<E> as, Set<E>[] be, boolean frwrd) {
-        for (E a : as) {
-            if (outs(vs.get(a)).isEmpty()) {
-                as = as.remove(a);
-            }
-        }
-        if (!as.isEmpty()) {
-            Set<Pair<E, E>> cycles = dfs(vs, n, as, Set.of(), (cs, f, t, c) -> c ? cs.add(Pair.of(f, t)) : cs, frwrd);
-            for (Pair<E, E> edge : cycles) {
-                Vertex<E> v = vs.get(edge.a());
-                Set<E> ins = ins(v);
-                Set<E> outs = outs(v);
-                vs = put(vs, edge.a(), ins, outs, !frwrd ? ins.remove(edge.b()) : ins, frwrd ? outs.remove(edge.b()) : outs, be, frwrd);
-            }
+    private static <E> QualifiedSet<E, Vertex<E>> removeCycles(QualifiedSet<E, Vertex<E>> vs, Collection<E> s, Set<E>[] be, boolean frwrd) {
+        Set<Pair<E, E>> cycles = dfs(vs, s, Set.of(), (cs, f, t, c) -> c ? cs.add(Pair.of(f, t)) : cs, frwrd);
+        for (Pair<E, E> edge : cycles) {
+            Vertex<E> v = vs.get(edge.a());
+            Set<E> ins = ins(v);
+            Set<E> outs = outs(v);
+            vs = put(vs, edge.a(), ins, outs, !frwrd ? ins.remove(edge.b()) : ins, frwrd ? outs.remove(edge.b()) : outs, be, frwrd);
         }
         return vs;
     }
@@ -671,12 +699,6 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
                 Vertex<E> v = vs.get(out);
                 vs = putVertex(vs, out, ins(v).add(n), outs(v), be);
             }
-        }
-        if (frwrd && !ni.isEmpty()) {
-            vs = removeCycles(vs, n, no.removeAll(po), be, true);
-        }
-        if (!frwrd && !no.isEmpty()) {
-            vs = removeCycles(vs, n, ni.removeAll(pi), be, false);
         }
         return vs;
     }
