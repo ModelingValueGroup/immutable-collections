@@ -252,7 +252,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             QualifiedSet<N, Vertex<N>> vs = vertices;
             do {
                 for (N n : rs) {
-                    vs = put(vs, n, Set.of(), outs(vs.get(n)), Set.of(), Set.of(), be, true);
+                    vs = put(vs, n, Set.of(), outs(vs.get(n)), Set.of(), Set.of(), be);
                 }
                 rs = be[0].removeAll(begin);
             } while (!rs.isEmpty());
@@ -270,7 +270,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             QualifiedSet<N, Vertex<N>> vs = vertices;
             do {
                 for (N n : rs) {
-                    vs = put(vs, n, ins(vs.get(n)), Set.of(), Set.of(), Set.of(), be, true);
+                    vs = put(vs, n, ins(vs.get(n)), Set.of(), Set.of(), Set.of(), be);
                 }
                 rs = be[1].removeAll(end);
             } while (!rs.isEmpty());
@@ -299,7 +299,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             return this;
         } else {
             Set<N>[] be = beginEnd();
-            return construct(be, put(vertices, node, is, os, ins, outs, be, true), true);
+            return construct(be, put(vertices, node, is, os, ins, outs, be), true);
         }
     }
 
@@ -313,7 +313,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
         } else {
             Set<N>[] be = beginEnd();
             Set<N> is = ins(v);
-            return construct(be, put(vertices, node, is, os, is, outs, be, false), true);
+            return construct(be, put(vertices, node, is, os, is, outs, be), true);
         }
     }
 
@@ -327,7 +327,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
         } else {
             Set<N>[] be = beginEnd();
             Set<N> os = outs(v);
-            return construct(be, put(vertices, node, is, os, ins, os, be, false), true);
+            return construct(be, put(vertices, node, is, os, ins, os, be), true);
         }
     }
 
@@ -340,7 +340,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             return this;
         } else {
             Set<N>[] be = beginEnd();
-            return construct(be, put(vertices, node, is, os, Set.of(), Set.of(), be, true), false);
+            return construct(be, put(vertices, node, is, os, Set.of(), Set.of(), be), false);
         }
     }
 
@@ -353,7 +353,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
         } else {
             Set<N>[] be = beginEnd();
             Set<N> is = ins(v);
-            return construct(be, put(vertices, node, is, os, is, Set.of(), be, true), false);
+            return construct(be, put(vertices, node, is, os, is, Set.of(), be), false);
         }
     }
 
@@ -366,7 +366,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
         } else {
             Set<N>[] be = beginEnd();
             Set<N> os = outs(v);
-            return construct(be, put(vertices, node, is, os, Set.of(), os, be, false), false);
+            return construct(be, put(vertices, node, is, os, Set.of(), os, be), false);
         }
     }
 
@@ -382,7 +382,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             } else {
                 Set<N>[] be = beginEnd();
                 Set<N> is = ins(v);
-                return construct(be, put(vertices, from, is, os, is, os.add(to), be, true), true);
+                return construct(be, put(vertices, from, is, os, is, os.add(to), be), true);
             }
         }
     }
@@ -397,7 +397,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             if (os.contains(to)) {
                 Set<N>[] be = beginEnd();
                 Set<N> is = ins(v);
-                return construct(be, put(vertices, from, is, os, is, os.remove(to), be, true), false);
+                return construct(be, put(vertices, from, is, os, is, os.remove(to), be), false);
             } else {
                 return this;
             }
@@ -610,7 +610,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
                 Set<E> outs = outs(v);
                 if (!outs.contains(edges[i + 1])) {
                     Set<E> ins = ins(v);
-                    vs = put(vs, edges[i], ins, outs, ins, outs.add(edges[i + 1]), be, true);
+                    vs = put(vs, edges[i], ins, outs, ins, outs.add(edges[i + 1]), be);
                 }
             }
         }
@@ -628,7 +628,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
                 Set<E> outs = outs(v);
                 if (outs.contains(edges[i + 1])) {
                     Set<E> ins = ins(v);
-                    vs = put(vs, edges[i], ins, outs, ins, outs.remove(edges[i + 1]), be, true);
+                    vs = put(vs, edges[i], ins, outs, ins, outs.remove(edges[i + 1]), be);
                 }
             }
         }
@@ -669,12 +669,12 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             Vertex<E> v = vs.get(edge.a());
             Set<E> ins = ins(v);
             Set<E> outs = outs(v);
-            vs = put(vs, edge.a(), ins, outs, !frwrd ? ins.remove(edge.b()) : ins, frwrd ? outs.remove(edge.b()) : outs, be, frwrd);
+            vs = put(vs, edge.a(), ins, outs, !frwrd ? ins.remove(edge.b()) : ins, frwrd ? outs.remove(edge.b()) : outs, be);
         }
         return vs;
     }
 
-    private static <E> QualifiedSet<E, Vertex<E>> put(QualifiedSet<E, Vertex<E>> vs, E n, Set<E> pi, Set<E> po, Set<E> ni, Set<E> no, Set<E>[] be, boolean frwrd) {
+    private static <E> QualifiedSet<E, Vertex<E>> put(QualifiedSet<E, Vertex<E>> vs, E n, Set<E> pi, Set<E> po, Set<E> ni, Set<E> no, Set<E>[] be) {
         vs = putVertex(vs, n, ni, no, be);
         for (E in : pi) {
             if (!ni.contains(in)) {
@@ -767,7 +767,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             return this;
         } else {
             Set<N>[] be = beginEnd();
-            return construct(be, put(vs, av.node(), is, os, is.addAll(av.ins()), os.addAll(av.outs()), be, true), true);
+            return construct(be, put(vs, av.node(), is, os, is.addAll(av.ins()), os.addAll(av.outs()), be), true);
         }
     }
 
@@ -781,7 +781,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             Set<N> ins = ins(ev);
             Set<N> outs = outs(ev);
             if (!ins.containsAll(av.ins()) || !outs.containsAll(av.outs())) {
-                vs = put(vs, av.node(), ins, outs, ins.addAll(av.ins()), outs.addAll(av.outs()), be, true);
+                vs = put(vs, av.node(), ins, outs, ins.addAll(av.ins()), outs.addAll(av.outs()), be);
             }
         }
         return construct(be, vs, true);
@@ -798,7 +798,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             Set<N> is = ins(ev);
             if (!os.isEmpty() || !is.isEmpty()) {
                 Set<N>[] be = beginEnd();
-                vs = put(vs, rv.node(), is, os, Set.of(), Set.of(), be, true);
+                vs = put(vs, rv.node(), is, os, Set.of(), Set.of(), be);
                 return construct(be, vs, false);
             }
         }
@@ -817,7 +817,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
                 Set<N> os = outs(ev);
                 Set<N> is = ins(ev);
                 if (!os.isEmpty() || !is.isEmpty()) {
-                    vs = put(vs, rv.node(), is, os, Set.of(), Set.of(), be, true);
+                    vs = put(vs, rv.node(), is, os, Set.of(), Set.of(), be);
                 }
             }
         }
