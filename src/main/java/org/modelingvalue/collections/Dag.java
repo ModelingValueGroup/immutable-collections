@@ -10,13 +10,43 @@ public interface Dag<N> extends DirGraph<N> {
         return DirGraphImpl.EMPTY;
     }
 
-    <A> A dfs(A acc, TriFunction<A, N, N, A> func, boolean frwrd);
+    <A> A dfs(A acc, TriFunction<A, N, N, A> func);
+
+    <A> A invDfs(A acc, TriFunction<A, N, N, A> func);
 
     @Override
-    Dag<N> retainBegin(Set<N> begin);
+    Dag<N> removeNodes(Set<N> e);
 
     @Override
-    Dag<N> retainEnd(Set<N> begin);
+    Dag<N> retainNodes(Set<N> e);
+
+    @SuppressWarnings("unchecked")
+    @Override
+    Dag<N> removeNodes(N... e);
+
+    @SuppressWarnings("unchecked")
+    @Override
+    Dag<N> retainNodes(N... e);
+
+    @Override
+    Dag<N> removeDisconnected();
+
+    @Override
+    Dag<N> invRemoveDisconnected();
+
+    @Override
+    Dag<N> setBegin(Set<N> begin);
+
+    @Override
+    Dag<N> setEnd(Set<N> begin);
+
+    @SuppressWarnings("unchecked")
+    @Override
+    Dag<N> setBegin(N... begin);
+
+    @SuppressWarnings("unchecked")
+    @Override
+    Dag<N> setEnd(N... begin);
 
     @Override
     Dag<N> removeEdge(N from, N to);

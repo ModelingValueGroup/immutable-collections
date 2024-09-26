@@ -6,6 +6,8 @@ import org.modelingvalue.collections.DirGraph;
 import org.modelingvalue.collections.QualifiedSet;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.Vertex;
+import org.modelingvalue.collections.util.Pair;
+import org.modelingvalue.collections.util.QuadFunction;
 import org.modelingvalue.collections.util.TriFunction;
 
 public class DagImpl<N> extends DirGraphImpl<N> implements Dag<N> {
@@ -30,28 +32,92 @@ public class DagImpl<N> extends DirGraphImpl<N> implements Dag<N> {
     }
 
     @Override
+    public Set<Pair<N, N>> cycles() {
+        return Set.of();
+    }
+
+    @Override
+    public Dag<N> removeNodes(Set<N> e) {
+        return (Dag<N>) super.removeNodes(e);
+    }
+
+    @Override
+    public Dag<N> retainNodes(Set<N> e) {
+        return (Dag<N>) super.retainNodes(e);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> removeNodes(N... e) {
+        return (Dag<N>) super.removeNodes(e);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> retainNodes(N... e) {
+        return (Dag<N>) super.retainNodes(e);
+    }
+
+    @Override
+    public Dag<N> removeDisconnected() {
+        return this;
+    }
+
+    @Override
+    public Dag<N> invRemoveDisconnected() {
+        return this;
+    }
+
+    @Override
     public Dag<N> removeCycles() {
         return this;
     }
 
     @Override
-    public Dag<N> removeCycles(Collection<N> start) {
-        return removeAll(begin().removeAll(start));
+    public Dag<N> invRemoveCycles() {
+        return this;
     }
 
     @Override
-    public <A> A dfs(A acc, TriFunction<A, N, N, A> func, boolean frwrd) {
-        return dfs(acc, (a, f, t, c) -> func.apply(a, f, t), frwrd);
+    public <A> A dfs(A acc, TriFunction<A, N, N, A> func) {
+        return dfs(acc, (a, f, t, c) -> func.apply(a, f, t));
     }
 
     @Override
-    public Dag<N> retainBegin(Set<N> begin) {
-        return (Dag<N>) super.retainBegin(begin);
+    public <A> A invDfs(A acc, TriFunction<A, N, N, A> func) {
+        return invDfs(acc, (a, f, t, c) -> func.apply(a, f, t));
     }
 
     @Override
-    public Dag<N> retainEnd(Set<N> end) {
-        return (Dag<N>) super.retainEnd(end);
+    public <A> A dfs(A acc, QuadFunction<A, N, N, Boolean, A> func) {
+        return dfs(vertices(), begin(), acc, func, true);
+    }
+
+    @Override
+    public <A> A invDfs(A acc, QuadFunction<A, N, N, Boolean, A> func) {
+        return dfs(vertices(), end(), acc, func, false);
+    }
+
+    @Override
+    public Dag<N> setBegin(Set<N> begin) {
+        return (Dag<N>) super.setBegin(begin);
+    }
+
+    @Override
+    public Dag<N> setEnd(Set<N> end) {
+        return (Dag<N>) super.setEnd(end);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> setBegin(N... begin) {
+        return (Dag<N>) super.setBegin(begin);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> setEnd(N... end) {
+        return (Dag<N>) super.setEnd(end);
     }
 
     @Override

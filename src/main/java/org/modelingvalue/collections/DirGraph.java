@@ -37,9 +37,17 @@ public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<
         }
     }
 
+    Set<Pair<N, N>> cycles();
+
+    Set<N>[] beginEnd();
+
     Set<N> begin();
 
     Set<N> end();
+
+    Set<N> connected();
+
+    Set<N> invConnected();
 
     Collection<N> nodes();
 
@@ -51,24 +59,50 @@ public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<
 
     Set<N> outs(N node);
 
+    Vertex<N> vertex(N node);
+
     boolean containsEdge(N from, N to);
 
     boolean containsNode(N node);
 
     List<N> topological();
 
-    <A> A dfs(A acc, QuadFunction<A, N, N, Boolean, A> func, boolean frwrd);
+    List<N> invTopological();
+
+    <A> A dfs(A acc, QuadFunction<A, N, N, Boolean, A> func);
+
+    <A> A invDfs(A acc, QuadFunction<A, N, N, Boolean, A> func);
 
     Dag<N> removeCycles();
 
-    Dag<N> removeCycles(Collection<N> begin);
+    Dag<N> invRemoveCycles();
 
     @Override
     Dag<N> clear();
 
-    DirGraph<N> retainBegin(Set<N> begin);
+    DirGraph<N> removeNodes(Set<N> e);
 
-    DirGraph<N> retainEnd(Set<N> begin);
+    DirGraph<N> retainNodes(Set<N> e);
+
+    @SuppressWarnings("unchecked")
+    DirGraph<N> removeNodes(N... e);
+
+    @SuppressWarnings("unchecked")
+    DirGraph<N> retainNodes(N... e);
+
+    DirGraph<N> removeDisconnected();
+
+    DirGraph<N> invRemoveDisconnected();
+
+    DirGraph<N> setBegin(Set<N> begin);
+
+    DirGraph<N> setEnd(Set<N> end);
+
+    @SuppressWarnings("unchecked")
+    DirGraph<N> setBegin(N... begin);
+
+    @SuppressWarnings("unchecked")
+    DirGraph<N> setEnd(N... end);
 
     DirGraph<N> addEdge(N from, N to);
 

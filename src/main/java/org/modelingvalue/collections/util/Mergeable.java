@@ -36,7 +36,7 @@ public interface Mergeable<T> {
 
     @SuppressWarnings("unchecked")
     default T merge(T a, T b) {
-        T[] us = (T[]) Array.newInstance(getClass(), 2);
+        T[] us = (T[]) Array.newInstance(getMeetClass(), 2);
         us[0] = a;
         us[1] = b;
         return merge(us, 2);

@@ -26,22 +26,23 @@ import java.util.Random;
 
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
+import org.modelingvalue.collections.Dag;
 import org.modelingvalue.collections.DirGraph;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Set;
 
-public class DagTest {
+public class DirGraphTest {
     @Test
     public void constructor() {
         DirGraph<String> dag = DirGraph.of(//
                 "c", "a", //
                 "a", "b", //
-                "b", "c");
-        assertFalse(dag.containsEdge("a", "b"));
+                "b", "c").setBegin("a");
+        assertTrue(dag.containsEdge("a", "b"));
         assertTrue(dag.containsEdge("b", "c"));
-        assertTrue(dag.containsEdge("c", "a"));
-        assertEquals(Set.of("b"), dag.begin());
-        assertEquals(Set.of("a"), dag.end());
+        assertFalse(dag.containsEdge("c", "a"));
+        assertEquals(Set.of("a"), dag.begin());
+        assertEquals(Set.of("c"), dag.end());
         assertEquals(3, dag.size());
     }
 
@@ -148,7 +149,7 @@ public class DagTest {
 
     @Test
     public void merge3() {
-        DirGraph<String> dag0 = DirGraph.of(//
+        Dag<String> dag0 = DirGraph.of(//
                 "1", "3", //
                 "3", "6", //
                 "2", "4", //
@@ -156,7 +157,7 @@ public class DagTest {
                 "4", "6", //
                 "4", "7", //
                 "7", "8", //
-                "8", "5");
+                "8", "5").removeCycles();
         assertEquals(8, dag0.edges().size());
         DirGraph<String> dag1 = DirGraph.of(//
                 "1", "3", //
@@ -170,7 +171,7 @@ public class DagTest {
                 "5", "7", //
                 "7", "8", //
                 "6", "3");
-        DirGraph<String> merged = DirGraph.<String> of().merge(dag1, dag2);
+        Dag<String> merged = DirGraph.<String> of().merge(dag1, dag2).removeCycles();
         assertEquals(merged, dag0);
         assertEquals(merged, dag0);
     }
