@@ -105,6 +105,11 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     }
 
     @Override
+    public Set<Pair<N, N>> invCycles() {
+        return invDfs(Set.of(), (cs, t, f, c) -> c ? cs.add(Pair.of(t, f)) : cs);
+    }
+
+    @Override
     public Dag<N> removeCycles() {
         DirGraph<N> dg = removeDisconnected();
         Set<N>[] be = dg.beginEnd();
@@ -306,10 +311,10 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             for (N n : e) {
                 Vertex<N> v = vertex(n);
                 if (v.ins().isEmpty()) {
-                    be[0] = be[0].add(v.node());
+                    be[0] = be[0].add(n);
                 }
                 if (v.outs().isEmpty()) {
-                    be[1] = be[1].add(v.node());
+                    be[1] = be[1].add(n);
                 }
                 vs = vs.put(v);
             }
@@ -329,14 +334,36 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
         return retainNodes(Set.of(e));
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public DirGraph<N> removeDisconnected() {
-        return retainNodes(connected());
+        Set<N>[] be = new Set[]{Set.of(), Set.of()};
+        return construct(be, dfs(vertices, begin, EMPTY_VERTICES, (vs, f, t, c) -> {
+            Vertex<N> v = vertex(t);
+            if (v.ins().isEmpty()) {
+                be[0] = be[0].add(t);
+            }
+            if (v.outs().isEmpty()) {
+                be[1] = be[1].add(t);
+            }
+            return vs.put(v);
+        }, true), false);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public DirGraph<N> invRemoveDisconnected() {
-        return retainNodes(invConnected());
+        Set<N>[] be = new Set[]{Set.of(), Set.of()};
+        return construct(be, dfs(vertices, end, EMPTY_VERTICES, (vs, t, f, c) -> {
+            Vertex<N> v = vertex(f);
+            if (v.ins().isEmpty()) {
+                be[0] = be[0].add(f);
+            }
+            if (v.outs().isEmpty()) {
+                be[1] = be[1].add(f);
+            }
+            return vs.put(v);
+        }, false), false);
     }
 
     @Override

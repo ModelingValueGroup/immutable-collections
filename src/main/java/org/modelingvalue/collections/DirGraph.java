@@ -39,6 +39,8 @@ public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<
 
     Set<Pair<N, N>> cycles();
 
+    Set<Pair<N, N>> invCycles();
+
     Set<N>[] beginEnd();
 
     Set<N> begin();

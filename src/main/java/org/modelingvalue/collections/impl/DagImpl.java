@@ -37,6 +37,11 @@ public class DagImpl<N> extends DirGraphImpl<N> implements Dag<N> {
     }
 
     @Override
+    public Set<Pair<N, N>> invCycles() {
+        return Set.of();
+    }
+
+    @Override
     public Dag<N> removeNodes(Set<N> e) {
         return (Dag<N>) super.removeNodes(e);
     }
