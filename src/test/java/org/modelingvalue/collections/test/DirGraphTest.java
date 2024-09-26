@@ -171,9 +171,9 @@ public class DirGraphTest {
                 "5", "7", //
                 "7", "8", //
                 "6", "3");
-        Dag<String> merged = DirGraph.<String> of().merge(dag1, dag2).removeCycles();
-        assertEquals(merged, dag0);
-        assertEquals(merged, dag0);
+        DirGraph<String> merged0 = Dag.<String> of().merge(dag1, dag2);
+        Dag<String> merged1 = merged0.removeCycles();
+        assertEquals(merged1, dag0);
     }
 
     @Test

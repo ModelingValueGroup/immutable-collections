@@ -59,6 +59,11 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     }
 
     @SuppressWarnings("unchecked")
+    private QualifiedSet<N, Vertex<N>> emptyVertices() {
+        return EMPTY_VERTICES;
+    }
+
+    @SuppressWarnings("unchecked")
     private DirGraphImpl(Set<N>[] beginEnd, N[] edges) {
         this(beginEnd, addEdges(EMPTY_VERTICES, edges, beginEnd));
     }
@@ -107,20 +112,6 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     @Override
     public Set<Pair<N, N>> invCycles() {
         return invDfs(Set.of(), (cs, t, f, c) -> c ? cs.add(Pair.of(t, f)) : cs);
-    }
-
-    @Override
-    public Dag<N> removeCycles() {
-        DirGraph<N> dg = removeDisconnected();
-        Set<N>[] be = dg.beginEnd();
-        return new DagImpl<N>(be, removeCycles(dg.vertices(), dg.begin(), be, true));
-    }
-
-    @Override
-    public Dag<N> invRemoveCycles() {
-        DirGraph<N> dg = invRemoveDisconnected();
-        Set<N>[] be = dg.beginEnd();
-        return new DagImpl<N>(be, removeCycles(dg.vertices(), dg.end(), be, false));
     }
 
     @Override
@@ -281,6 +272,54 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
 
     // change methods
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> removeCycles() {
+        Set<N>[] be = new Set[]{Set.of(), Set.of()};
+        return new DagImpl<N>(be, bfs(vertices, begin, emptyVertices(), (vs, f, t, c) -> {
+            if (c) {
+                Vertex<N> v = vs.get(f);
+                Set<N> ins = ins(v);
+                Set<N> outs = outs(v);
+                assert outs.contains(t);
+                return put(vs, f, ins, outs, ins, outs.remove(t), be);
+            } else {
+                Vertex<N> v = vertex(t);
+                if (v.ins().isEmpty()) {
+                    be[0] = be[0].add(t);
+                }
+                if (v.outs().isEmpty()) {
+                    be[1] = be[1].add(t);
+                }
+                return vs.put(v);
+            }
+        }, true));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> invRemoveCycles() {
+        Set<N>[] be = new Set[]{Set.of(), Set.of()};
+        return new DagImpl<N>(be, bfs(vertices, end, emptyVertices(), (vs, t, f, c) -> {
+            if (c) {
+                Vertex<N> v = vs.get(t);
+                Set<N> ins = ins(v);
+                Set<N> outs = outs(v);
+                assert ins.contains(f);
+                return put(vs, t, ins, outs, ins.remove(f), outs, be);
+            } else {
+                Vertex<N> v = vertex(f);
+                if (v.ins().isEmpty()) {
+                    be[0] = be[0].add(f);
+                }
+                if (v.outs().isEmpty()) {
+                    be[1] = be[1].add(f);
+                }
+                return vs.put(v);
+            }
+        }, false));
+    }
+
     @Override
     public DirGraph<N> removeNodes(Set<N> e) {
         if (e.isEmpty()) {
@@ -306,7 +345,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
         if (e.isEmpty()) {
             return EMPTY;
         } else {
-            QualifiedSet<N, Vertex<N>> vs = EMPTY_VERTICES;
+            QualifiedSet<N, Vertex<N>> vs = emptyVertices();
             Set<N>[] be = new Set[]{Set.of(), Set.of()};
             for (N n : e) {
                 Vertex<N> v = vertex(n);
@@ -338,15 +377,19 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     @Override
     public DirGraph<N> removeDisconnected() {
         Set<N>[] be = new Set[]{Set.of(), Set.of()};
-        return construct(be, dfs(vertices, begin, EMPTY_VERTICES, (vs, f, t, c) -> {
-            Vertex<N> v = vertex(t);
-            if (v.ins().isEmpty()) {
-                be[0] = be[0].add(t);
+        return construct(be, dfs(vertices, begin, emptyVertices(), (vs, f, t, c) -> {
+            if (c) {
+                return vs;
+            } else {
+                Vertex<N> v = vertex(t);
+                if (v.ins().isEmpty()) {
+                    be[0] = be[0].add(t);
+                }
+                if (v.outs().isEmpty()) {
+                    be[1] = be[1].add(t);
+                }
+                return vs.put(v);
             }
-            if (v.outs().isEmpty()) {
-                be[1] = be[1].add(t);
-            }
-            return vs.put(v);
         }, true), false);
     }
 
@@ -354,15 +397,19 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     @Override
     public DirGraph<N> invRemoveDisconnected() {
         Set<N>[] be = new Set[]{Set.of(), Set.of()};
-        return construct(be, dfs(vertices, end, EMPTY_VERTICES, (vs, t, f, c) -> {
-            Vertex<N> v = vertex(f);
-            if (v.ins().isEmpty()) {
-                be[0] = be[0].add(f);
+        return construct(be, dfs(vertices, end, emptyVertices(), (vs, t, f, c) -> {
+            if (c) {
+                return vs;
+            } else {
+                Vertex<N> v = vertex(f);
+                if (v.ins().isEmpty()) {
+                    be[0] = be[0].add(f);
+                }
+                if (v.outs().isEmpty()) {
+                    be[1] = be[1].add(f);
+                }
+                return vs.put(v);
             }
-            if (v.outs().isEmpty()) {
-                be[1] = be[1].add(f);
-            }
-            return vs.put(v);
         }, false), false);
     }
 
@@ -783,15 +830,23 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     }
 
     protected static <A, E> A dfs(QualifiedSet<E, Vertex<E>> vs, Collection<E> s, A acc, QuadFunction<A, E, E, Boolean, A> func, boolean frwrd) {
+        return visit(vs, s, acc, func, frwrd, false);
+    }
+
+    protected static <A, E> A bfs(QualifiedSet<E, Vertex<E>> vs, Collection<E> s, A acc, QuadFunction<A, E, E, Boolean, A> func, boolean frwrd) {
+        return visit(vs, s, acc, func, frwrd, true);
+    }
+
+    protected static <A, E> A visit(QualifiedSet<E, Vertex<E>> vs, Collection<E> s, A acc, QuadFunction<A, E, E, Boolean, A> func, boolean frwrd, boolean bfs) {
         int size = vs.size();
         BitSet temp = new BitSet(size), perm = new BitSet(size);
         for (E n : s) {
-            acc = visit(vs, acc, null, n, func, temp, perm, frwrd);
+            acc = visit(vs, acc, null, n, func, temp, perm, frwrd, bfs);
         }
         return acc;
     }
 
-    private static <E, A> A visit(QualifiedSet<E, Vertex<E>> vs, A a, E f, E t, QuadFunction<A, E, E, Boolean, A> func, BitSet temp, BitSet perm, boolean frwrd) {
+    private static <E, A> A visit(QualifiedSet<E, Vertex<E>> vs, A a, E f, E t, QuadFunction<A, E, E, Boolean, A> func, BitSet temp, BitSet perm, boolean frwrd, boolean bfs) {
         Vertex<E> v = vs.get(t);
         int i = vs.index(v);
         if (perm.get(i)) {
@@ -802,23 +857,18 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             return func.apply(a, f, t, true);
         } else {
             temp.set(i);
+            if (bfs) {
+                a = func.apply(a, f, t, false);
+            }
             for (E o : frwrd ? v.outs() : v.ins()) {
-                a = visit(vs, a, t, o, func, temp, perm, frwrd);
+                a = visit(vs, a, t, o, func, temp, perm, frwrd, bfs);
             }
             perm.set(i);
-            return func.apply(a, f, t, false);
+            if (!bfs) {
+                a = func.apply(a, f, t, false);
+            }
+            return a;
         }
-    }
-
-    private static <E> QualifiedSet<E, Vertex<E>> removeCycles(QualifiedSet<E, Vertex<E>> vs, Set<E> s, Set<E>[] be, boolean frwrd) {
-        Set<Pair<E, E>> cycles = dfs(vs, s, Set.of(), (cs, f, t, c) -> c ? cs.add(Pair.of(f, t)) : cs, frwrd);
-        for (Pair<E, E> edge : cycles) {
-            Vertex<E> v = vs.get(edge.a());
-            Set<E> ins = ins(v);
-            Set<E> outs = outs(v);
-            vs = put(vs, edge.a(), ins, outs, !frwrd ? ins.remove(edge.b()) : ins, frwrd ? outs.remove(edge.b()) : outs, be);
-        }
-        return vs;
     }
 
     private static <E> QualifiedSet<E, Vertex<E>> put(QualifiedSet<E, Vertex<E>> vs, E n, Set<E> pi, Set<E> po, Set<E> ni, Set<E> no, Set<E>[] be) {
@@ -1016,7 +1066,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
         int size = s.readInt();
         Set<N> bs = Set.of();
         Set<N> es = Set.of();
-        QualifiedSet<N, Vertex<N>> vs = EMPTY_VERTICES;
+        QualifiedSet<N, Vertex<N>> vs = emptyVertices();
         for (int i = 0; i < size; i++) {
             Vertex<N> v = s.readObject();
             vs = vs.add(v);
