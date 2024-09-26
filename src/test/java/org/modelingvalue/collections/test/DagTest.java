@@ -26,14 +26,14 @@ import java.util.Random;
 
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
-import org.modelingvalue.collections.Dag;
+import org.modelingvalue.collections.DirGraph;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Set;
 
 public class DagTest {
     @Test
     public void constructor() {
-        Dag<String> dag = Dag.of(//
+        DirGraph<String> dag = DirGraph.of(//
                 "c", "a", //
                 "a", "b", //
                 "b", "c");
@@ -47,8 +47,8 @@ public class DagTest {
 
     @Test
     public void emptyDag() {
-        Dag<String> dag1 = Dag.of();
-        Dag<String> dag2 = Dag.of();
+        DirGraph<String> dag1 = DirGraph.of();
+        DirGraph<String> dag2 = DirGraph.of();
         assertNotNull(dag1);
         assertEquals(0, dag1.size());
         assertTrue(dag1 == dag2);
@@ -56,12 +56,12 @@ public class DagTest {
 
     @Test
     public void rmoveEdges() {
-        Dag<String> dag1 = Dag.of();
-        Dag<String> dag2 = Dag.of(//
+        DirGraph<String> dag1 = DirGraph.of();
+        DirGraph<String> dag2 = DirGraph.of(//
                 "a", "b", //
                 "b", "c", //
                 "c", "d");
-        Dag<String> dag3 = dag1.addEdges(//
+        DirGraph<String> dag3 = dag1.addEdges(//
                 "a", "b", //
                 "b", "c", //
                 "c", "d");
@@ -79,7 +79,7 @@ public class DagTest {
     @RepeatedTest(10)
     public void bigDag() {
         int size = 10_000;
-        Dag<Integer> dag = Dag.of();
+        DirGraph<Integer> dag = DirGraph.of();
         Random random = new Random(System.currentTimeMillis());
         for (int i = 0; i < size; i++) {
             dag = dag.addEdge(random.nextInt(size), random.nextInt(size));
@@ -96,7 +96,7 @@ public class DagTest {
 
     @Test
     public void merge1() {
-        Dag<String> dag1 = Dag.of(//
+        DirGraph<String> dag1 = DirGraph.of(//
                 "1", "3", //
                 "3", "6", //
                 "2", "4", //
@@ -105,7 +105,7 @@ public class DagTest {
                 "4", "7", //
                 "5", "7", //
                 "7", "8");
-        Dag<String> dag2 = Dag.of(//
+        DirGraph<String> dag2 = DirGraph.of(//
                 "1", "3", //
                 "3", "6", //
                 "2", "4", //
@@ -115,14 +115,14 @@ public class DagTest {
                 "5", "7", //
                 "7", "8");
         assertEquals(dag1, dag2);
-        Dag<String> merged = Dag.<String> of().merge(dag1, dag2);
+        DirGraph<String> merged = DirGraph.<String> of().merge(dag1, dag2);
         assertEquals(merged, dag1);
         assertEquals(merged, dag2);
     }
 
     @Test
     public void merge2() {
-        Dag<String> dag0 = Dag.of(//
+        DirGraph<String> dag0 = DirGraph.of(//
                 "1", "3", //
                 "3", "6", //
                 "2", "4", //
@@ -131,24 +131,24 @@ public class DagTest {
                 "4", "7", //
                 "5", "7", //
                 "7", "8");
-        Dag<String> dag1 = Dag.of(//
+        DirGraph<String> dag1 = DirGraph.of(//
                 "1", "3", //
                 "3", "6", //
                 "2", "4", //
                 "2", "5");
-        Dag<String> dag2 = Dag.of(//
+        DirGraph<String> dag2 = DirGraph.of(//
                 "4", "6", //
                 "4", "7", //
                 "5", "7", //
                 "7", "8");
-        Dag<String> merged = Dag.<String> of().merge(dag1, dag2);
+        DirGraph<String> merged = DirGraph.<String> of().merge(dag1, dag2);
         assertEquals(merged, dag0);
         assertEquals(merged, dag0);
     }
 
     @Test
     public void merge3() {
-        Dag<String> dag0 = Dag.of(//
+        DirGraph<String> dag0 = DirGraph.of(//
                 "1", "3", //
                 "3", "6", //
                 "2", "4", //
@@ -158,26 +158,26 @@ public class DagTest {
                 "7", "8", //
                 "8", "5");
         assertEquals(8, dag0.edges().size());
-        Dag<String> dag1 = Dag.of(//
+        DirGraph<String> dag1 = DirGraph.of(//
                 "1", "3", //
                 "3", "6", //
                 "2", "4", //
                 "2", "5", //
                 "8", "5");
-        Dag<String> dag2 = Dag.of(//
+        DirGraph<String> dag2 = DirGraph.of(//
                 "4", "6", //
                 "4", "7", //
                 "5", "7", //
                 "7", "8", //
                 "6", "3");
-        Dag<String> merged = Dag.<String> of().merge(dag1, dag2);
+        DirGraph<String> merged = DirGraph.<String> of().merge(dag1, dag2);
         assertEquals(merged, dag0);
         assertEquals(merged, dag0);
     }
 
     @Test
     public void topologicalSort() {
-        Dag<String> dag = Dag.of(//
+        DirGraph<String> dag = DirGraph.of(//
                 "1", "3", //
                 "3", "6", //
                 "2", "4", //
@@ -196,7 +196,7 @@ public class DagTest {
 
     @Test
     public void putBeginEnd() {
-        Dag<String> dag1 = Dag.of(//
+        DirGraph<String> dag1 = DirGraph.of(//
                 "1", "3", //
                 "3", "6", //
                 "2", "4", //
@@ -209,7 +209,7 @@ public class DagTest {
         assertEquals(Set.of("1", "2"), dag1.begin());
         assertEquals(Set.of("6", "8"), dag1.end());
 
-        Dag<String> dag2 = dag1.putBegin("x", "1", "2").putEnd("y", "6", "8");
+        DirGraph<String> dag2 = dag1.putBegin("x", "1", "2").putEnd("y", "6", "8");
         assertEquals(10, dag2.size());
         assertEquals(Set.of("x"), dag2.begin());
         assertEquals(Set.of("y"), dag2.end());
