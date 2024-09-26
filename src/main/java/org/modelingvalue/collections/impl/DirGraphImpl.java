@@ -277,21 +277,13 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     public Dag<N> removeCycles() {
         Set<N>[] be = new Set[]{Set.of(), Set.of()};
         return new DagImpl<N>(be, bfs(vertices, begin, emptyVertices(), (vs, f, t, c) -> {
-            if (c) {
+            if (c || f == null) {
+                return vs;
+            } else {
                 Vertex<N> v = vs.get(f);
                 Set<N> ins = ins(v);
                 Set<N> outs = outs(v);
-                assert outs.contains(t);
-                return put(vs, f, ins, outs, ins, outs.remove(t), be);
-            } else {
-                Vertex<N> v = vertex(t);
-                if (v.ins().isEmpty()) {
-                    be[0] = be[0].add(t);
-                }
-                if (v.outs().isEmpty()) {
-                    be[1] = be[1].add(t);
-                }
-                return vs.put(v);
+                return put(vs, f, ins, outs, ins, outs.add(t), be);
             }
         }, true));
     }
@@ -301,21 +293,13 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     public Dag<N> invRemoveCycles() {
         Set<N>[] be = new Set[]{Set.of(), Set.of()};
         return new DagImpl<N>(be, bfs(vertices, end, emptyVertices(), (vs, t, f, c) -> {
-            if (c) {
+            if (c || t == null) {
+                return vs;
+            } else {
                 Vertex<N> v = vs.get(t);
                 Set<N> ins = ins(v);
                 Set<N> outs = outs(v);
-                assert ins.contains(f);
-                return put(vs, t, ins, outs, ins.remove(f), outs, be);
-            } else {
-                Vertex<N> v = vertex(f);
-                if (v.ins().isEmpty()) {
-                    be[0] = be[0].add(f);
-                }
-                if (v.outs().isEmpty()) {
-                    be[1] = be[1].add(f);
-                }
-                return vs.put(v);
+                return put(vs, t, ins, outs, ins.add(f), outs, be);
             }
         }, false));
     }
@@ -349,16 +333,21 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             Set<N>[] be = new Set[]{Set.of(), Set.of()};
             for (N n : e) {
                 Vertex<N> v = vertex(n);
-                if (v.ins().isEmpty()) {
-                    be[0] = be[0].add(n);
+                Set<N> ins = ins(v).retainAll(e);
+                Set<N> outs = outs(v).retainAll(e);
+                if (!ins.isEmpty() || !outs.isEmpty()) {
+                    if (ins.isEmpty()) {
+                        be[0] = be[0].add(n);
+                    }
+                    if (outs.isEmpty()) {
+                        be[1] = be[1].add(n);
+                    }
+                    vs = vs.put(v.ins().equals(ins) && v.outs().equals(outs) ? v : Vertex.of(n, ins, outs));
                 }
-                if (v.outs().isEmpty()) {
-                    be[1] = be[1].add(n);
-                }
-                vs = vs.put(v);
             }
             return construct(be, vs, false);
         }
+
     }
 
     @SuppressWarnings("unchecked")
@@ -377,18 +366,14 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     @Override
     public DirGraph<N> removeDisconnected() {
         Set<N>[] be = new Set[]{Set.of(), Set.of()};
-        return construct(be, dfs(vertices, begin, emptyVertices(), (vs, f, t, c) -> {
-            if (c) {
-                return vs;
+        return construct(be, bfs(vertices, begin, emptyVertices(), (vs, f, t, c) -> {
+            if (f != null) {
+                Vertex<N> v = vs.get(f);
+                Set<N> ins = ins(v);
+                Set<N> outs = outs(v);
+                return put(vs, f, ins, outs, ins, outs.add(t), be);
             } else {
-                Vertex<N> v = vertex(t);
-                if (v.ins().isEmpty()) {
-                    be[0] = be[0].add(t);
-                }
-                if (v.outs().isEmpty()) {
-                    be[1] = be[1].add(t);
-                }
-                return vs.put(v);
+                return vs;
             }
         }, true), false);
     }
@@ -397,18 +382,14 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     @Override
     public DirGraph<N> invRemoveDisconnected() {
         Set<N>[] be = new Set[]{Set.of(), Set.of()};
-        return construct(be, dfs(vertices, end, emptyVertices(), (vs, t, f, c) -> {
-            if (c) {
-                return vs;
+        return construct(be, bfs(vertices, end, emptyVertices(), (vs, t, f, c) -> {
+            if (t != null) {
+                Vertex<N> v = vs.get(t);
+                Set<N> ins = ins(v);
+                Set<N> outs = outs(v);
+                return put(vs, t, ins, outs, ins.add(f), outs, be);
             } else {
-                Vertex<N> v = vertex(f);
-                if (v.ins().isEmpty()) {
-                    be[0] = be[0].add(f);
-                }
-                if (v.outs().isEmpty()) {
-                    be[1] = be[1].add(f);
-                }
-                return vs.put(v);
+                return vs;
             }
         }, false), false);
     }
@@ -850,11 +831,13 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
         Vertex<E> v = vs.get(t);
         int i = vs.index(v);
         if (perm.get(i)) {
-            return a;
+            if (bfs) {
+                a = func.apply(a, f, t, false);
+            }
         } else if (temp.get(i)) {
             // cycle
             assert f != null;
-            return func.apply(a, f, t, true);
+            a = func.apply(a, f, t, true);
         } else {
             temp.set(i);
             if (bfs) {
@@ -867,8 +850,8 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             if (!bfs) {
                 a = func.apply(a, f, t, false);
             }
-            return a;
         }
+        return a;
     }
 
     private static <E> QualifiedSet<E, Vertex<E>> put(QualifiedSet<E, Vertex<E>> vs, E n, Set<E> pi, Set<E> po, Set<E> ni, Set<E> no, Set<E>[] be) {
