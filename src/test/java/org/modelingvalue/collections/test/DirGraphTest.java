@@ -78,6 +78,57 @@ public class DirGraphTest {
     }
 
     @RepeatedTest(36)
+    public void disjunct() {
+        int size = 10_000;
+        Random random = new Random(System.currentTimeMillis());
+
+        DirGraph<Integer> graph1 = DirGraph.of();
+        for (int i = 0; i < size; i++) {
+            graph1 = graph1.addEdge(random.nextInt(size), random.nextInt(size));
+        }
+        Dag<Integer> dag1 = graph1.removeCycles();
+
+        DirGraph<Integer> graph2 = DirGraph.of();
+        for (int i = 0; i < size; i++) {
+            graph2 = graph2.addEdge(-random.nextInt(size) - 1, -random.nextInt(size) - 1);
+        }
+        Dag<Integer> dag2 = graph2.removeCycles();
+
+        assertEquals(dag1.connected().size(), dag1.size());
+        assertEquals(dag2.connected().size(), dag2.size());
+
+        DirGraph<Integer> merged = Dag.<Integer> of().merge(dag1, dag2);
+
+        assertEquals(0, merged.cycles().size());
+    }
+
+    @RepeatedTest(36)
+    public void chained() {
+        int size = 10_000;
+        Random random = new Random(System.currentTimeMillis());
+
+        DirGraph<Integer> graph1 = DirGraph.of();
+        for (int i = 0; i < size; i++) {
+            graph1 = graph1.addEdge(random.nextInt(size), -random.nextInt(size) - 1);
+        }
+        Dag<Integer> dag1 = graph1.removeCycles();
+
+        DirGraph<Integer> graph2 = DirGraph.of();
+        for (int i = 0; i < size; i++) {
+            graph2 = graph2.addEdge(-random.nextInt(size) - 1, random.nextInt(size) + 100_000);
+        }
+        Dag<Integer> dag2 = graph2.removeCycles();
+
+        dag1 = dag1.setEnd(dag2.begin());
+        dag2 = dag2.setBegin(dag1.end());
+
+        DirGraph<Integer> merged = Dag.<Integer> of().merge(dag1, dag2);
+
+        assertEquals(dag1.begin(), merged.begin());
+        assertEquals(dag2.end(), merged.end());
+    }
+
+    @RepeatedTest(36)
     public void bigDag() {
         int size = 10_000;
         DirGraph<Integer> graph = DirGraph.of();
@@ -117,7 +168,7 @@ public class DirGraphTest {
                 "5", "7", //
                 "7", "8");
         assertEquals(graph1, graph2);
-        DirGraph<String> merged = DirGraph.<String> of().merge(graph1, graph2);
+        DirGraph<String> merged = Dag.<String> of().merge(graph1, graph2);
         assertEquals(merged, graph1);
         assertEquals(merged, graph2);
     }
