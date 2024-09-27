@@ -30,9 +30,9 @@ public interface Dag<N> extends DirGraph<N> {
         return DirGraphImpl.EMPTY;
     }
 
-    <A> A dfs(A acc, TriFunction<A, N, N, A> func);
+    <A> A dfsEdges(A acc, TriFunction<A, N, N, A> func);
 
-    <A> A invDfs(A acc, TriFunction<A, N, N, A> func);
+    <A> A invDfsEdges(A acc, TriFunction<A, N, N, A> func);
 
     @Override
     Dag<N> removeNodes(Set<N> e);

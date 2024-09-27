@@ -20,6 +20,8 @@
 
 package org.modelingvalue.collections;
 
+import java.util.function.BiFunction;
+
 import org.modelingvalue.collections.impl.DirGraphImpl;
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.Pair;
@@ -67,13 +69,21 @@ public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<
 
     boolean containsNode(N node);
 
-    List<N> topological();
+    List<N> topologicalNodes();
 
-    List<N> invTopological();
+    List<N> invTopologicalNodes();
 
-    <A> A dfs(A acc, QuadFunction<A, N, N, Boolean, A> func);
+    List<Pair<N, N>> topologicalEdges();
 
-    <A> A invDfs(A acc, QuadFunction<A, N, N, Boolean, A> func);
+    List<Pair<N, N>> invTopologicalEdges();
+
+    <A> A dfsNodes(A acc, BiFunction<A, N, A> func);
+
+    <A> A invDfsNodes(A acc, BiFunction<A, N, A> func);
+
+    <A> A dfsEdges(A acc, QuadFunction<A, N, N, Boolean, A> func);
+
+    <A> A invDfsEdges(A acc, QuadFunction<A, N, N, Boolean, A> func);
 
     Dag<N> removeCycles();
 

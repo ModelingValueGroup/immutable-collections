@@ -20,6 +20,8 @@
 
 package org.modelingvalue.collections.impl;
 
+import java.util.function.BiFunction;
+
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Dag;
 import org.modelingvalue.collections.DirGraph;
@@ -27,7 +29,6 @@ import org.modelingvalue.collections.QualifiedSet;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.Vertex;
 import org.modelingvalue.collections.util.Pair;
-import org.modelingvalue.collections.util.QuadFunction;
 import org.modelingvalue.collections.util.TriFunction;
 
 public class DagImpl<N> extends DirGraphImpl<N> implements Dag<N> {
@@ -104,23 +105,23 @@ public class DagImpl<N> extends DirGraphImpl<N> implements Dag<N> {
     }
 
     @Override
-    public <A> A dfs(A acc, TriFunction<A, N, N, A> func) {
-        return dfs(acc, (a, f, t, c) -> func.apply(a, f, t));
+    public <A> A dfsNodes(A acc, BiFunction<A, N, A> func) {
+        return dfsNodes(vertices(), begin(), acc, func, true);
     }
 
     @Override
-    public <A> A invDfs(A acc, TriFunction<A, N, N, A> func) {
-        return invDfs(acc, (a, f, t, c) -> func.apply(a, f, t));
+    public <A> A invDfsNodes(A acc, BiFunction<A, N, A> func) {
+        return dfsNodes(vertices(), end(), acc, func, false);
     }
 
     @Override
-    public <A> A dfs(A acc, QuadFunction<A, N, N, Boolean, A> func) {
-        return dfs(vertices(), begin(), acc, func, true);
+    public <A> A dfsEdges(A acc, TriFunction<A, N, N, A> func) {
+        return dfsEdges(vertices(), begin(), acc, (a, f, t, c) -> func.apply(a, f, t), true);
     }
 
     @Override
-    public <A> A invDfs(A acc, QuadFunction<A, N, N, Boolean, A> func) {
-        return dfs(vertices(), end(), acc, func, false);
+    public <A> A invDfsEdges(A acc, TriFunction<A, N, N, A> func) {
+        return dfsEdges(vertices(), end(), acc, (a, t, f, c) -> func.apply(a, t, f), false);
     }
 
     @Override

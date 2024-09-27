@@ -80,17 +80,18 @@ public class DirGraphTest {
     @RepeatedTest(10)
     public void bigDag() {
         int size = 10_000;
-        DirGraph<Integer> dag = DirGraph.of();
+        DirGraph<Integer> graph = DirGraph.of();
         Random random = new Random(System.currentTimeMillis());
         for (int i = 0; i < size; i++) {
-            dag = dag.addEdge(random.nextInt(size), random.nextInt(size));
+            graph = graph.addEdge(random.nextInt(size), random.nextInt(size));
         }
-        dag = dag.putBegin(-1, dag.begin());
-        dag = dag.putEnd(-2, dag.end());
-        assertEquals(Set.of(-1), dag.begin());
-        assertEquals(Set.of(-2), dag.end());
-        List<Integer> top = dag.topological();
-        assertEquals(dag.size(), top.size());
+        graph = graph.removeDisconnected();
+        graph = graph.putBegin(-1, graph.begin());
+        graph = graph.putEnd(-2, graph.end());
+        assertEquals(Set.of(-1), graph.begin());
+        assertEquals(Set.of(-2), graph.end());
+        List<Integer> top = graph.topologicalNodes();
+        assertEquals(graph.size(), top.size());
         assertEquals(-1, top.first());
         assertEquals(-2, top.last());
     }
@@ -191,7 +192,7 @@ public class DirGraphTest {
         assertEquals(Set.of("6", "8"), dag.end());
         assertEquals(8, dag.size());
 
-        List<String> top = dag.topological();
+        List<String> top = dag.topologicalNodes();
         assertEquals(List.of("2", "5", "4", "7", "8", "1", "3", "6"), top);
     }
 

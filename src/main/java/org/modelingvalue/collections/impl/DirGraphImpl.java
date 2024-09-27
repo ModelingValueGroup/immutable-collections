@@ -83,35 +83,57 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     }
 
     @Override
-    public <A> A dfs(A acc, QuadFunction<A, N, N, Boolean, A> func) {
-        return dfs(vertices, nodes(), acc, func, true);
+    public <A> A dfsNodes(A acc, BiFunction<A, N, A> func) {
+        return dfsNodes(vertices, Collection.concat(begin(), nodes()), acc, func, true);
     }
 
     @Override
-    public <A> A invDfs(A acc, QuadFunction<A, N, N, Boolean, A> func) {
-        return dfs(vertices, nodes(), acc, func, false);
+    public <A> A invDfsNodes(A acc, BiFunction<A, N, A> func) {
+        return dfsNodes(vertices, Collection.concat(end(), nodes()), acc, func, false);
+    }
+
+    @Override
+    public <A> A dfsEdges(A acc, QuadFunction<A, N, N, Boolean, A> func) {
+        return dfsEdges(vertices, Collection.concat(begin(), nodes()), acc, func, true);
+    }
+
+    @Override
+    public <A> A invDfsEdges(A acc, QuadFunction<A, N, N, Boolean, A> func) {
+        return dfsEdges(vertices, Collection.concat(end(), nodes()), acc, func, false);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public List<N> topological() {
-        return dfs(List.of(), (l, f, t, c) -> c ? l : l.prepend(t));
+    public List<N> topologicalNodes() {
+        return dfsNodes(List.of(), (l, n) -> l.prepend(n));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    public List<N> invTopological() {
-        return invDfs(List.of(), (l, f, t, c) -> c ? l : l.prepend(t));
+    public List<N> invTopologicalNodes() {
+        return invDfsNodes(List.of(), (l, n) -> l.prepend(n));
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public List<Pair<N, N>> topologicalEdges() {
+        return dfsEdges(List.of(), (l, f, t, c) -> l.prepend(Pair.of(f, t)));
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    @Override
+    public List<Pair<N, N>> invTopologicalEdges() {
+        return invDfsEdges(List.of(), (l, t, f, c) -> l.prepend(Pair.of(f, t)));
     }
 
     @Override
     public Set<Pair<N, N>> cycles() {
-        return dfs(Set.of(), (cs, f, t, c) -> c ? cs.add(Pair.of(f, t)) : cs);
+        return dfsEdges(Set.of(), (cs, f, t, c) -> c ? cs.add(Pair.of(f, t)) : cs);
     }
 
     @Override
     public Set<Pair<N, N>> invCycles() {
-        return invDfs(Set.of(), (cs, t, f, c) -> c ? cs.add(Pair.of(t, f)) : cs);
+        return invDfsEdges(Set.of(), (cs, t, f, c) -> c ? cs.add(Pair.of(f, t)) : cs);
     }
 
     @Override
@@ -262,21 +284,53 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
 
     @Override
     public Set<N> connected() {
-        return dfs(vertices, begin, Set.of(), (s, f, t, c) -> c ? s : s.add(t), true);
+        return dfsNodes(vertices, begin, Set.of(), (s, n) -> s.add(n), true);
     }
 
     @Override
     public Set<N> invConnected() {
-        return dfs(vertices, end, Set.of(), (s, f, t, c) -> c ? s : s.add(t), false);
+        return dfsNodes(vertices, end, Set.of(), (s, n) -> s.add(n), false);
     }
 
     // change methods
 
     @SuppressWarnings("unchecked")
     @Override
+    public DirGraph<N> removeDisconnected() {
+        Set<N>[] be = new Set[]{Set.of(), Set.of()};
+        return construct(be, dfsEdges(vertices, begin, emptyVertices(), (vs, f, t, c) -> {
+            if (f != null) {
+                Vertex<N> v = vs.get(f);
+                Set<N> ins = ins(v);
+                Set<N> outs = outs(v);
+                return put(vs, f, ins, outs, ins, outs.add(t), be);
+            } else {
+                return vs;
+            }
+        }, true), false);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public DirGraph<N> invRemoveDisconnected() {
+        Set<N>[] be = new Set[]{Set.of(), Set.of()};
+        return construct(be, dfsEdges(vertices, end, emptyVertices(), (vs, t, f, c) -> {
+            if (t != null) {
+                Vertex<N> v = vs.get(t);
+                Set<N> ins = ins(v);
+                Set<N> outs = outs(v);
+                return put(vs, t, ins, outs, ins.add(f), outs, be);
+            } else {
+                return vs;
+            }
+        }, false), false);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
     public Dag<N> removeCycles() {
         Set<N>[] be = new Set[]{Set.of(), Set.of()};
-        return new DagImpl<N>(be, bfs(vertices, begin, emptyVertices(), (vs, f, t, c) -> {
+        return new DagImpl<N>(be, dfsEdges(vertices, begin, emptyVertices(), (vs, f, t, c) -> {
             if (c || f == null) {
                 return vs;
             } else {
@@ -292,7 +346,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     @Override
     public Dag<N> invRemoveCycles() {
         Set<N>[] be = new Set[]{Set.of(), Set.of()};
-        return new DagImpl<N>(be, bfs(vertices, end, emptyVertices(), (vs, t, f, c) -> {
+        return new DagImpl<N>(be, dfsEdges(vertices, end, emptyVertices(), (vs, t, f, c) -> {
             if (c || t == null) {
                 return vs;
             } else {
@@ -360,38 +414,6 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     @Override
     public DirGraph<N> retainNodes(N... e) {
         return retainNodes(Set.of(e));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public DirGraph<N> removeDisconnected() {
-        Set<N>[] be = new Set[]{Set.of(), Set.of()};
-        return construct(be, bfs(vertices, begin, emptyVertices(), (vs, f, t, c) -> {
-            if (f != null) {
-                Vertex<N> v = vs.get(f);
-                Set<N> ins = ins(v);
-                Set<N> outs = outs(v);
-                return put(vs, f, ins, outs, ins, outs.add(t), be);
-            } else {
-                return vs;
-            }
-        }, true), false);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public DirGraph<N> invRemoveDisconnected() {
-        Set<N>[] be = new Set[]{Set.of(), Set.of()};
-        return construct(be, bfs(vertices, end, emptyVertices(), (vs, t, f, c) -> {
-            if (t != null) {
-                Vertex<N> v = vs.get(t);
-                Set<N> ins = ins(v);
-                Set<N> outs = outs(v);
-                return put(vs, t, ins, outs, ins.add(f), outs, be);
-            } else {
-                return vs;
-            }
-        }, false), false);
     }
 
     @Override
@@ -798,46 +820,44 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
         return vs;
     }
 
-    protected static <A, E> A dfs(QualifiedSet<E, Vertex<E>> vs, Collection<E> s, A acc, QuadFunction<A, E, E, Boolean, A> func, boolean frwrd) {
-        return visit(vs, s, acc, func, frwrd, false);
+    protected static <A, E> A dfsNodes(QualifiedSet<E, Vertex<E>> vs, Collection<E> s, A acc, BiFunction<A, E, A> func, boolean frwrd) {
+        return dfs(vs, s, acc, (a, f, t, c) -> func.apply(a, t), frwrd, false);
     }
 
-    protected static <A, E> A bfs(QualifiedSet<E, Vertex<E>> vs, Collection<E> s, A acc, QuadFunction<A, E, E, Boolean, A> func, boolean frwrd) {
-        return visit(vs, s, acc, func, frwrd, true);
+    protected static <A, E> A dfsEdges(QualifiedSet<E, Vertex<E>> vs, Collection<E> s, A acc, QuadFunction<A, E, E, Boolean, A> func, boolean frwrd) {
+        return dfs(vs, s, acc, func, frwrd, true);
     }
 
-    protected static <A, E> A visit(QualifiedSet<E, Vertex<E>> vs, Collection<E> s, A acc, QuadFunction<A, E, E, Boolean, A> func, boolean frwrd, boolean bfs) {
+    private static <A, E> A dfs(QualifiedSet<E, Vertex<E>> vs, Collection<E> s, A acc, QuadFunction<A, E, E, Boolean, A> func, boolean frwrd, boolean edges) {
         int size = vs.size();
         BitSet temp = new BitSet(size), perm = new BitSet(size);
         for (E n : s) {
-            acc = visit(vs, acc, null, n, func, temp, perm, frwrd, bfs);
+            acc = dfs(vs, acc, null, n, func, temp, perm, frwrd, edges);
         }
         return acc;
     }
 
-    private static <E, A> A visit(QualifiedSet<E, Vertex<E>> vs, A a, E f, E t, QuadFunction<A, E, E, Boolean, A> func, BitSet temp, BitSet perm, boolean frwrd, boolean bfs) {
+    private static <E, A> A dfs(QualifiedSet<E, Vertex<E>> vs, A a, E f, E t, QuadFunction<A, E, E, Boolean, A> func, BitSet temp, BitSet perm, boolean frwrd, boolean edges) {
         Vertex<E> v = vs.get(t);
         int i = vs.index(v);
         if (perm.get(i)) {
-            if (bfs) {
+            // already done
+            if (edges) {
                 a = func.apply(a, f, t, false);
             }
         } else if (temp.get(i)) {
             // cycle
-            assert f != null;
-            a = func.apply(a, f, t, true);
+            if (edges) {
+                assert f != null;
+                a = func.apply(a, f, t, true);
+            }
         } else {
             temp.set(i);
-            if (bfs) {
-                a = func.apply(a, f, t, false);
-            }
             for (E o : frwrd ? v.outs() : v.ins()) {
-                a = visit(vs, a, t, o, func, temp, perm, frwrd, bfs);
+                a = dfs(vs, a, t, o, func, temp, perm, frwrd, edges);
             }
             perm.set(i);
-            if (!bfs) {
-                a = func.apply(a, f, t, false);
-            }
+            a = func.apply(a, f, t, false);
         }
         return a;
     }
