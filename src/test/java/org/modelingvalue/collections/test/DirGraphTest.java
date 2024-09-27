@@ -34,50 +34,50 @@ import org.modelingvalue.collections.Set;
 public class DirGraphTest {
     @Test
     public void constructor() {
-        DirGraph<String> dag = DirGraph.of(//
+        DirGraph<String> graph = DirGraph.of(//
                 "c", "a", //
                 "a", "b", //
                 "b", "c").setBegin("a");
-        assertTrue(dag.containsEdge("a", "b"));
-        assertTrue(dag.containsEdge("b", "c"));
-        assertFalse(dag.containsEdge("c", "a"));
-        assertEquals(Set.of("a"), dag.begin());
-        assertEquals(Set.of("c"), dag.end());
-        assertEquals(3, dag.size());
+        assertTrue(graph.containsEdge("a", "b"));
+        assertTrue(graph.containsEdge("b", "c"));
+        assertFalse(graph.containsEdge("c", "a"));
+        assertEquals(Set.of("a"), graph.begin());
+        assertEquals(Set.of("c"), graph.end());
+        assertEquals(3, graph.size());
     }
 
     @Test
     public void emptyDag() {
-        DirGraph<String> dag1 = DirGraph.of();
-        DirGraph<String> dag2 = DirGraph.of();
-        assertNotNull(dag1);
-        assertEquals(0, dag1.size());
-        assertTrue(dag1 == dag2);
+        DirGraph<String> graph1 = DirGraph.of();
+        DirGraph<String> graph2 = DirGraph.of();
+        assertNotNull(graph1);
+        assertEquals(0, graph1.size());
+        assertTrue(graph1 == graph2);
     }
 
     @Test
     public void rmoveEdges() {
-        DirGraph<String> dag1 = DirGraph.of();
-        DirGraph<String> dag2 = DirGraph.of(//
+        DirGraph<String> graph1 = DirGraph.of();
+        DirGraph<String> graph2 = DirGraph.of(//
                 "a", "b", //
                 "b", "c", //
                 "c", "d");
-        DirGraph<String> dag3 = dag1.addEdges(//
+        DirGraph<String> graph3 = graph1.addEdges(//
                 "a", "b", //
                 "b", "c", //
                 "c", "d");
-        assertEquals(0, dag1.size());
-        assertEquals(4, dag2.size());
-        assertEquals(4, dag3.size());
-        assertEquals(dag2, dag3);
-        dag2 = dag2.removeEdges(//
+        assertEquals(0, graph1.size());
+        assertEquals(4, graph2.size());
+        assertEquals(4, graph3.size());
+        assertEquals(graph2, graph3);
+        graph2 = graph2.removeEdges(//
                 "a", "b", //
                 "b", "c", //
                 "c", "d");
-        assertTrue(dag1 == dag2);
+        assertTrue(graph1 == graph2);
     }
 
-    @RepeatedTest(10)
+    @RepeatedTest(36)
     public void bigDag() {
         int size = 10_000;
         DirGraph<Integer> graph = DirGraph.of();
@@ -85,7 +85,7 @@ public class DirGraphTest {
         for (int i = 0; i < size; i++) {
             graph = graph.addEdge(random.nextInt(size), random.nextInt(size));
         }
-        graph = graph.removeDisconnected();
+        graph = graph.removeDisconnected().invRemoveDisconnected();
         graph = graph.putBegin(-1, graph.begin());
         graph = graph.putEnd(-2, graph.end());
         assertEquals(Set.of(-1), graph.begin());
@@ -98,7 +98,7 @@ public class DirGraphTest {
 
     @Test
     public void merge1() {
-        DirGraph<String> dag1 = DirGraph.of(//
+        DirGraph<String> graph1 = DirGraph.of(//
                 "1", "3", //
                 "3", "6", //
                 "2", "4", //
@@ -107,7 +107,7 @@ public class DirGraphTest {
                 "4", "7", //
                 "5", "7", //
                 "7", "8");
-        DirGraph<String> dag2 = DirGraph.of(//
+        DirGraph<String> graph2 = DirGraph.of(//
                 "1", "3", //
                 "3", "6", //
                 "2", "4", //
@@ -116,10 +116,10 @@ public class DirGraphTest {
                 "4", "7", //
                 "5", "7", //
                 "7", "8");
-        assertEquals(dag1, dag2);
-        DirGraph<String> merged = DirGraph.<String> of().merge(dag1, dag2);
-        assertEquals(merged, dag1);
-        assertEquals(merged, dag2);
+        assertEquals(graph1, graph2);
+        DirGraph<String> merged = DirGraph.<String> of().merge(graph1, graph2);
+        assertEquals(merged, graph1);
+        assertEquals(merged, graph2);
     }
 
     @Test
@@ -133,17 +133,17 @@ public class DirGraphTest {
                 "4", "7", //
                 "5", "7", //
                 "7", "8");
-        DirGraph<String> dag1 = DirGraph.of(//
+        DirGraph<String> graph1 = DirGraph.of(//
                 "1", "3", //
                 "3", "6", //
                 "2", "4", //
                 "2", "5");
-        DirGraph<String> dag2 = DirGraph.of(//
+        DirGraph<String> graph2 = DirGraph.of(//
                 "4", "6", //
                 "4", "7", //
                 "5", "7", //
                 "7", "8");
-        DirGraph<String> merged = DirGraph.<String> of().merge(dag1, dag2);
+        DirGraph<String> merged = DirGraph.<String> of().merge(graph1, graph2);
         assertEquals(merged, dag0);
         assertEquals(merged, dag0);
     }
@@ -160,26 +160,26 @@ public class DirGraphTest {
                 "7", "8", //
                 "8", "5").removeCycles();
         assertEquals(8, dag0.edges().size());
-        DirGraph<String> dag1 = DirGraph.of(//
+        DirGraph<String> graph1 = DirGraph.of(//
                 "1", "3", //
                 "3", "6", //
                 "2", "4", //
                 "2", "5", //
                 "8", "5");
-        DirGraph<String> dag2 = DirGraph.of(//
+        DirGraph<String> graph2 = DirGraph.of(//
                 "4", "6", //
                 "4", "7", //
                 "5", "7", //
                 "7", "8", //
                 "6", "3");
-        DirGraph<String> merged0 = Dag.<String> of().merge(dag1, dag2);
+        DirGraph<String> merged0 = Dag.<String> of().merge(graph1, graph2);
         Dag<String> merged1 = merged0.removeCycles();
         assertEquals(merged1, dag0);
     }
 
     @Test
     public void topologicalSort() {
-        DirGraph<String> dag = DirGraph.of(//
+        DirGraph<String> graph = DirGraph.of(//
                 "1", "3", //
                 "3", "6", //
                 "2", "4", //
@@ -188,17 +188,17 @@ public class DirGraphTest {
                 "4", "7", //
                 "5", "7", //
                 "7", "8");
-        assertEquals(Set.of("1", "2"), dag.begin());
-        assertEquals(Set.of("6", "8"), dag.end());
-        assertEquals(8, dag.size());
+        assertEquals(Set.of("1", "2"), graph.begin());
+        assertEquals(Set.of("6", "8"), graph.end());
+        assertEquals(8, graph.size());
 
-        List<String> top = dag.topologicalNodes();
+        List<String> top = graph.topologicalNodes();
         assertEquals(List.of("2", "5", "4", "7", "8", "1", "3", "6"), top);
     }
 
     @Test
     public void putBeginEnd() {
-        DirGraph<String> dag1 = DirGraph.of(//
+        DirGraph<String> graph1 = DirGraph.of(//
                 "1", "3", //
                 "3", "6", //
                 "2", "4", //
@@ -207,14 +207,14 @@ public class DirGraphTest {
                 "4", "7", //
                 "5", "7", //
                 "7", "8");
-        assertEquals(8, dag1.size());
-        assertEquals(Set.of("1", "2"), dag1.begin());
-        assertEquals(Set.of("6", "8"), dag1.end());
+        assertEquals(8, graph1.size());
+        assertEquals(Set.of("1", "2"), graph1.begin());
+        assertEquals(Set.of("6", "8"), graph1.end());
 
-        DirGraph<String> dag2 = dag1.putBegin("x", "1", "2").putEnd("y", "6", "8");
-        assertEquals(10, dag2.size());
-        assertEquals(Set.of("x"), dag2.begin());
-        assertEquals(Set.of("y"), dag2.end());
+        DirGraph<String> graph2 = graph1.putBegin("x", "1", "2").putEnd("y", "6", "8");
+        assertEquals(10, graph2.size());
+        assertEquals(Set.of("x"), graph2.begin());
+        assertEquals(Set.of("y"), graph2.end());
     }
 
 }
