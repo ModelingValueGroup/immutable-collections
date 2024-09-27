@@ -546,35 +546,27 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
 
     @Override
     public DirGraph<N> addEdge(N from, N to) {
-        if (from.equals(to)) {
+        Vertex<N> v = vertices.get(from);
+        Set<N> os = outs(v);
+        if (os.contains(to)) {
             return this;
         } else {
-            Vertex<N> v = vertices.get(from);
-            Set<N> os = outs(v);
-            if (os.contains(to)) {
-                return this;
-            } else {
-                Set<N>[] be = beginEnd();
-                Set<N> is = ins(v);
-                return construct(be, put(vertices, from, is, os, is, os.add(to), be), true);
-            }
+            Set<N>[] be = beginEnd();
+            Set<N> is = ins(v);
+            return construct(be, put(vertices, from, is, os, is, os.add(to), be), true);
         }
     }
 
     @Override
     public DirGraph<N> removeEdge(N from, N to) {
-        if (from.equals(to)) {
-            return this;
+        Vertex<N> v = vertices.get(from);
+        Set<N> os = outs(v);
+        if (os.contains(to)) {
+            Set<N>[] be = beginEnd();
+            Set<N> is = ins(v);
+            return construct(be, put(vertices, from, is, os, is, os.remove(to), be), false);
         } else {
-            Vertex<N> v = vertices.get(from);
-            Set<N> os = outs(v);
-            if (os.contains(to)) {
-                Set<N>[] be = beginEnd();
-                Set<N> is = ins(v);
-                return construct(be, put(vertices, from, is, os, is, os.remove(to), be), false);
-            } else {
-                return this;
-            }
+            return this;
         }
     }
 
@@ -780,13 +772,11 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             throw new IllegalArgumentException("Edges lengths should be divisible by 2, is " + l);
         }
         for (int i = 0; i < l; i += 2) {
-            if (!edges[i].equals(edges[i + 1])) {
-                Vertex<E> v = vs.get(edges[i]);
-                Set<E> outs = outs(v);
-                if (!outs.contains(edges[i + 1])) {
-                    Set<E> ins = ins(v);
-                    vs = put(vs, edges[i], ins, outs, ins, outs.add(edges[i + 1]), be);
-                }
+            Vertex<E> v = vs.get(edges[i]);
+            Set<E> outs = outs(v);
+            if (!outs.contains(edges[i + 1])) {
+                Set<E> ins = ins(v);
+                vs = put(vs, edges[i], ins, outs, ins, outs.add(edges[i + 1]), be);
             }
         }
         return vs;
@@ -798,13 +788,11 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             throw new IllegalArgumentException("Edges lengths should be divisible by 2, is " + l);
         }
         for (int i = 0; i < l; i += 2) {
-            if (!edges[i].equals(edges[i + 1])) {
-                Vertex<E> v = vs.get(edges[i]);
-                Set<E> outs = outs(v);
-                if (outs.contains(edges[i + 1])) {
-                    Set<E> ins = ins(v);
-                    vs = put(vs, edges[i], ins, outs, ins, outs.remove(edges[i + 1]), be);
-                }
+            Vertex<E> v = vs.get(edges[i]);
+            Set<E> outs = outs(v);
+            if (outs.contains(edges[i + 1])) {
+                Set<E> ins = ins(v);
+                vs = put(vs, edges[i], ins, outs, ins, outs.remove(edges[i + 1]), be);
             }
         }
         return vs;
