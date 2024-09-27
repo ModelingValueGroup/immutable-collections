@@ -96,11 +96,9 @@ public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<
 
     DirGraph<N> retainNodes(Set<N> e);
 
-    @SuppressWarnings("unchecked")
-    DirGraph<N> removeNodes(N... e);
+    DirGraph<N> addEdges(Set<Pair<N, N>> edges);
 
-    @SuppressWarnings("unchecked")
-    DirGraph<N> retainNodes(N... e);
+    DirGraph<N> removeEdges(Set<Pair<N, N>> edges);
 
     DirGraph<N> removeDisconnected();
 
@@ -109,12 +107,6 @@ public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<
     DirGraph<N> setBegin(Set<N> begin);
 
     DirGraph<N> setEnd(Set<N> end);
-
-    @SuppressWarnings("unchecked")
-    DirGraph<N> setBegin(N... begin);
-
-    @SuppressWarnings("unchecked")
-    DirGraph<N> setEnd(N... end);
 
     DirGraph<N> addEdge(N from, N to);
 
@@ -147,6 +139,18 @@ public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<
     DirGraph<N> removeOuts(N node, Set<N> outs);
 
     DirGraph<N> removeIns(N node, Set<N> ins);
+
+    @SuppressWarnings("unchecked")
+    DirGraph<N> removeNodes(N... e);
+
+    @SuppressWarnings("unchecked")
+    DirGraph<N> retainNodes(N... e);
+
+    @SuppressWarnings("unchecked")
+    DirGraph<N> setBegin(N... begin);
+
+    @SuppressWarnings("unchecked")
+    DirGraph<N> setEnd(N... end);
 
     @SuppressWarnings("unchecked")
     DirGraph<N> addEdges(N... edges);

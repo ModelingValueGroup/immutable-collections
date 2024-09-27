@@ -152,6 +152,11 @@ public class DagImpl<N> extends DirGraphImpl<N> implements Dag<N> {
     }
 
     @Override
+    public Dag<N> removeEdges(Set<Pair<N, N>> edges) {
+        return (Dag<N>) super.removeEdges(edges);
+    }
+
+    @Override
     public Dag<N> clear(N node) {
         return (Dag<N>) super.clear(node);
     }
@@ -213,7 +218,6 @@ public class DagImpl<N> extends DirGraphImpl<N> implements Dag<N> {
     @SuppressWarnings("unchecked")
     public Dag<N> removeOuts(N node, N... outs) {
         return (Dag<N>) super.removeOuts(node, outs);
-
     }
 
     @Override

@@ -21,6 +21,7 @@
 package org.modelingvalue.collections;
 
 import org.modelingvalue.collections.impl.DirGraphImpl;
+import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.TriFunction;
 
 public interface Dag<N> extends DirGraph<N> {
@@ -39,6 +40,9 @@ public interface Dag<N> extends DirGraph<N> {
 
     @Override
     Dag<N> retainNodes(Set<N> e);
+
+    @Override
+    Dag<N> removeEdges(Set<Pair<N, N>> edges);
 
     @SuppressWarnings("unchecked")
     @Override
