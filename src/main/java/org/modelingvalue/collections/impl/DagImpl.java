@@ -236,4 +236,8 @@ public class DagImpl<N> extends DirGraphImpl<N> implements Dag<N> {
         return (Dag<N>) super.removeAll(e);
     }
 
+    @Override
+    protected boolean checkCycles() {
+        return false;
+    }
 }

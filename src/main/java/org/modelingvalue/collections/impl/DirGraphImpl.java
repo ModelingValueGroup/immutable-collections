@@ -834,18 +834,22 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
         return vs;
     }
 
-    protected static <A, E> A dfsNodes(QualifiedSet<E, Vertex<E>> vs, Collection<E> s, A acc, BiFunction<A, E, A> func, boolean frwrd) {
+    protected final <A> A dfsNodes(QualifiedSet<N, Vertex<N>> vs, Collection<N> s, A acc, BiFunction<A, N, A> func, boolean frwrd) {
         return dfs(vs, s, acc, (a, f, t, c) -> func.apply(a, t), frwrd, false);
     }
 
-    protected static <A, E> A dfsEdges(QualifiedSet<E, Vertex<E>> vs, Collection<E> s, A acc, QuadFunction<A, E, E, Boolean, A> func, boolean frwrd) {
+    protected final <A> A dfsEdges(QualifiedSet<N, Vertex<N>> vs, Collection<N> s, A acc, QuadFunction<A, N, N, Boolean, A> func, boolean frwrd) {
         return dfs(vs, s, acc, func, frwrd, true);
     }
 
-    private static <A, E> A dfs(QualifiedSet<E, Vertex<E>> vs, Collection<E> s, A acc, QuadFunction<A, E, E, Boolean, A> func, boolean frwrd, boolean edges) {
+    protected boolean checkCycles() {
+        return true;
+    }
+
+    private <A> A dfs(QualifiedSet<N, Vertex<N>> vs, Collection<N> s, A acc, QuadFunction<A, N, N, Boolean, A> func, boolean frwrd, boolean edges) {
         int size = vs.size();
-        BitSet temp = new BitSet(size), perm = new BitSet(size);
-        for (E n : s) {
+        BitSet temp = edges && checkCycles() ? new BitSet(size) : null, perm = new BitSet(size);
+        for (N n : s) {
             acc = dfs(vs, acc, null, n, func, temp, perm, frwrd, edges);
         }
         return acc;
@@ -859,18 +863,24 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             if (edges) {
                 a = func.apply(a, f, t, false);
             }
-        } else if (temp.get(i)) {
+        } else if (temp != null && temp.get(i)) {
             // cycle
             if (edges) {
                 assert f != null;
                 a = func.apply(a, f, t, true);
             }
         } else {
-            temp.set(i);
+            if (temp != null) {
+                temp.set(i);
+            } else {
+                perm.set(i);
+            }
             for (E o : frwrd ? v.outs() : v.ins()) {
                 a = dfs(vs, a, t, o, func, temp, perm, frwrd, edges);
             }
-            perm.set(i);
+            if (temp != null) {
+                perm.set(i);
+            }
             a = func.apply(a, f, t, false);
         }
         return a;
