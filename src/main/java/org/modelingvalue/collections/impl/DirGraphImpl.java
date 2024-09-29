@@ -848,14 +848,18 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
 
     private <A> A dfs(QualifiedSet<N, Vertex<N>> vs, Collection<N> s, A acc, QuadFunction<A, N, N, Boolean, A> func, boolean frwrd, boolean edges) {
         int size = vs.size();
+        int[] done = new int[1];
         BitSet temp = edges && checkCycles() ? new BitSet(size) : null, perm = new BitSet(size);
         for (N n : s) {
-            acc = dfs(vs, acc, null, n, func, temp, perm, frwrd, edges);
+            acc = dfs(vs, acc, null, n, func, temp, perm, frwrd, edges, done);
+            if (done[0] >= size) {
+                return acc;
+            }
         }
         return acc;
     }
 
-    private static <E, A> A dfs(QualifiedSet<E, Vertex<E>> vs, A a, E f, E t, QuadFunction<A, E, E, Boolean, A> func, BitSet temp, BitSet perm, boolean frwrd, boolean edges) {
+    private static <E, A> A dfs(QualifiedSet<E, Vertex<E>> vs, A a, E f, E t, QuadFunction<A, E, E, Boolean, A> func, BitSet temp, BitSet perm, boolean frwrd, boolean edges, int[] done) {
         Vertex<E> v = vs.get(t);
         int i = vs.index(v);
         if (perm.get(i)) {
@@ -870,13 +874,14 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
                 a = func.apply(a, f, t, true);
             }
         } else {
+            done[0]++;
             if (temp != null) {
                 temp.set(i);
             } else {
                 perm.set(i);
             }
             for (E o : frwrd ? v.outs() : v.ins()) {
-                a = dfs(vs, a, t, o, func, temp, perm, frwrd, edges);
+                a = dfs(vs, a, t, o, func, temp, perm, frwrd, edges, done);
             }
             if (temp != null) {
                 perm.set(i);
