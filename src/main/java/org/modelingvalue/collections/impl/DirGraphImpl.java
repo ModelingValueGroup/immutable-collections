@@ -172,6 +172,11 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     }
 
     @Override
+    public Set<N> unconnected() {
+        return begin.retainAll(end);
+    }
+
+    @Override
     public Collection<Pair<N, N>> edges() {
         return vertices.flatMap(v -> v.outs().map(o -> Pair.of(v.node(), o)));
     }
@@ -283,91 +288,59 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     }
 
     @Override
-    public Set<N> connected() {
+    public Set<N> navigable() {
         return dfsNodes(vertices, begin, Set.of(), (s, n) -> s.add(n), true);
     }
 
     @Override
-    public Set<N> invConnected() {
+    public Set<N> invNavigable() {
         return dfsNodes(vertices, end, Set.of(), (s, n) -> s.add(n), false);
     }
 
     // change methods
 
     @Override
-    public DirGraph<N> addEdges(Set<Pair<N, N>> edges) {
-        if (edges.isEmpty()) {
+    public DirGraph<N> addNode(N node) {
+        if (containsNode(node)) {
             return this;
         } else {
             Set<N>[] be = beginEnd();
-            QualifiedSet<N, Vertex<N>> vs = vertices;
-            for (Pair<N, N> edge : edges) {
-                Vertex<N> v = vs.get(edge.a());
-                Set<N> os = outs(v);
-                if (!os.contains(edge.b())) {
-                    Set<N> is = ins(v);
-                    vs = put(vs, edge.a(), is, os, is, os.add(edge.b()), be);
-                }
-            }
-            return construct(be, vs, true);
+            return construct(be, put(vertices, node, Set.of(), Set.of(), Set.of(), Set.of(), be), false);
         }
     }
 
     @Override
-    public DirGraph<N> removeEdges(Set<Pair<N, N>> edges) {
-        if (edges.isEmpty()) {
+    public DirGraph<N> addNodes(Set<N> nodes) {
+        if (nodes.isEmpty()) {
             return this;
         } else {
             Set<N>[] be = beginEnd();
             QualifiedSet<N, Vertex<N>> vs = vertices;
-            for (Pair<N, N> edge : edges) {
-                Vertex<N> v = vs.get(edge.a());
-                if (v != null) {
-                    Set<N> os = outs(v);
-                    if (os.contains(edge.b())) {
-                        Set<N> is = ins(v);
-                        vs = put(vs, edge.a(), is, os, is, os.remove(edge.b()), be);
-                    }
+            for (N n : nodes) {
+                Vertex<N> v = vs.get(n);
+                if (v == null) {
+                    vs = put(vs, n, Set.of(), Set.of(), Set.of(), Set.of(), be);
                 }
             }
             return construct(be, vs, false);
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public DirGraph<N> removeDisconnected() {
-        return retainNodes(connected());
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public DirGraph<N> invRemoveDisconnected() {
-        return retainNodes(invConnected());
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Dag<N> removeCycles() {
-        return removeCycles(cycles());
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Dag<N> invRemoveCycles() {
-        return removeCycles(invCycles());
-    }
-
-    private Dag<N> removeCycles(Set<Pair<N, N>> cycles) {
-        Set<N>[] be = beginEnd();
-        QualifiedSet<N, Vertex<N>> vs = vertices;
-        for (Pair<N, N> edge : cycles) {
-            Vertex<N> v = vs.get(edge.a());
-            Set<N> os = outs(v);
-            Set<N> is = ins(v);
-            vs = put(vs, edge.a(), is, os, is, os.remove(edge.b()), be);
+    public DirGraph<N> removeNode(N node) {
+        if (containsNode(node)) {
+            Set<N>[] be = beginEnd();
+            QualifiedSet<N, Vertex<N>> vs = vertices;
+            Vertex<N> v = vs.get(node);
+            Set<N> outs = outs(v);
+            Set<N> ins = ins(v);
+            if (!ins.isEmpty() || !outs.isEmpty()) {
+                vs = put(vs, node, ins, outs, Set.of(), Set.of(), be);
+            }
+            return construct(be, removeNode(vs, node, be), false);
+        } else {
+            return this;
         }
-        return new DagImpl<N>(be, vs);
     }
 
     @Override
@@ -380,9 +353,12 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             for (N n : nodes) {
                 Vertex<N> v = vs.get(n);
                 if (v != null) {
-                    Set<N> os = outs(v);
-                    Set<N> is = ins(v);
-                    vs = put(vs, n, is, os, Set.of(), Set.of(), be);
+                    Set<N> outs = outs(v);
+                    Set<N> ins = ins(v);
+                    if (!ins.isEmpty() || !outs.isEmpty()) {
+                        vs = put(vs, n, ins, outs, Set.of(), Set.of(), be);
+                    }
+                    vs = removeNode(vs, n, be);
                 }
             }
             return construct(be, vs, false);
@@ -402,20 +378,99 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
                 if (v != null) {
                     Set<N> ins = ins(v).retainAll(nodes);
                     Set<N> outs = outs(v).retainAll(nodes);
-                    if (!ins.isEmpty() || !outs.isEmpty()) {
-                        if (ins.isEmpty()) {
-                            be[0] = be[0].add(n);
-                        }
-                        if (outs.isEmpty()) {
-                            be[1] = be[1].add(n);
-                        }
-                        vs = vs.put(v.ins().equals(ins) && v.outs().equals(outs) ? v : Vertex.of(n, ins, outs));
+                    if (ins.isEmpty()) {
+                        be[0] = be[0].add(n);
+                    }
+                    if (outs.isEmpty()) {
+                        be[1] = be[1].add(n);
+                    }
+                    vs = vs.put(v.ins().equals(ins) && v.outs().equals(outs) ? v : Vertex.of(n, ins, outs));
+                }
+            }
+            return construct(be, vs, false);
+        }
+    }
+
+    @Override
+    public DirGraph<N> addEdges(Set<Pair<N, N>> edges) {
+        if (edges.isEmpty()) {
+            return this;
+        } else {
+            Set<N>[] be = beginEnd();
+            QualifiedSet<N, Vertex<N>> vs = vertices;
+            for (Pair<N, N> edge : edges) {
+                Vertex<N> v = vs.get(edge.a());
+                Set<N> outs = outs(v);
+                if (!outs.contains(edge.b())) {
+                    Set<N> ins = ins(v);
+                    vs = put(vs, edge.a(), ins, outs, ins, outs.add(edge.b()), be);
+                }
+            }
+            return construct(be, vs, true);
+        }
+    }
+
+    @Override
+    public DirGraph<N> removeEdges(Set<Pair<N, N>> edges) {
+        if (edges.isEmpty()) {
+            return this;
+        } else {
+            Set<N>[] be = beginEnd();
+            QualifiedSet<N, Vertex<N>> vs = vertices;
+            for (Pair<N, N> edge : edges) {
+                Vertex<N> v = vs.get(edge.a());
+                if (v != null) {
+                    Set<N> outs = outs(v);
+                    if (outs.contains(edge.b())) {
+                        Set<N> ins = ins(v);
+                        vs = put(vs, edge.a(), ins, outs, ins, outs.remove(edge.b()), be);
                     }
                 }
             }
             return construct(be, vs, false);
         }
+    }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public DirGraph<N> retainNavigable() {
+        return retainNodes(navigable());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public DirGraph<N> invRetainNavigable() {
+        return retainNodes(invNavigable());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> removeCycles() {
+        return removeCycles(cycles());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> invRemoveCycles() {
+        return removeCycles(invCycles());
+    }
+
+    private Dag<N> removeCycles(Set<Pair<N, N>> cycles) {
+        Set<N>[] be = beginEnd();
+        QualifiedSet<N, Vertex<N>> vs = vertices;
+        for (Pair<N, N> edge : cycles) {
+            Vertex<N> v = vs.get(edge.a());
+            Set<N> outs = outs(v);
+            Set<N> ins = ins(v);
+            vs = put(vs, edge.a(), ins, outs, ins, outs.remove(edge.b()), be);
+        }
+        return new DagImpl<N>(be, vs);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public DirGraph<N> addNodes(N... nodes) {
+        return addNodes(Set.of(nodes));
     }
 
     @SuppressWarnings("unchecked")
@@ -433,7 +488,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     @Override
     public DirGraph<N> setBegin(Set<N> begin) {
         Set<N> rs = begin().removeAll(begin);
-        Set<N> as = begin.removeAll(begin()).filter(this::containsNode).asSet();
+        Set<N> as = begin.removeAll(begin());
         if (rs.isEmpty() && as.isEmpty()) {
             return this;
         } else {
@@ -441,11 +496,18 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             QualifiedSet<N, Vertex<N>> vs = vertices;
             for (N n : as) {
                 Vertex<N> v = vs.get(n);
-                vs = put(vs, n, ins(v), outs(v), Set.of(), outs(v), be);
+                Set<N> ins = ins(v);
+                Set<N> outs = outs(v);
+                vs = put(vs, n, ins, outs, Set.of(), outs, be);
             }
             do {
                 for (N n : rs) {
-                    vs = put(vs, n, Set.of(), outs(vs.get(n)), Set.of(), Set.of(), be);
+                    Vertex<N> v = vs.get(n);
+                    Set<N> outs = outs(v);
+                    if (!outs.isEmpty()) {
+                        vs = put(vs, n, Set.of(), outs, Set.of(), Set.of(), be);
+                    }
+                    vs = removeNode(vs, n, be);
                 }
                 rs = be[0].removeAll(begin);
             } while (!rs.isEmpty());
@@ -456,7 +518,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     @Override
     public DirGraph<N> setEnd(Set<N> end) {
         Set<N> rs = end().removeAll(end);
-        Set<N> as = end.removeAll(end()).filter(this::containsNode).asSet();
+        Set<N> as = end.removeAll(end());
         if (rs.isEmpty() && as.isEmpty()) {
             return this;
         } else {
@@ -464,11 +526,18 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             QualifiedSet<N, Vertex<N>> vs = vertices;
             for (N n : as) {
                 Vertex<N> v = vs.get(n);
-                vs = put(vs, n, ins(v), outs(v), ins(v), Set.of(), be);
+                Set<N> ins = ins(v);
+                Set<N> outs = outs(v);
+                vs = put(vs, n, ins, outs, ins, Set.of(), be);
             }
             do {
                 for (N n : rs) {
-                    vs = put(vs, n, ins(vs.get(n)), Set.of(), Set.of(), Set.of(), be);
+                    Vertex<N> v = vs.get(n);
+                    Set<N> ins = ins(v);
+                    if (!ins.isEmpty()) {
+                        vs = put(vs, n, ins, Set.of(), Set.of(), Set.of(), be);
+                    }
+                    vs = removeNode(vs, n, be);
                 }
                 rs = be[1].removeAll(end);
             } while (!rs.isEmpty());
@@ -500,107 +569,103 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
 
     @Override
     public DirGraph<N> put(N node, Set<N> ins, Set<N> outs) {
-        ins = ins.remove(node);
-        outs = outs.remove(node);
         Vertex<N> v = vertices.get(node);
-        Set<N> is = ins(v);
-        Set<N> os = outs(v);
-        if (is.equals(ins) && os.equals(outs)) {
+        Set<N> pins = ins(v);
+        Set<N> pouts = outs(v);
+        if (v != null && ins.equals(pins) && outs.equals(pouts)) {
             return this;
         } else {
             Set<N>[] be = beginEnd();
-            return construct(be, put(vertices, node, is, os, ins, outs, be), true);
+            return construct(be, put(vertices, node, pins, pouts, ins, outs, be), true);
         }
     }
 
     @Override
     public DirGraph<N> putOuts(N node, Set<N> outs) {
-        outs = outs.remove(node);
         Vertex<N> v = vertices.get(node);
-        Set<N> os = outs(v);
-        if (os.equals(outs)) {
+        Set<N> pouts = outs(v);
+        if (v != null && outs.equals(pouts)) {
             return this;
         } else {
             Set<N>[] be = beginEnd();
-            Set<N> is = ins(v);
-            return construct(be, put(vertices, node, is, os, is, outs, be), true);
+            Set<N> pins = ins(v);
+            return construct(be, put(vertices, node, pins, pouts, pins, outs, be), true);
         }
     }
 
     @Override
     public DirGraph<N> putIns(N node, Set<N> ins) {
-        ins = ins.remove(node);
         Vertex<N> v = vertices.get(node);
-        Set<N> is = ins(v);
-        if (is.equals(ins)) {
+        Set<N> pins = ins(v);
+        if (v != null && ins.equals(pins)) {
             return this;
         } else {
             Set<N>[] be = beginEnd();
-            Set<N> os = outs(v);
-            return construct(be, put(vertices, node, is, os, ins, os, be), true);
+            Set<N> pouts = outs(v);
+            return construct(be, put(vertices, node, pins, pouts, ins, pouts, be), true);
         }
     }
 
     @Override
     public DirGraph<N> clear(N node) {
         Vertex<N> v = vertices.get(node);
-        Set<N> os = outs(v);
-        Set<N> is = ins(v);
-        if (os.isEmpty() && is.isEmpty()) {
+        Set<N> outs = outs(v);
+        Set<N> ins = ins(v);
+        if (outs.isEmpty() && ins.isEmpty()) {
             return this;
         } else {
             Set<N>[] be = beginEnd();
-            return construct(be, put(vertices, node, is, os, Set.of(), Set.of(), be), false);
+            return construct(be, put(vertices, node, ins, outs, Set.of(), Set.of(), be), false);
         }
     }
 
     @Override
     public DirGraph<N> clearOuts(N node) {
         Vertex<N> v = vertices.get(node);
-        Set<N> os = outs(v);
-        if (os.isEmpty()) {
+        Set<N> outs = outs(v);
+        if (outs.isEmpty()) {
             return this;
         } else {
             Set<N>[] be = beginEnd();
-            Set<N> is = ins(v);
-            return construct(be, put(vertices, node, is, os, is, Set.of(), be), false);
+            Set<N> ins = ins(v);
+            return construct(be, put(vertices, node, ins, outs, ins, Set.of(), be), false);
         }
     }
 
     @Override
     public DirGraph<N> clearIns(N node) {
         Vertex<N> v = vertices.get(node);
-        Set<N> is = ins(v);
-        if (is.isEmpty()) {
+        Set<N> ins = ins(v);
+        if (ins.isEmpty()) {
             return this;
         } else {
             Set<N>[] be = beginEnd();
-            Set<N> os = outs(v);
-            return construct(be, put(vertices, node, is, os, Set.of(), os, be), false);
+            Set<N> outs = outs(v);
+            return construct(be, put(vertices, node, ins, outs, Set.of(), outs, be), false);
         }
     }
 
     @Override
     public DirGraph<N> addEdge(N from, N to) {
         Vertex<N> v = vertices.get(from);
-        Set<N> os = outs(v);
-        if (os.contains(to)) {
+        Set<N> outs = outs(v);
+        if (v != null && outs.contains(to)) {
             return this;
         } else {
             Set<N>[] be = beginEnd();
-            Set<N> is = ins(v);
-            return construct(be, put(vertices, from, is, os, is, os.add(to), be), true);
+            Set<N> ins = ins(v);
+            return construct(be, put(vertices, from, ins, outs, ins, outs.add(to), be), true);
         }
     }
 
     @Override
     public DirGraph<N> removeEdge(N from, N to) {
         Vertex<N> v = vertices.get(from);
-        Set<N> os = outs(v);
-        if (os.contains(to)) {
+        Set<N> outs = outs(v);
+        if (outs.contains(to)) {
             Set<N>[] be = beginEnd();
-            Set<N> is = ins(v);
-            return construct(be, put(vertices, from, is, os, is, os.remove(to), be), false);
+            Set<N> ins = ins(v);
+            return construct(be, put(vertices, from, ins, outs, ins, outs.remove(to), be), false);
         } else {
             return this;
         }
@@ -608,110 +673,102 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
 
     @Override
     public DirGraph<N> add(N node, Set<N> ins, Set<N> outs) {
-        ins = ins.remove(node);
-        outs = outs.remove(node);
         if (ins.isEmpty() && outs.isEmpty()) {
             return this;
         } else {
             Vertex<N> v = vertices.get(node);
-            Set<N> is = ins(v);
-            Set<N> os = outs(v);
-            if (is.containsAll(ins) && os.containsAll(outs)) {
+            Set<N> pins = ins(v);
+            Set<N> pouts = outs(v);
+            if (v != null && pins.containsAll(ins) && pouts.containsAll(outs)) {
                 return this;
             } else {
                 Set<N>[] be = beginEnd();
-                return construct(be, put(vertices, node, is, os, is.addAll(ins), os.addAll(outs), be), true);
+                return construct(be, put(vertices, node, pins, pouts, pins.addAll(ins), pouts.addAll(outs), be), true);
             }
         }
     }
 
     @Override
     public DirGraph<N> addOuts(N node, Set<N> outs) {
-        outs = outs.remove(node);
         if (outs.isEmpty()) {
             return this;
         } else {
             Vertex<N> v = vertices.get(node);
-            Set<N> os = outs(v);
-            if (os.containsAll(outs)) {
+            Set<N> pouts = outs(v);
+            if (v != null && pouts.containsAll(outs)) {
                 return this;
             } else {
                 Set<N>[] be = beginEnd();
-                Set<N> is = ins(v);
-                return construct(be, put(vertices, node, is, os, is, os.addAll(outs), be), true);
+                Set<N> ins = ins(v);
+                return construct(be, put(vertices, node, ins, pouts, ins, pouts.addAll(outs), be), true);
             }
         }
     }
 
     @Override
     public DirGraph<N> addIns(N node, Set<N> ins) {
-        ins = ins.remove(node);
         if (ins.isEmpty()) {
             return this;
         } else {
             Vertex<N> v = vertices.get(node);
-            Set<N> nins = ins(v);
-            if (nins.containsAll(ins)) {
+            Set<N> pins = ins(v);
+            if (v != null && pins.containsAll(ins)) {
                 return this;
             } else {
                 Set<N>[] be = beginEnd();
-                Set<N> nouts = outs(v);
-                return construct(be, put(vertices, node, nins, nouts, nins.addAll(ins), nouts, be), true);
+                Set<N> pouts = outs(v);
+                return construct(be, put(vertices, node, pins, pouts, pins.addAll(ins), pouts, be), true);
             }
         }
     }
 
     @Override
     public DirGraph<N> remove(N node, Set<N> ins, Set<N> outs) {
-        ins = ins.remove(node);
-        outs = outs.remove(node);
         if (outs.isEmpty() && ins.isEmpty()) {
             return this;
         } else {
             Vertex<N> v = vertices.get(node);
-            Set<N> os = outs(v);
-            Set<N> is = ins(v);
-            if (os.noneMatch(outs::contains) && is.noneMatch(ins::contains)) {
+            Set<N> pouts = outs(v);
+            Set<N> pins = ins(v);
+            if (outs.noneMatch(pouts::contains) && ins.noneMatch(pins::contains)) {
                 return this;
             } else {
                 Set<N>[] be = beginEnd();
-                return construct(be, put(vertices, node, is, os, is.removeAll(ins), os.removeAll(outs), be), false);
+                return construct(be, put(vertices, node, pins, pouts, pins.removeAll(ins), pouts.removeAll(outs), be), false);
             }
         }
     }
 
     @Override
     public DirGraph<N> removeOuts(N node, Set<N> outs) {
-        outs = outs.remove(node);
         if (outs.isEmpty()) {
             return this;
         } else {
             Vertex<N> v = vertices.get(node);
-            Set<N> os = outs(v);
-            if (os.noneMatch(outs::contains)) {
+            Set<N> pouts = outs(v);
+            if (outs.noneMatch(pouts::contains)) {
                 return this;
             } else {
                 Set<N>[] be = beginEnd();
-                Set<N> is = ins(v);
-                return construct(be, put(vertices, node, is, os, is, os.removeAll(outs), be), false);
+                Set<N> ins = ins(v);
+                return construct(be, put(vertices, node, ins, pouts, ins, pouts.removeAll(outs), be), false);
             }
         }
     }
 
     @Override
     public DirGraph<N> removeIns(N node, Set<N> ins) {
-        ins = ins.remove(node);
         if (ins.isEmpty()) {
             return this;
         } else {
             Vertex<N> v = vertices.get(node);
-            Set<N> is = ins(v);
-            if (is.noneMatch(ins::contains)) {
+            Set<N> pins = ins(v);
+            if (ins.noneMatch(pins::contains)) {
                 return this;
             } else {
                 Set<N>[] be = beginEnd();
-                Set<N> os = outs(v);
-                return construct(be, put(vertices, node, is, os, is.removeAll(ins), os, be), false);
+                Set<N> pouts = outs(v);
+                return construct(be, put(vertices, node, pins, pouts, pins.removeAll(ins), pouts, be), false);
             }
         }
     }
@@ -800,6 +857,12 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
 
     private static <E> Set<E> outs(Vertex<E> v) {
         return v != null ? v.outs() : Set.of();
+    }
+
+    private static <E> QualifiedSet<E, Vertex<E>> removeNode(QualifiedSet<E, Vertex<E>> vs, E n, Set<E>[] be) {
+        be[0] = be[0].remove(n);
+        be[1] = be[1].remove(n);
+        return vs.removeKey(n);
     }
 
     private static <E> QualifiedSet<E, Vertex<E>> addEdges(QualifiedSet<E, Vertex<E>> vs, E[] edges, Set<E>[] be) {
@@ -921,15 +984,9 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     }
 
     private static <E> QualifiedSet<E, Vertex<E>> putVertex(QualifiedSet<E, Vertex<E>> vs, E n, Set<E> ni, Set<E> no, Set<E>[] be) {
-        if (ni.isEmpty() && no.isEmpty()) {
-            be[0] = be[0].remove(n);
-            be[1] = be[1].remove(n);
-            return vs.removeKey(n);
-        } else {
-            be[0] = ni.isEmpty() ? be[0].add(n) : be[0].remove(n);
-            be[1] = no.isEmpty() ? be[1].add(n) : be[1].remove(n);
-            return vs.put(Vertex.of(n, ni, no));
-        }
+        be[0] = ni.isEmpty() ? be[0].add(n) : be[0].remove(n);
+        be[1] = no.isEmpty() ? be[1].add(n) : be[1].remove(n);
+        return vs.put(Vertex.of(n, ni, no));
     }
 
     // ContainingCollection methods
@@ -978,13 +1035,13 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     public DirGraph<N> add(Vertex<N> av) {
         QualifiedSet<N, Vertex<N>> vs = vertices;
         Vertex<N> ev = vs.get(av.node());
-        Set<N> os = outs(av);
-        Set<N> is = ins(ev);
-        if (is.containsAll(av.ins()) && os.containsAll(av.outs())) {
+        Set<N> outs = outs(av);
+        Set<N> ins = ins(ev);
+        if (ins.containsAll(av.ins()) && outs.containsAll(av.outs())) {
             return this;
         } else {
             Set<N>[] be = beginEnd();
-            return construct(be, put(vs, av.node(), is, os, is.addAll(av.ins()), os.addAll(av.outs()), be), true);
+            return construct(be, put(vs, av.node(), ins, outs, ins.addAll(av.ins()), outs.addAll(av.outs()), be), true);
         }
     }
 
@@ -1011,11 +1068,11 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             Vertex<N> rv = (Vertex<N>) obj;
             QualifiedSet<N, Vertex<N>> vs = vertices;
             Vertex<N> ev = vs.get(rv.node());
-            Set<N> os = outs(ev);
-            Set<N> is = ins(ev);
-            if (!os.isEmpty() || !is.isEmpty()) {
+            Set<N> outs = outs(ev);
+            Set<N> ins = ins(ev);
+            if (!outs.isEmpty() || !ins.isEmpty()) {
                 Set<N>[] be = beginEnd();
-                vs = put(vs, rv.node(), is, os, Set.of(), Set.of(), be);
+                vs = put(vs, rv.node(), ins, outs, Set.of(), Set.of(), be);
                 return construct(be, vs, false);
             }
         }
@@ -1031,10 +1088,10 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             if (obj instanceof Vertex) {
                 Vertex<N> rv = (Vertex<N>) obj;
                 Vertex<N> ev = vs.get(rv.node());
-                Set<N> os = outs(ev);
-                Set<N> is = ins(ev);
-                if (!os.isEmpty() || !is.isEmpty()) {
-                    vs = put(vs, rv.node(), is, os, Set.of(), Set.of(), be);
+                Set<N> outs = outs(ev);
+                Set<N> ins = ins(ev);
+                if (!outs.isEmpty() || !ins.isEmpty()) {
+                    vs = put(vs, rv.node(), ins, outs, Set.of(), Set.of(), be);
                 }
             }
         }

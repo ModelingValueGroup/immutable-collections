@@ -53,10 +53,19 @@ public interface Dag<N> extends DirGraph<N> {
     Dag<N> retainNodes(N... e);
 
     @Override
-    Dag<N> removeDisconnected();
+    Dag<N> retainNavigable();
 
     @Override
-    Dag<N> invRemoveDisconnected();
+    Dag<N> invRetainNavigable();
+
+    @Override
+    Dag<N> addNodes(Set<N> nodes);
+
+    @Override
+    Dag<N> addNode(N node);
+
+    @Override
+    Dag<N> removeNode(N node);
 
     @Override
     Dag<N> setBegin(Set<N> begin);

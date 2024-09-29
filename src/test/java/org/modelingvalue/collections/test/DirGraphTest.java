@@ -74,7 +74,45 @@ public class DirGraphTest {
                 "a", "b", //
                 "b", "c", //
                 "c", "d");
-        assertTrue(graph1 == graph2);
+        assertTrue(graph1 == graph2.removeNodes(graph2.unconnected()));
+    }
+
+    @RepeatedTest(36)
+    public void dagsMergeToDag() {
+        int size = 10_000;
+        Random random = new Random(System.currentTimeMillis());
+
+        DirGraph<Integer> graph1 = DirGraph.of();
+        for (int i = 0; i < size; i++) {
+            graph1 = graph1.addEdge(random.nextInt(size), random.nextInt(size));
+        }
+        Dag<Integer> dag1 = graph1.removeCycles();
+
+        DirGraph<Integer> graph2 = DirGraph.of();
+        for (int i = 0; i < size; i++) {
+            graph2 = graph2.addEdge(random.nextInt(size), random.nextInt(size));
+        }
+        Dag<Integer> dag2 = graph2.removeCycles();
+
+        assertEquals(dag1.navigable(), dag1.nodes().asSet());
+        assertEquals(0, dag1.cycles().size());
+        assertEquals(dag2.navigable(), dag2.nodes().asSet());
+        assertEquals(0, dag2.cycles().size());
+
+        Set<Integer> begin = dag1.begin().addAll(dag2.begin());
+        DirGraph<Integer> merged = Dag.<Integer> of().merge(dag1, dag2);
+
+        merged = merged.setBegin(begin);
+        assertEquals(begin, merged.begin());
+
+        Dag<Integer> dag = merged.removeCycles();
+        dag = dag.setBegin(begin);
+
+        assertEquals(dag.navigable(), dag.nodes().asSet());
+        assertEquals(0, dag.cycles().size());
+
+        assertEquals(merged.size(), dag.size());
+        assertEquals(begin, dag.begin());
     }
 
     @RepeatedTest(36)
@@ -94,8 +132,8 @@ public class DirGraphTest {
         }
         Dag<Integer> dag2 = graph2.removeCycles();
 
-        assertEquals(dag1.connected().size(), dag1.size());
-        assertEquals(dag2.connected().size(), dag2.size());
+        assertEquals(dag1.navigable().size(), dag1.size());
+        assertEquals(dag2.navigable().size(), dag2.size());
 
         DirGraph<Integer> merged = Dag.<Integer> of().merge(dag1, dag2);
 
@@ -136,7 +174,7 @@ public class DirGraphTest {
         for (int i = 0; i < size; i++) {
             graph = graph.addEdge(random.nextInt(size), random.nextInt(size));
         }
-        graph = graph.removeDisconnected().invRemoveDisconnected();
+        graph = graph.retainNavigable().invRetainNavigable();
         graph = graph.putBegin(-1, graph.begin());
         graph = graph.putEnd(-2, graph.end());
         assertEquals(Set.of(-1), graph.begin());

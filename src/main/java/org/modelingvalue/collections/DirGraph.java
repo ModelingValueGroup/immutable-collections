@@ -49,9 +49,11 @@ public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<
 
     Set<N> end();
 
-    Set<N> connected();
+    Set<N> unconnected();
 
-    Set<N> invConnected();
+    Set<N> navigable();
+
+    Set<N> invNavigable();
 
     Collection<N> nodes();
 
@@ -92,6 +94,8 @@ public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<
     @Override
     Dag<N> clear();
 
+    DirGraph<N> addNodes(Set<N> e);
+
     DirGraph<N> removeNodes(Set<N> e);
 
     DirGraph<N> retainNodes(Set<N> e);
@@ -100,9 +104,9 @@ public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<
 
     DirGraph<N> removeEdges(Set<Pair<N, N>> edges);
 
-    DirGraph<N> removeDisconnected();
+    DirGraph<N> retainNavigable();
 
-    DirGraph<N> invRemoveDisconnected();
+    DirGraph<N> invRetainNavigable();
 
     DirGraph<N> setBegin(Set<N> begin);
 
@@ -111,6 +115,10 @@ public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<
     DirGraph<N> addEdge(N from, N to);
 
     DirGraph<N> removeEdge(N from, N to);
+
+    DirGraph<N> addNode(N node);
+
+    DirGraph<N> removeNode(N node);
 
     DirGraph<N> clear(N node);
 
@@ -141,10 +149,13 @@ public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<
     DirGraph<N> removeIns(N node, Set<N> ins);
 
     @SuppressWarnings("unchecked")
-    DirGraph<N> removeNodes(N... e);
+    DirGraph<N> addNodes(N... nodes);
 
     @SuppressWarnings("unchecked")
-    DirGraph<N> retainNodes(N... e);
+    DirGraph<N> removeNodes(N... nodes);
+
+    @SuppressWarnings("unchecked")
+    DirGraph<N> retainNodes(N... nodes);
 
     @SuppressWarnings("unchecked")
     DirGraph<N> setBegin(N... begin);
@@ -183,22 +194,22 @@ public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<
     DirGraph<N> removeIns(N node, N... ins);
 
     @Override
-    DirGraph<N> remove(Object e);
+    DirGraph<N> remove(Object obj);
 
     @Override
-    DirGraph<N> removeAll(Collection<?> e);
+    DirGraph<N> removeAll(Collection<?> coll);
 
     @Override
-    DirGraph<N> add(Vertex<N> e);
+    DirGraph<N> add(Vertex<N> vertex);
 
     @Override
-    DirGraph<N> addAll(Collection<? extends Vertex<N>> e);
+    DirGraph<N> addAll(Collection<? extends Vertex<N>> vertices);
 
     @Override
-    DirGraph<N> addUnique(Vertex<N> e);
+    DirGraph<N> addUnique(Vertex<N> vertex);
 
     @Override
-    DirGraph<N> addAllUnique(Collection<? extends Vertex<N>> e);
+    DirGraph<N> addAllUnique(Collection<? extends Vertex<N>> vertices);
 
     @Override
     DirGraph<N> replace(Object pre, Vertex<N> post);

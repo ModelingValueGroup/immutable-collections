@@ -85,12 +85,12 @@ public class DagImpl<N> extends DirGraphImpl<N> implements Dag<N> {
     }
 
     @Override
-    public Dag<N> removeDisconnected() {
+    public Dag<N> retainNavigable() {
         return this;
     }
 
     @Override
-    public Dag<N> invRemoveDisconnected() {
+    public Dag<N> invRetainNavigable() {
         return this;
     }
 
@@ -122,6 +122,21 @@ public class DagImpl<N> extends DirGraphImpl<N> implements Dag<N> {
     @Override
     public <A> A invDfsEdges(A acc, TriFunction<A, N, N, A> func) {
         return dfsEdges(vertices(), end(), acc, (a, t, f, c) -> func.apply(a, t, f), false);
+    }
+
+    @Override
+    public Dag<N> addNodes(Set<N> nodes) {
+        return (Dag<N>) super.addNodes(nodes);
+    }
+
+    @Override
+    public Dag<N> addNode(N node) {
+        return (Dag<N>) super.addNode(node);
+    }
+
+    @Override
+    public Dag<N> removeNode(N node) {
+        return (Dag<N>) super.removeNode(node);
     }
 
     @Override
