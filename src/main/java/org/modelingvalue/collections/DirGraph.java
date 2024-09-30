@@ -218,12 +218,7 @@ public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<
     @Override
     DirGraph<N> replaceFirst(Object pre, Vertex<N> post);
 
-    <A> void topological(TriConsumer<N, Getter<N, A>, Setter<A>> action);
-
-    @FunctionalInterface
-    interface Getter<N, A> {
-        A get(N node);
-    }
+    <A> Map<N, A> topological(TriConsumer<N, Map<N, A>, Setter<A>> action);
 
     @FunctionalInterface
     interface Setter<A> {

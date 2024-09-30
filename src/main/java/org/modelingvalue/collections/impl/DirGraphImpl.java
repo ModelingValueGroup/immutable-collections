@@ -25,6 +25,8 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Objects;
 import java.util.Spliterator;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -1161,9 +1163,15 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     }
 
     @Override
-    public <A> void topological(TriConsumer<N, Getter<N, A>, Setter<A>> action) {
+    public <A> Map<N, A> topological(TriConsumer<N, Map<N, A>, Setter<A>> action) {
         AtomicReference<Map<N, A>> state = new AtomicReference<>(Map.of());
-        begin().forEach(n -> action(action, state, Map.of(), n));
+        BlockingQueue<Map<N, A>> queue = new LinkedBlockingQueue<Map<N, A>>(1);
+        begin().forEach(n -> action(action, state, Map.of(), n, queue));
+        try {
+            return queue.take();
+        } catch (InterruptedException e) {
+            throw new Error(e);
+        }
     }
 
     private static final Object RUNNING = new Object() {
@@ -1174,7 +1182,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
     };
 
     @SuppressWarnings("unchecked")
-    private <A> void action(TriConsumer<N, Getter<N, A>, Setter<A>> action, AtomicReference<Map<N, A>> state, Map<N, A> pre, N node) {
+    private <A> void action(TriConsumer<N, Map<N, A>, Setter<A>> action, AtomicReference<Map<N, A>> state, Map<N, A> pre, N node, BlockingQueue<Map<N, A>> queue) {
         Map<N, A> post = pre.put(node, (A) RUNNING);
         while (!state.compareAndSet(pre, post)) {
             pre = state.get();
@@ -1183,9 +1191,20 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             }
             post = pre.put(node, (A) RUNNING);
         }
-        action.accept(node, post::get, a -> {
+        action.accept(node, post, a -> {
             Map<N, A> map = state.updateAndGet(m -> m.put(node, a));
-            outs(node).filter(o -> ins(o).allMatch(i -> map.containsKey(i) && map.get(i) != RUNNING)).forEach(o -> action(action, state, map, o));
+            Set<N> outs = outs(node);
+            if (outs.isEmpty()) {
+                if (end.allMatch(e -> map.containsKey(e) && map.get(e) != RUNNING)) {
+                    try {
+                        queue.put(map);
+                    } catch (InterruptedException e) {
+                        throw new Error(e);
+                    }
+                }
+            } else {
+                outs.filter(o -> ins(o).allMatch(i -> map.containsKey(i) && map.get(i) != RUNNING)).forEach(o -> action(action, state, map, o, queue));
+            }
         });
     }
 

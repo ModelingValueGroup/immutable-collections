@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import org.modelingvalue.collections.Dag;
 import org.modelingvalue.collections.DirGraph;
 import org.modelingvalue.collections.List;
+import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 
 public class DirGraphTest {
@@ -77,6 +78,7 @@ public class DirGraphTest {
         assertTrue(graph1 == graph2.removeNodes(graph2.unconnected()));
     }
 
+    @SuppressWarnings("unchecked")
     @RepeatedTest(36)
     public void parallelTopological() {
         int size = 10_000;
@@ -84,19 +86,28 @@ public class DirGraphTest {
 
         DirGraph<Integer> graph1 = DirGraph.of();
         for (int i = 0; i < size; i++) {
-            graph1 = graph1.addEdge(random.nextInt(size), random.nextInt(size));
+            graph1 = graph1.addEdge(random.nextInt(size) / 4, random.nextInt(size) / 4);
         }
         Dag<Integer> dag1 = graph1.removeCycles();
         Dag<Integer> dag2 = dag1.putBegin(-1, dag1.begin());
         Dag<Integer> dag3 = dag2.putEnd(-2, dag2.end());
 
-        dag3.topological((i, g, s) -> {
-            int val = dag3.ins(i).reduce(0, Math::max) + 1;
-            if (i == -2) {
-                System.err.println("!!!!!!!!!!!! " + val);
-            }
-            s.set(val);
+        List<Integer>[] list = new List[]{List.of()};
+        Map<Integer, Integer> result = dag3.topological((i, m, s) -> {
+            list[0] = list[0].append(i);
+            s.set(list[0].size() - 1);
         });
+        checkOrder(dag3, list[0]);
+        assertTrue(result.allMatch(e -> list[0].index(e.getKey()) == e.getValue()));
+    }
+
+    private <N> void checkOrder(DirGraph<N> graph, List<N> topo) {
+        for (int n = 0; n < topo.size(); n++) {
+            N node = topo.get(n);
+            int fn = n;
+            assertTrue(graph.ins(node).allMatch(in -> topo.index(in) < fn));
+            assertTrue(graph.outs(node).allMatch(in -> topo.index(in) > fn));
+        }
     }
 
     @RepeatedTest(36)
@@ -307,6 +318,7 @@ public class DirGraphTest {
         assertEquals(8, graph.size());
 
         List<String> top = graph.topologicalNodes();
+        checkOrder(graph, top);
         assertEquals(List.of("2", "5", "4", "7", "8", "1", "3", "6"), top);
     }
 
