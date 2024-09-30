@@ -46,15 +46,16 @@ public final class VertexImpl<N> extends Struct3Impl<N, Set<N>, Set<N>> implemen
         return get2();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public Vertex<N> merge(Vertex<N>[] branches, int length) {
-        Set<N> ins = ins();
-        Set<N> outs = outs();
+        Set<N>[] ins = new Set[branches.length];
+        Set<N>[] outs = new Set[branches.length];
         for (int i = 0; i < length; i++) {
-            ins = ins.addAll(branches[i].ins());
-            outs = outs.addAll(branches[i].outs());
+            ins[i] = branches[i].ins();
+            outs[i] = branches[i].outs();
         }
-        return new VertexImpl<N>(node(), ins, outs);
+        return new VertexImpl<N>(node(), ins().merge(ins), outs().merge(outs));
     }
 
     @Override
