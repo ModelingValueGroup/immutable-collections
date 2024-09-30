@@ -134,4 +134,7 @@ public interface Dag<N> extends DirGraph<N> {
     @Override
     Dag<N> removeAll(Collection<?> e);
 
+    Dag<N> mergeBegin(Set<Dag<N>> branches);
+
+    Dag<N> mergeEnd(Set<Dag<N>> branches);
 }

@@ -280,9 +280,9 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             ea[i] = branches[i].end();
             va[i] = branches[i].vertices();
         }
-        Set<N> mb = begin.merge(ba);
-        Set<N> me = end.merge(ea);
-        QualifiedSet<N, Vertex<N>> mv = vertices.merge(va);
+        Set<N> mb = begin.merge(ba, length);
+        Set<N> me = end.merge(ea, length);
+        QualifiedSet<N, Vertex<N>> mv = vertices.merge(va, length);
         Set<N>[] be = new Set[]{mb.filter(b -> ins(mv.get(b)).isEmpty()).asSet(), me.filter(b -> outs(mv.get(b)).isEmpty()).asSet()};
         return new DirGraphImpl<N>(be, mv);
     }

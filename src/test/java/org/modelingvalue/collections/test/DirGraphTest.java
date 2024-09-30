@@ -105,14 +105,17 @@ public class DirGraphTest {
         merged = merged.setBegin(begin);
         assertEquals(begin, merged.begin());
 
-        Dag<Integer> dag = merged.removeCycles();
-        dag = dag.setBegin(begin);
+        Dag<Integer> mdag1 = merged.removeCycles();
+        mdag1 = mdag1.setBegin(begin);
 
-        assertEquals(dag.navigable(), dag.nodes().asSet());
-        assertEquals(0, dag.cycles().size());
+        assertEquals(mdag1.navigable(), mdag1.nodes().asSet());
+        assertEquals(0, mdag1.cycles().size());
 
-        assertEquals(merged.size(), dag.size());
-        assertEquals(begin, dag.begin());
+        assertEquals(merged.size(), mdag1.size());
+        assertEquals(begin, mdag1.begin());
+
+        Dag<Integer> mdag2 = Dag.<Integer> of().mergeBegin(Set.of(dag1, dag2));
+        assertEquals(mdag1, mdag2);
     }
 
     @RepeatedTest(36)

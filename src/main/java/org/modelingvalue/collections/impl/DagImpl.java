@@ -255,4 +255,34 @@ public class DagImpl<N> extends DirGraphImpl<N> implements Dag<N> {
     protected boolean checkCycles() {
         return false;
     }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> mergeBegin(Set<Dag<N>> branches) {
+        int size = branches.size();
+        Set<N>[] ba = new Set[size];
+        Dag<N>[] da = new Dag[size];
+        for (int i = 0; i < size; i++) {
+            da[i] = branches.get(i);
+            ba[i] = da[i].begin();
+        }
+        Set<N> begin = begin().merge(ba, size);
+        DirGraph<N> merged = merge(da, size);
+        return merged.setBegin(begin).removeCycles().setBegin(begin);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Dag<N> mergeEnd(Set<Dag<N>> branches) {
+        int size = branches.size();
+        Set<N>[] ea = new Set[size];
+        Dag<N>[] da = new Dag[size];
+        for (int i = 0; i < size; i++) {
+            da[i] = branches.get(i);
+            ea[i] = da[i].end();
+        }
+        Set<N> end = end().merge(ea, size);
+        DirGraph<N> merged = merge(da, size);
+        return merged.setEnd(end).invRemoveCycles().setEnd(end);
+    }
 }
