@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Objects;
 import java.util.Spliterator;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -576,7 +577,7 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
             return this;
         } else {
             Set<N>[] be = beginEnd();
-            return construct(be, put(vertices, node, pins, pouts, ins, outs, be), true);
+            return construct(be, put(vertices, node, pins, pouts, ins, outs, be), !ins.isEmpty() && !outs.isEmpty());
         }
     }
 
@@ -1157,6 +1158,35 @@ public class DirGraphImpl<N> extends CollectionImpl<Vertex<N>> implements DirGra
         this.vertices = vs;
         this.begin = bs;
         this.end = es;
+    }
+
+    @Override
+    public <A> void topological(TriConsumer<N, Getter<N, A>, Setter<A>> action) {
+        AtomicReference<Map<N, A>> state = new AtomicReference<>(Map.of());
+        begin().forEach(n -> action(action, state, Map.of(), n));
+    }
+
+    private static final Object RUNNING = new Object() {
+        @Override
+        public String toString() {
+            return "RUNNING";
+        }
+    };
+
+    @SuppressWarnings("unchecked")
+    private <A> void action(TriConsumer<N, Getter<N, A>, Setter<A>> action, AtomicReference<Map<N, A>> state, Map<N, A> pre, N node) {
+        Map<N, A> post = pre.put(node, (A) RUNNING);
+        while (!state.compareAndSet(pre, post)) {
+            pre = state.get();
+            if (pre.containsKey(node)) {
+                return;
+            }
+            post = pre.put(node, (A) RUNNING);
+        }
+        action.accept(node, post::get, a -> {
+            Map<N, A> map = state.updateAndGet(m -> m.put(node, a));
+            outs(node).filter(o -> ins(o).allMatch(i -> map.containsKey(i) && map.get(i) != RUNNING)).forEach(o -> action(action, state, map, o));
+        });
     }
 
 }

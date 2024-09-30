@@ -26,6 +26,7 @@ import org.modelingvalue.collections.impl.DirGraphImpl;
 import org.modelingvalue.collections.util.Mergeable;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.QuadFunction;
+import org.modelingvalue.collections.util.TriConsumer;
 
 public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<DirGraph<N>> {
 
@@ -216,5 +217,17 @@ public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<
 
     @Override
     DirGraph<N> replaceFirst(Object pre, Vertex<N> post);
+
+    <A> void topological(TriConsumer<N, Getter<N, A>, Setter<A>> action);
+
+    @FunctionalInterface
+    interface Getter<N, A> {
+        A get(N node);
+    }
+
+    @FunctionalInterface
+    interface Setter<A> {
+        void set(A val);
+    }
 
 }

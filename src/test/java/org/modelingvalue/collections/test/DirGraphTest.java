@@ -78,6 +78,28 @@ public class DirGraphTest {
     }
 
     @RepeatedTest(36)
+    public void parallelTopological() {
+        int size = 10_000;
+        Random random = new Random(System.currentTimeMillis());
+
+        DirGraph<Integer> graph1 = DirGraph.of();
+        for (int i = 0; i < size; i++) {
+            graph1 = graph1.addEdge(random.nextInt(size), random.nextInt(size));
+        }
+        Dag<Integer> dag1 = graph1.removeCycles();
+        Dag<Integer> dag2 = dag1.putBegin(-1, dag1.begin());
+        Dag<Integer> dag3 = dag2.putEnd(-2, dag2.end());
+
+        dag3.topological((i, g, s) -> {
+            int val = dag3.ins(i).reduce(0, Math::max) + 1;
+            if (i == -2) {
+                System.err.println("!!!!!!!!!!!! " + val);
+            }
+            s.set(val);
+        });
+    }
+
+    @RepeatedTest(36)
     public void dagsMergeToDag() {
         int size = 10_000;
         Random random = new Random(System.currentTimeMillis());
