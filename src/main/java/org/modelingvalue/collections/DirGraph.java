@@ -218,11 +218,11 @@ public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<
     @Override
     DirGraph<N> replaceFirst(Object pre, Vertex<N> post);
 
-    <A> Map<N, A> topological(TriConsumer<N, Map<N, A>, Setter<A>> action);
+    <A> void topological(TriConsumer<N, Map<N, A>, Setter<N, A>> action);
 
     @FunctionalInterface
-    interface Setter<A> {
-        void set(A val);
+    interface Setter<N, A> {
+        Map<N, A> set(A val);
     }
 
 }

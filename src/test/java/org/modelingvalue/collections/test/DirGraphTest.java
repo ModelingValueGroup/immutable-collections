@@ -93,12 +93,16 @@ public class DirGraphTest {
         Dag<Integer> dag3 = dag2.putEnd(-2, dag2.end());
 
         List<Integer>[] list = new List[]{List.of()};
-        Map<Integer, Integer> result = dag3.topological((i, m, s) -> {
+        Map<Integer, Integer>[] result = new Map[1];
+        dag3.<Integer> topological((i, m, s) -> {
             list[0] = list[0].append(i);
-            s.set(list[0].size() - 1);
+            m = s.set(list[0].size() - 1);
+            if (i == -2) {
+                result[0] = m;
+            }
         });
         checkOrder(dag3, list[0]);
-        assertTrue(result.allMatch(e -> list[0].index(e.getKey()) == e.getValue()));
+        assertTrue(result[0].allMatch(e -> list[0].index(e.getKey()) == e.getValue()));
     }
 
     private <N> void checkOrder(DirGraph<N> graph, List<N> topo) {
