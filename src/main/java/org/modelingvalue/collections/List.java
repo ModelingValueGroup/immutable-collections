@@ -154,6 +154,8 @@ public interface List<T> extends ContainingCollection<T>, Mergeable<List<T>> {
 
     java.util.List<T> toMutable();
 
+    java.util.List<T> toConcurrent();
+
     static <E> List<E> fromMutable(java.util.Collection<E> mutable) {
         return mutable instanceof MutableList ? ((MutableList<E>) mutable).toImmutable() : Collection.of(mutable).asList();
     }

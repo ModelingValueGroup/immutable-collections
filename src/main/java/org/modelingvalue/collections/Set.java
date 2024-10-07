@@ -85,6 +85,8 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
 
     java.util.Set<T> toMutable();
 
+    java.util.Set<T> toConcurrent();
+
     static <E> Set<E> fromMutable(java.util.Collection<E> mutable) {
         return mutable instanceof MutableSet ? ((MutableSet<E>) mutable).toImmutable() : Collection.of(mutable).asSet();
     }

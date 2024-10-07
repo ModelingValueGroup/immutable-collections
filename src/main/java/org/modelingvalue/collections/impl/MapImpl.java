@@ -427,7 +427,12 @@ public class MapImpl<K, V> extends HashCollectionImpl<Entry<K, V>> implements Ma
 
     @Override
     public java.util.Map<K, V> toMutable() {
-        return new MutableMap<>(this);
+        return MutableMap.of(this);
+    }
+
+    @Override
+    public java.util.Map<K, V> toConcurrent() {
+        return MutableMap.concurrent(this);
     }
 
 }

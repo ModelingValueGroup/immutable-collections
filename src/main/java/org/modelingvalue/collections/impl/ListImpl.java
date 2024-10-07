@@ -923,7 +923,12 @@ public class ListImpl<T> extends TreeCollectionImpl<T> implements List<T> {
 
     @Override
     public java.util.List<T> toMutable() {
-        return new MutableList<>(this);
+        return MutableList.of(this);
+    }
+
+    @Override
+    public java.util.List<T> toConcurrent() {
+        return MutableList.concurrent(this);
     }
 
     @Override

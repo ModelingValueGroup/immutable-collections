@@ -20,12 +20,7 @@
 
 package org.modelingvalue.collections.test;
 
-import org.junit.jupiter.api.Test;
-import org.modelingvalue.collections.*;
-import org.modelingvalue.collections.mutable.MutableSet;
-import org.modelingvalue.collections.util.TriConsumer;
-import org.modelingvalue.collections.util.TriFunction;
-import org.modelingvalue.collections.util.Triple;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Iterator;
 import java.util.Objects;
@@ -33,7 +28,14 @@ import java.util.Spliterator;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+import org.modelingvalue.collections.Graph;
+import org.modelingvalue.collections.List;
+import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.mutable.MutableSet;
+import org.modelingvalue.collections.util.TriConsumer;
+import org.modelingvalue.collections.util.TriFunction;
+import org.modelingvalue.collections.util.Triple;
 
 public class GraphTest {
     @Test
@@ -1043,7 +1045,7 @@ public class GraphTest {
     @Test
     public void spliterator2() {
         Graph<String, Integer> graph = Graph.of(Triple.of("a", 0, "a"));
-        MutableSet<Triple<String, Integer, String>> edges = new MutableSet<>(Set.of(Triple.of("a", 0, "a")));
+        MutableSet<Triple<String, Integer, String>> edges = MutableSet.of(Set.of(Triple.of("a", 0, "a")));
         Spliterator<Triple<String, Integer, String>> spliterator = graph.spliterator();
 
         assertEquals(1, spliterator.estimateSize());
@@ -1054,7 +1056,7 @@ public class GraphTest {
     @Test
     public void spliterator3() {
         Graph<String, Integer> graph = Graph.of(Triple.of("a", 0, "a"), Triple.of("b", 0, "b"));
-        MutableSet<Triple<String, Integer, String>> edges = new MutableSet<>(Set.of(Triple.of("b", 0, "b"), Triple.of("a", 0, "a")));
+        MutableSet<Triple<String, Integer, String>> edges = MutableSet.of(Set.of(Triple.of("b", 0, "b"), Triple.of("a", 0, "a")));
         Spliterator<Triple<String, Integer, String>> spliterator = graph.spliterator();
 
         assertEquals(2, spliterator.estimateSize());
@@ -1082,7 +1084,7 @@ public class GraphTest {
     @Test
     public void iterator3() {
         Graph<String, Integer> graph = Graph.of(Triple.of("a", 0, "a"), Triple.of("b", 0, "b"));
-        MutableSet<Triple<String, Integer, String>> edges = new MutableSet<>(Set.of(Triple.of("b", 0, "b"), Triple.of("a", 0, "a")));
+        MutableSet<Triple<String, Integer, String>> edges = MutableSet.of(Set.of(Triple.of("b", 0, "b"), Triple.of("a", 0, "a")));
         Iterator<Triple<String, Integer, String>> iterator = graph.iterator();
 
         assertTrue(iterator.hasNext());
@@ -1109,8 +1111,12 @@ public class GraphTest {
         Graph<String, Integer> graph = Graph.of();
         AtomicInteger counter = new AtomicInteger();
 
-        graph.linked((triple1, triple2, triple3) -> { counter.getAndIncrement(); });
-        graph.linked((triple1, triple2, triple3) -> { return counter.getAndIncrement(); });
+        graph.linked((triple1, triple2, triple3) -> {
+            counter.getAndIncrement();
+        });
+        graph.linked((triple1, triple2, triple3) -> {
+            return counter.getAndIncrement();
+        });
 
         assertEquals(0, counter.get());
     }
@@ -1120,8 +1126,12 @@ public class GraphTest {
         Graph<String, Integer> graph = Graph.of(Triple.of("a", 0, "a"));
         AtomicInteger counter = new AtomicInteger();
 
-        graph.linked((triple1, triple2, triple3) -> { counter.getAndIncrement(); });
-        graph.linked((triple1, triple2, triple3) -> { return counter.getAndIncrement(); });
+        graph.linked((triple1, triple2, triple3) -> {
+            counter.getAndIncrement();
+        });
+        graph.linked((triple1, triple2, triple3) -> {
+            return counter.getAndIncrement();
+        });
         assertDoesNotThrow(() -> graph.linked((TriConsumer<Triple<String, Integer, String>, Triple<String, Integer, String>, Triple<String, Integer, String>>) null));
         assertDoesNotThrow(() -> graph.linked((TriFunction<Triple<String, Integer, String>, Triple<String, Integer, String>, Triple<String, Integer, String>, ?>) null));
 
@@ -1133,23 +1143,31 @@ public class GraphTest {
         Graph<String, Integer> graph = Graph.of(Triple.of("a", 0, "a"), Triple.of("b", 0, "b"));
         AtomicInteger counter = new AtomicInteger();
 
-        graph.linked((triple1, triple2, triple3) -> { counter.getAndIncrement(); });
-        graph.linked((triple1, triple2, triple3) -> { return counter.getAndIncrement(); });
+        graph.linked((triple1, triple2, triple3) -> {
+            counter.getAndIncrement();
+        });
+        graph.linked((triple1, triple2, triple3) -> {
+            return counter.getAndIncrement();
+        });
 
         assertEquals(0, counter.get());
     }
 
     @Test
     public void linked4() {
-        Graph<String, Integer> graph = Graph.of(Triple.of("a", 0, "a"), Triple.of("b", 0, "b"),
-                Triple.of("c", 0, "c"));
+        Graph<String, Integer> graph = Graph.of(Triple.of("a", 0, "a"), Triple.of("b", 0, "b"), Triple.of("c", 0, "c"));
         AtomicInteger counter = new AtomicInteger();
 
-        graph.linked((triple1, triple2, triple3) -> { counter.getAndIncrement(); });
-        List<Integer> result = graph.linked((triple1, triple2, triple3) -> { return counter.getAndIncrement(); }).asList();
+        graph.linked((triple1, triple2, triple3) -> {
+            counter.getAndIncrement();
+        });
+        List<Integer> result = graph.linked((triple1, triple2, triple3) -> {
+            return counter.getAndIncrement();
+        }).asList();
 
         int sum = 0;
-        for (Integer num : result) sum += num;
+        for (Integer num : result)
+            sum += num;
 
         assertEquals(2, counter.get());
         assertEquals(1, sum);
@@ -1157,15 +1175,19 @@ public class GraphTest {
 
     @Test
     public void linked5() {
-        Graph<String, Integer> graph = Graph.of(Triple.of("a", 0, "a"), Triple.of("b", 0, "b"),
-                Triple.of("c", 0, "c"), Triple.of("d", 0, "d"));
+        Graph<String, Integer> graph = Graph.of(Triple.of("a", 0, "a"), Triple.of("b", 0, "b"), Triple.of("c", 0, "c"), Triple.of("d", 0, "d"));
         AtomicInteger counter = new AtomicInteger();
 
-        graph.linked((triple1, triple2, triple3) -> { counter.getAndIncrement(); });
-        List<Integer> result = graph.linked((triple1, triple2, triple3) -> { return counter.getAndIncrement(); }).asList();
+        graph.linked((triple1, triple2, triple3) -> {
+            counter.getAndIncrement();
+        });
+        List<Integer> result = graph.linked((triple1, triple2, triple3) -> {
+            return counter.getAndIncrement();
+        }).asList();
 
         int sum = 0;
-        for (Integer num : result) sum += num;
+        for (Integer num : result)
+            sum += num;
 
         assertEquals(4, counter.get());
         assertEquals(5, sum);
@@ -1178,7 +1200,8 @@ public class GraphTest {
         List<Integer> result = graph.indexed((triple, idx) -> idx + triple.b()).asList();
 
         int sum = 0;
-        for (Integer num : result) sum += num;
+        for (Integer num : result)
+            sum += num;
 
         assertEquals(0, sum);
     }
@@ -1190,7 +1213,8 @@ public class GraphTest {
         List<Integer> result = graph.indexed((triple, idx) -> idx + triple.b()).asList();
 
         int sum = 0;
-        for (Integer num : result) sum += num;
+        for (Integer num : result)
+            sum += num;
 
         assertEquals(2, sum);
     }
@@ -1203,7 +1227,8 @@ public class GraphTest {
         assertThrows(NullPointerException.class, () -> graph.indexed(null));
 
         int sum = 0;
-        for (Integer num : result) sum += num;
+        for (Integer num : result)
+            sum += num;
 
         assertEquals(4, sum);
     }
@@ -1319,7 +1344,7 @@ public class GraphTest {
         Graph<String, Integer> graph = Graph.of(Triple.of("a", 0, "a"));
 
         assertEquals(graph, graph.removeAll(null));
-        assertEquals(graph, graph.removeAll(Set.of((Triple<String, Integer, String>)null)));
+        assertEquals(graph, graph.removeAll(Set.of((Triple<String, Integer, String>) null)));
     }
 
     @Test
@@ -1379,7 +1404,7 @@ public class GraphTest {
         Graph<String, Integer> graph = Graph.of(Triple.of("a", 0, "a"));
 
         assertEquals(graph, graph.addAll(null));
-        assertEquals(graph, graph.addAll(Set.of((Triple<String, Integer, String>)null)));
+        assertEquals(graph, graph.addAll(Set.of((Triple<String, Integer, String>) null)));
     }
 
     @Test
@@ -1439,7 +1464,7 @@ public class GraphTest {
         Graph<String, Integer> graph = Graph.of(Triple.of("a", 0, "a"));
 
         assertEquals(graph, graph.addAllUnique(null));
-        assertEquals(graph, graph.addAllUnique(Set.of((Triple<String, Integer, String>)null)));
+        assertEquals(graph, graph.addAllUnique(Set.of((Triple<String, Integer, String>) null)));
     }
 
     @Test
@@ -1536,8 +1561,8 @@ public class GraphTest {
         Set<Graph<String, Integer>> expectedBefore = Set.of(Graph.of(), Graph.of(Triple.of("a", 1, "b")), Graph.of(Triple.of("b", 2, "c")));
         Set<Graph<String, Integer>> expectedAfter = Set.of(Graph.of(), Graph.of(Triple.of("a", 0, "b")));
 
-        MutableSet<Graph<String, Integer>> actualBefore = new MutableSet<>(Set.of());
-        MutableSet<Graph<String, Integer>> actualAfter = new MutableSet<>(Set.of());
+        MutableSet<Graph<String, Integer>> actualBefore = MutableSet.of(Set.of());
+        MutableSet<Graph<String, Integer>> actualAfter = MutableSet.of(Set.of());
 
         graph.compare(mutated).forEach(e -> {
             var before = e[0];

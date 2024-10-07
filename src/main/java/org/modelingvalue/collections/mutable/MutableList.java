@@ -24,67 +24,77 @@ import java.lang.reflect.Array;
 import java.util.AbstractList;
 import java.util.Iterator;
 import java.util.ListIterator;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.UnaryOperator;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.List;
 
-public class MutableList<T> extends AbstractList<T> implements Mutable<T> {
+public abstract class MutableList<T> extends AbstractList<T> implements Mutable<T> {
 
-    private List<T> list;
-
-    public MutableList(List<T> list) {
-        this.list = list;
+    public static <T> MutableList<T> of(List<T> list) {
+        return new Impl<T>(list);
     }
+
+    public static <T> MutableList<T> concurrent(List<T> list) {
+        return new ConcurrentImpl<T>(list);
+    }
+
+    protected abstract List<T> get();
+
+    protected abstract boolean set(UnaryOperator<List<T>> oper);
+
+    protected abstract List<T> getAndSet(UnaryOperator<List<T>> oper);
 
     @Override
     public List<T> toImmutable() {
-        return list;
+        return get();
     }
 
     @Override
     public int size() {
-        return list.size();
+        return get().size();
     }
 
     @Override
     public boolean isEmpty() {
-        return list.isEmpty();
+        return get().isEmpty();
     }
 
     @Override
     public boolean contains(Object o) {
-        return list.contains(o);
+        return get().contains(o);
     }
 
     @Override
     public boolean containsAll(java.util.Collection<?> c) {
-        return list.containsAll(Collection.of(c));
+        return get().containsAll(Collection.of(c));
     }
 
     @Override
     public int indexOf(Object o) {
-        return list.firstIndexOf(o);
+        return get().firstIndexOf(o);
     }
 
     @Override
     public T get(int index) {
-        return list.get(index);
+        return get().get(index);
     }
 
     @Override
     public int lastIndexOf(Object o) {
-        return list.lastIndexOf(o);
+        return get().lastIndexOf(o);
     }
 
     @Override
     public java.util.List<T> subList(int fromIndex, int toIndex) {
-        return list.sublist(fromIndex, toIndex).toMutable();
+        return get().sublist(fromIndex, toIndex).toMutable();
     }
 
     @Override
     public Iterator<T> iterator() {
         return new Iterator<T>() {
-            private final Iterator<T> it   = list.iterator();
+            private final Iterator<T> it   = get().iterator();
             private int               last = -1;
 
             @Override
@@ -100,7 +110,7 @@ public class MutableList<T> extends AbstractList<T> implements Mutable<T> {
 
             @Override
             public void remove() {
-                list = list.removeIndex(last);
+                set(list -> list.removeIndex(last));
             }
         };
     }
@@ -113,7 +123,7 @@ public class MutableList<T> extends AbstractList<T> implements Mutable<T> {
     @Override
     public ListIterator<T> listIterator(int index) {
         return new ListIterator<T>() {
-            private final ListIterator<T> it   = list.listIterator(index);
+            private final ListIterator<T> it   = get().listIterator(index);
             private int                   last = index - 1;
 
             @Override
@@ -129,7 +139,7 @@ public class MutableList<T> extends AbstractList<T> implements Mutable<T> {
 
             @Override
             public void remove() {
-                list = list.removeIndex(last);
+                MutableList.this.set(list -> list.removeIndex(last));
             }
 
             @Override
@@ -155,96 +165,143 @@ public class MutableList<T> extends AbstractList<T> implements Mutable<T> {
 
             @Override
             public void set(T e) {
-                list = list.replace(last, e);
+                MutableList.this.set(list -> list.replace(last, e));
             }
 
             @Override
             public void add(T e) {
-                list = list.insert(last + 1, e);
+                MutableList.this.set(list -> list.insert(last + 1, e));
             }
         };
     }
 
     @Override
     public Object[] toArray() {
-        return list.toArray();
+        return get().toArray();
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <E> E[] toArray(E[] a) {
-        return list.toArray(i -> (E[]) Array.newInstance(a.getClass().getComponentType(), i));
+        return get().toArray(i -> (E[]) Array.newInstance(a.getClass().getComponentType(), i));
     }
 
     @Override
     public boolean add(T e) {
-        List<T> pre = list;
-        list = list.add(e);
-        return pre != list;
+        return set(list -> list.add(e));
     }
 
     @Override
     public boolean remove(Object o) {
-        List<T> pre = list;
-        list = list.remove(o);
-        return pre != list;
-    }
-
-    @Override
-    public T set(int index, T element) {
-        T pre = list.get(index);
-        list = list.replace(index, element);
-        return pre;
+        return set(list -> list.remove(o));
     }
 
     @Override
     public void add(int index, T element) {
-        list = list.insert(index, element);
+        set(list -> list.insert(index, element));
+    }
+
+    @Override
+    public T set(int index, T element) {
+        return getAndSet(list -> list.replace(index, element)).get(index);
     }
 
     @Override
     public T remove(int index) {
-        T pre = list.get(index);
-        list = list.removeIndex(index);
-        return pre;
+        return getAndSet(list -> list.removeIndex(index)).get(index);
     }
 
     @Override
     public boolean addAll(java.util.Collection<? extends T> c) {
-        List<T> pre = list;
-        list = list.appendList(Collection.of(c).asList());
-        return pre != list;
+        List<? extends T> all = List.fromMutable(c);
+        return set(list -> list.appendList(all));
     }
 
     @Override
     public boolean addAll(int index, java.util.Collection<? extends T> c) {
-        List<T> pre = list;
-        list = list.insertList(index, Collection.of(c).asList());
-        return pre != list;
+        List<? extends T> all = List.fromMutable(c);
+        return set(list -> list.insertList(index, all));
     }
 
     @Override
     public boolean removeAll(java.util.Collection<?> c) {
-        List<T> pre = list;
-        list = list.removeAll(Collection.of(c));
-        return pre != list;
+        return set(list -> list.removeAll(Collection.of(c)));
     }
 
     @Override
     public boolean retainAll(java.util.Collection<?> c) {
-        List<T> pre = list;
-        list = list.removeAll(list.exclude(c::contains));
-        return pre != list;
+        return set(list -> list.removeAll(list.exclude(c::contains)));
     }
 
     @Override
     public void clear() {
-        list = list.clear();
+        set(List::clear);
     }
 
     @Override
     public String toString() {
-        return list.toString();
+        return get().toString();
+    }
+
+    private static class Impl<T> extends MutableList<T> {
+
+        private List<T> list;
+
+        private Impl(List<T> list) {
+            this.list = list;
+        }
+
+        @Override
+        protected List<T> get() {
+            return list;
+        }
+
+        @Override
+        protected boolean set(UnaryOperator<List<T>> oper) {
+            List<T> pre = list;
+            list = oper.apply(pre);
+            return pre != list;
+        }
+
+        @Override
+        protected List<T> getAndSet(UnaryOperator<List<T>> oper) {
+            List<T> pre = list;
+            list = oper.apply(pre);
+            return pre;
+        }
+
+    }
+
+    private static class ConcurrentImpl<T> extends MutableList<T> {
+
+        private AtomicReference<List<T>> ref;
+
+        public ConcurrentImpl(List<T> list) {
+            this.ref = new AtomicReference<>(list);
+        }
+
+        @Override
+        protected List<T> get() {
+            return ref.get();
+        }
+
+        @Override
+        protected boolean set(UnaryOperator<List<T>> oper) {
+            List<T> prev = ref.get(), next = null;
+            for (boolean haveNext = false;;) {
+                if (!haveNext)
+                    next = oper.apply(prev);
+                if (ref.weakCompareAndSetVolatile(prev, next))
+                    return prev != next;
+                haveNext = (prev == (prev = ref.get()));
+            }
+        }
+
+        @Override
+        protected List<T> getAndSet(UnaryOperator<List<T>> oper) {
+            return ref.getAndUpdate(oper);
+        }
+
     }
 
 }
