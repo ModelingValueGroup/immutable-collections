@@ -36,7 +36,12 @@ public abstract class StructImpl implements Struct {
     private Object[]          data;
 
     protected StructImpl(Object... data) {
-        this.data = postCreate(data);
+        this.data = data;
+    }
+
+    @Override
+    public Object[] toArray() {
+        return data.clone();
     }
 
     @Override
@@ -70,10 +75,6 @@ public abstract class StructImpl implements Struct {
     @Override
     public Object get(int i) {
         return data[i];
-    }
-
-    protected Object set(int i, Object val) {
-        return data[i] = val;
     }
 
     @Override

@@ -20,16 +20,14 @@
 
 package org.modelingvalue.collections.struct;
 
-import java.io.*;
+import java.io.Serializable;
 
-import org.modelingvalue.collections.util.*;
+import org.modelingvalue.collections.util.Internable;
 
 public interface Struct extends Serializable, Internable, Iterable<Object> {
     Object get(int i);
 
     int length();
 
-    default Object[] postCreate(Object[] args) {
-        return args;
-    }
+    Object[] toArray();
 }
