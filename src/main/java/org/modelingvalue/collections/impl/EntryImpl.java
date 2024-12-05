@@ -84,7 +84,7 @@ public final class EntryImpl<K, V> implements Entry<K, V> {
 
     @Override
     public String toString() {
-        return "Entry[" + StringUtil.toString(key) + "," + StringUtil.toString(value) + "]";
+        return StringUtil.toString(key) + "=" + StringUtil.toString(value);
     }
 
     @Override
