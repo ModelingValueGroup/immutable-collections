@@ -34,35 +34,21 @@ import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.struct.impl.StructImpl;
-import org.modelingvalue.collections.util.Context;
-import org.modelingvalue.collections.util.SerializableBiFunction;
+import org.modelingvalue.collections.util.*;
 import org.modelingvalue.collections.util.SerializableBiFunction.SerializableBiFunctionImpl;
-import org.modelingvalue.collections.util.SerializableFunction;
 import org.modelingvalue.collections.util.SerializableFunction.SerializableFunctionImpl;
-import org.modelingvalue.collections.util.SerializableQuadFunction;
 import org.modelingvalue.collections.util.SerializableQuadFunction.SerializableQuadFunctionImpl;
-import org.modelingvalue.collections.util.SerializableSupplier;
 import org.modelingvalue.collections.util.SerializableSupplier.SerializableSupplierImpl;
-import org.modelingvalue.collections.util.SerializableTriFunction;
 import org.modelingvalue.collections.util.SerializableTriFunction.SerializableTriFunctionImpl;
-import org.modelingvalue.collections.util.StringUtil;
 
 public final class Logic {
 
     private Logic() {
     }
 
-    private static final Context<Database> DATABASE = Context.of();
+    private static final ContextPool                                          LOGIC_POOL  = ContextThread.createPool();
 
-    public static final void run(Runnable runnable) {
-        DATABASE.run(new Database(), runnable);
-    }
-
-    @SuppressWarnings("rawtypes")
-    private static final class Database {
-        private final AtomicReference<Map<TermImpl, Set<TermImpl>>>   facts = new AtomicReference<>(Map.of());
-        private final AtomicReference<Map<FunctImpl, List<RuleImpl>>> rules = new AtomicReference<>(Map.of());
-    }
+    private static final Context<Database>                                    DATABASE    = Context.of();
 
     private static final boolean                                              TRACE_LOGIC = Boolean.getBoolean("TRACE_LOGIC");
 
@@ -85,6 +71,18 @@ public final class Logic {
                                                                                                   return l.append(e);
                                                                                               }
                                                                                           };
+
+    public static final void run(Runnable runnable) {
+        LOGIC_POOL.execute(() -> DATABASE.run(new Database(), runnable));
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static final class Database {
+        private final AtomicReference<Map<TermImpl, Set<TermImpl>>>   facts = new AtomicReference<>(Map.of());
+        private final AtomicReference<Map<FunctImpl, List<RuleImpl>>> rules = new AtomicReference<>(Map.of());
+    }
+
+    // Clauses
 
     private static abstract class ClauseImpl<F extends Term> extends StructImpl implements InvocationHandler, Comparable<ClauseImpl<F>> {
         private static final long   serialVersionUID = 7315776001191198132L;
