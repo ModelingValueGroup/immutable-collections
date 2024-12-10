@@ -53,8 +53,12 @@ public final class Arithmetic {
 
     private static Functor<IntAtom> i = functor((SerializableFunction<BigInteger, IntAtom>) Arithmetic::i);
 
-    private static IntAtom i(BigInteger x) {
+    public static IntAtom i(BigInteger x) {
         return term(i, x);
+    }
+
+    public static IntAtom i(String val, int radix) {
+        return i(new BigInteger(val, radix));
     }
 
     public static IntAtom i(long x) {

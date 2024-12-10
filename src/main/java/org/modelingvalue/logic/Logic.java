@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
@@ -47,31 +48,33 @@ public final class Logic {
     private Logic() {
     }
 
-    private static final ContextPool                                          LOGIC_POOL  = ContextThread.createPool();
+    private static final int                                                  MAX_LOGIC_DEPTH = Integer.getInteger("MAX_LOGIC_DEPTH", 32);
 
-    private static final Context<Database>                                    DATABASE    = Context.of();
+    private static final boolean                                              TRACE_LOGIC     = Boolean.getBoolean("TRACE_LOGIC");
 
-    private static final boolean                                              TRACE_LOGIC = Boolean.getBoolean("TRACE_LOGIC");
+    private static final ContextPool                                          LOGIC_POOL      = ContextThread.createPool();
+
+    private static final Context<Database>                                    DATABASE        = Context.of();
 
     @SuppressWarnings("rawtypes")
-    private static final BiFunction<Set<TermImpl>, TermImpl, Set<TermImpl>>   ADD_FACT    = (s, e) -> s == null ? Set.of(e) : s.add(e);
+    private static final BiFunction<Set<TermImpl>, TermImpl, Set<TermImpl>>   ADD_FACT        = (s, e) -> s == null ? Set.of(e) : s.add(e);
 
-    private static final BiFunction<List<RuleImpl>, RuleImpl, List<RuleImpl>> ADD_RULE    = (l, e) -> {
-                                                                                              if (l == null) {
-                                                                                                  return List.of(e);
-                                                                                              } else {
-                                                                                                  int p = e.rulePrio();
-                                                                                                  for (int i = 0; i < l.size(); i++) {
-                                                                                                      RuleImpl r = l.get(i);
-                                                                                                      if (r.equals(e)) {
-                                                                                                          return l;
-                                                                                                      } else if (r.rulePrio() > p) {
-                                                                                                          return l.insert(i, e);
+    private static final BiFunction<List<RuleImpl>, RuleImpl, List<RuleImpl>> ADD_RULE        = (l, e) -> {
+                                                                                                  if (l == null) {
+                                                                                                      return List.of(e);
+                                                                                                  } else {
+                                                                                                      int p = e.rulePrio();
+                                                                                                      for (int i = 0; i < l.size(); i++) {
+                                                                                                          RuleImpl r = l.get(i);
+                                                                                                          if (r.equals(e)) {
+                                                                                                              return l;
+                                                                                                          } else if (r.rulePrio() > p) {
+                                                                                                              return l.insert(i, e);
+                                                                                                          }
                                                                                                       }
+                                                                                                      return l.append(e);
                                                                                                   }
-                                                                                                  return l.append(e);
-                                                                                              }
-                                                                                          };
+                                                                                              };
 
     public static final Database run(Runnable runnable) {
         return run(runnable, null);
@@ -285,10 +288,12 @@ public final class Logic {
         }
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     protected static final Object unproxy(Object object) {
         if (object instanceof Term) {
             return Proxy.getInvocationHandler(object);
+        } else if (object instanceof List) {
+            return ((List) object).map(Logic::unproxy).asList();
         } else {
             Objects.requireNonNull(object);
             return object;
@@ -802,7 +807,7 @@ public final class Logic {
 
         @SuppressWarnings({"rawtypes", "unchecked"})
         public Set<TermImpl> incomplete() {
-            return Set.of(Logic.incomplete(List.of(this)));
+            return Set.of(Logic.incompleteImpl(List.of(this)));
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
@@ -813,7 +818,7 @@ public final class Logic {
             }
             int non = nrOfNulls();
             if (non > 1 || non >= totalLength()) {
-                return Set.of(Logic.incomplete(der.append(this)));
+                return Set.of(Logic.incompleteImpl(der.append(this)));
             }
             Set<TermImpl> facts = database.facts.get().get(this);
             if (facts != null) {
@@ -825,26 +830,54 @@ public final class Logic {
                 if (r != null) {
                     return r;
                 }
-                int i = der.lastIndexOf(this);
-                if (i >= 0) {
-                    return Set.of(Logic.incomplete(der.append(this)));
+                int li = der.lastIndexOf(this);
+                if (li >= 0) {
+                    return Set.of(Logic.incompleteImpl(der.append(this)));
                 }
-                der = der.append(this);
-                Set<TermImpl> set = Set.of(), add = Set.of();
-                boolean found = false, incomplete = false;
-                do {
-                    add = or(rules, non, der, add.isEmpty() ? rec : rec.put(this, add), database).removeAll(set);
-                    found = add.anyMatch(this::equalFunctor);
-                    incomplete |= add.anyMatch(this::isIncomplete);
-                    if (incomplete && found && set.isEmpty()) {
-                        add = add.filter(this::equalFunctor).asSet();
+                if (der.size() == MAX_LOGIC_DEPTH) {
+                    return Set.of(Logic.incompleteImpl(der.append(this)));
+                }
+                Set<TermImpl> set = fixpoint(rules, non, der.append(this), rec, database);
+                if (der.size() == MAX_LOGIC_DEPTH / 2) {
+                    Optional<TermImpl> ic = set.filter(TermImpl::isToDepthIcomplete).findAny();
+                    if (ic.isPresent()) {
+                        List<TermImpl> list = (List) ic.get().get(1);
+                        List<TermImpl> todo = list.sublist(der.size() + 1, list.size());
+                        while (todo.size() > 0) {
+                            TermImpl t = todo.last();
+                            set = t.fixpoint(database.rules.get().get(t.functor()), t.nrOfNulls(), der.append(t), rec, database);
+                            ic = set.filter(TermImpl::isToDepthIcomplete).findAny();
+                            if (ic.isPresent()) {
+                                list = (List) ic.get().get(1);
+                                todo = todo.appendList(list.sublist(der.size() + 1, list.size()));
+                            } else {
+                                t.memoization(set, database);
+                            }
+                            todo = todo.removeLast();
+                        }
+                        set = fixpoint(rules, non, der.append(this), rec, database);
                     }
-                    set = set.addAll(add);
-                } while (found && incomplete);
+                }
                 memoization(set, database);
                 return set;
             }
             return Set.of();
+        }
+
+        @SuppressWarnings("rawtypes")
+        private Set<TermImpl> fixpoint(List<RuleImpl> rules, int non, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
+            Set<TermImpl> set = Set.of(), add = Set.of();
+            boolean found = false, incomplete = false;
+            do {
+                add = or(rules, non, der, add.isEmpty() ? rec : rec.put(this, add), database).removeAll(set);
+                found = add.anyMatch(this::equalFunctor);
+                incomplete |= add.anyMatch(this::isIncomplete);
+                if (incomplete && found && set.isEmpty()) {
+                    add = add.filter(this::equalFunctor).asSet();
+                }
+                set = set.addAll(add);
+            } while (found && incomplete);
+            return set;
         }
 
         @SuppressWarnings("rawtypes")
@@ -994,7 +1027,12 @@ public final class Logic {
 
         @SuppressWarnings("rawtypes")
         protected boolean isIncomplete(TermImpl other) {
-            return other.functor() == INCOMPLETE_FUNCTOR && ((TermImpl) other.get(1)).list().contains(this);
+            return other.isIncomplete() && ((List) other.get(1)).last().equals(this);
+        }
+
+        @SuppressWarnings("rawtypes")
+        protected boolean isToDepthIcomplete() {
+            return isIncomplete() && ((List) get(1)).size() >= MAX_LOGIC_DEPTH;
         }
 
         protected boolean isIncomplete() {
@@ -1381,7 +1419,7 @@ public final class Logic {
     }
 
     @SuppressWarnings("rawtypes")
-    private static final FunctImpl<Incomplete> INCOMPLETE_FUNCTOR       = functImpl((SerializableFunction<L, Incomplete>) Logic::incomplete, null);
+    private static final FunctImpl<Incomplete> INCOMPLETE_FUNCTOR       = functImpl((SerializableFunction<List<Term>, Incomplete>) Logic::incomplete, null);
     private static final Functor<Incomplete>   INCOMPLETE_FUNCTOR_PROXY = INCOMPLETE_FUNCTOR.proxy();
     private static final VarImpl<Incomplete>   INCOMPLETE_VAR           = new VarImpl<Incomplete>(Incomplete.class, "I");
     private static final Incomplete            INCOMPLETE_VAR_PROXY     = INCOMPLETE_VAR.proxy();
@@ -1392,18 +1430,13 @@ public final class Logic {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static TermImpl<Incomplete> incomplete(List<TermImpl> der) {
-        return incomplete(list(der));
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public static TermImpl<Incomplete> incomplete(TermImpl der) {
-        return termImpl(INCOMPLETE_FUNCTOR, der);
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public static Incomplete incomplete(L der) {
+    public static Incomplete incomplete(List<Term> der) {
         return term(INCOMPLETE_FUNCTOR_PROXY, der);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    protected static TermImpl<Incomplete> incompleteImpl(List<TermImpl> der) {
+        return termImpl(INCOMPLETE_FUNCTOR, der);
     }
 
     // Equals
@@ -1467,7 +1500,7 @@ public final class Logic {
     // Bindings
 
     public static Map<Variable, Object> incomplete(Term... der) {
-        return Map.of(Entry.of((Variable) incompleteVar(), incomplete(list(der)).proxy()));
+        return Map.of(Entry.of((Variable) incompleteVar(), incomplete(List.of(der))));
     }
 
     public static Map<Variable, Object> binding(Term... varVal) {

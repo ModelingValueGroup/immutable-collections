@@ -28,8 +28,11 @@ import static org.modelingvalue.logic.Logic.*;
 import org.junit.jupiter.api.RepeatedTest;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.util.SerializableBiFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
+import org.modelingvalue.logic.Arithmetic.Int;
 import org.modelingvalue.logic.Arithmetic.IntAtom;
+import org.modelingvalue.logic.Arithmetic.IntFunc;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.*;
 
@@ -172,34 +175,60 @@ public class LogicTest {
 
     // Variables
 
-    IntAtom    P      = iav("P");
-    IntAtom    Q      = iav("Q");
+    IntAtom              P      = iav("P");
+    IntAtom              Q      = iav("Q");
 
-    PersonAtom A      = personAtomVar("A");
-    PersonAtom B      = personAtomVar("B");
-    PersonAtom C      = personAtomVar("C");
+    Int                  R      = iv("R");
+    Int                  S      = iv("S");
 
-    Person     X      = personVar("X");
-    Person     Y      = personVar("Y");
-    Person     Z      = personVar("Z");
+    PersonAtom           A      = personAtomVar("A");
+    PersonAtom           B      = personAtomVar("B");
+    PersonAtom           C      = personAtomVar("C");
 
-    RootAtom   U      = rootAtomVar("U");
-    Root       V      = rootVar("V");
+    Person               X      = personVar("X");
+    Person               Y      = personVar("Y");
+    Person               Z      = personVar("Z");
+
+    RootAtom             U      = rootAtomVar("U");
+    Root                 V      = rootVar("V");
 
     @SuppressWarnings("unchecked")
-    L<Person>  PL     = var(L.class, "PL");
+    L<Person>            PL     = var(L.class, "PL");
 
     // Terms
 
-    PersonAtom Carel  = person("Carel");
-    PersonAtom Jan    = person("Jan");
-    PersonAtom Elske  = person("Elske");
-    PersonAtom Wim    = person("Wim");
-    PersonAtom Joppe  = person("Joppe");
-    PersonAtom Heleen = person("Heleen");
-    PersonAtom Marijn = person("Marijn");
+    PersonAtom           Carel  = person("Carel");
+    PersonAtom           Jan    = person("Jan");
+    PersonAtom           Elske  = person("Elske");
+    PersonAtom           Wim    = person("Wim");
+    PersonAtom           Joppe  = person("Joppe");
+    PersonAtom           Heleen = person("Heleen");
+    PersonAtom           Marijn = person("Marijn");
 
-    RootAtom   Root   = root("Root");
+    RootAtom             Root   = root("Root");
+
+    // Fibonacci
+
+    static Functor<Pred> fib2   = functor((SerializableBiFunction<IntAtom, IntAtom, Pred>) LogicTest::fib);
+
+    static Pred fib(IntAtom i, IntAtom f) {
+        return term(fib2, i, f);
+    }
+
+    static Functor<IntFunc> fib1 = functor((SerializableFunction<Int, IntFunc>) LogicTest::fib);
+
+    static IntFunc fib(Int i) {
+        return term(fib1, i);
+    }
+
+    private void fibonacciRules() {
+        arithmeticRules();
+
+        rule(is(fib(R), Q), goal(is(R, P), fib(P, Q)));
+
+        rule(fib(P, Q), goal(le(P, i(1)), eq(Q, P)));
+        rule(fib(P, Q), goal(gt(P, i(1)), is(plus(fib(minus(P, i(1))), fib(minus(P, i(2)))), Q)));
+    }
 
     // Root Rules
 
@@ -370,6 +399,16 @@ public class LogicTest {
             hasBindings(goal(is(sqrt(i(49)), P)), binding(P, i(7)), binding(P, i(-7)));
 
             hasBindings(goal(collect(is(sqrt(i(49)), P), plus(P, i(0), Q))), binding(Q, i(0)));
+        });
+    }
+
+    @RepeatedTest(100)
+    public void fibonacci() {
+        run(() -> {
+            fibonacciRules();
+
+            hasBindings(goal(is(fib(i(21)), P)), binding(P, i(10946)));
+            hasBindings(goal(is(fib(i(1000)), P)), binding(P, i("18nrvsuayughau0blk8aylvbyaqwiaqba77rdsgscn5hzwgbgaws8i8svp4xdmoo82plxiyogd5iaj1cspez8zfeio92a76t9n1frssxklr92wyyxm8r903o1ofgncikuggcwnf", Character.MAX_RADIX)));
         });
     }
 
