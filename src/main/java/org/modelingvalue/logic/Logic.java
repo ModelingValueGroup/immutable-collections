@@ -1277,7 +1277,7 @@ public final class Logic {
         }
 
         @SuppressWarnings("rawtypes")
-        public Collection<Map<VarImpl, Object>> eval() {
+        protected Collection<Map<VarImpl, Object>> eval() {
             return eval(variables(), List.of(), Map.of(), DATABASE.get());
         }
 
