@@ -294,10 +294,6 @@ public class LogicTest {
         run(() -> {
             familyRules();
 
-            PersonAtom Carel = person("Carel");
-            PersonAtom Jan = person("Jan");
-            PersonAtom Wim = person("Wim");
-
             fact(parentChild(Carel, Jan));
             fact(parentChild(Jan, Wim));
 
@@ -310,9 +306,6 @@ public class LogicTest {
     public void famTest3() {
         run(() -> {
             rule(parentChild(B, C), goal(parentChild(B, C)));
-
-            PersonAtom Jan = person("Jan");
-            PersonAtom Wim = person("Wim");
 
             hasBindings(goal(parentChild(Wim, Jan)), incomplete(parentChild(Wim, Jan), parentChild(Wim, Jan)));
             isIncomplete(goal(parentChild(Wim, Jan)));
