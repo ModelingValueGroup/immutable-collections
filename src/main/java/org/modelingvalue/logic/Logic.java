@@ -641,14 +641,17 @@ public final class Logic {
             if (database.rules.get().get(functor()) != null) {
                 throw new IllegalArgumentException("No facts of a functor with rules allowed. " + this);
             }
-            database.facts.updateAndGet(m -> m.put(this, ADD_FACT.apply(m.get(this), this)));
-            Object[] array = toArray();
-            for (int i = 1; i < array.length; i++) {
-                array[i] = getType(i);
-                TermImpl<F> term = term(array);
-                database.facts.updateAndGet(m -> m.put(term, ADD_FACT.apply(m.get(term), this)));
-                array = toArray();
-            }
+            database.facts.updateAndGet(m -> {
+                m = m.put(this, ADD_FACT.apply(m.get(this), this));
+                Object[] array = toArray();
+                for (int i = 1; i < array.length; i++) {
+                    array[i] = getType(i);
+                    TermImpl<F> term = term(array);
+                    m = m.put(term, ADD_FACT.apply(m.get(term), this));
+                    array = toArray();
+                }
+                return m;
+            });
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
@@ -811,10 +814,13 @@ public final class Logic {
 
         @SuppressWarnings("rawtypes")
         private void memoization(Set<TermImpl> set, Database database) {
-            database.facts.updateAndGet(m -> m.put(this, set));
-            for (TermImpl e : set) {
-                database.facts.updateAndGet(m -> m.put(e, Set.of(e)));
-            }
+            database.facts.updateAndGet(m -> {
+                m = m.put(this, set);
+                for (TermImpl e : set) {
+                    m = m.put(e, Set.of(e));
+                }
+                return m;
+            });
         }
 
         @SuppressWarnings("rawtypes")
