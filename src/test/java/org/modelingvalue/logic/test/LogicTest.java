@@ -37,8 +37,12 @@ public class LogicTest {
 
     // Utilities
 
-    void run(Runnable test) {
-        Logic.run(test);
+    Database run(Runnable test) {
+        return Logic.run(test);
+    }
+
+    Database run(Runnable test, Database init) {
+        return Logic.run(test, init);
     }
 
     static void isTrue(Goal goal) {

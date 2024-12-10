@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Objects;
+import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -72,14 +73,50 @@ public final class Logic {
                                                                                               }
                                                                                           };
 
-    public static final void run(Runnable runnable) {
-        LOGIC_POOL.execute(() -> DATABASE.run(new Database(), runnable));
+    public static final Database run(Runnable runnable) {
+        return run(runnable, null);
+    }
+
+    public static final Database run(Runnable runnable, Database init) {
+        return LOGIC_POOL.invoke(new LogicTask(runnable, init));
+    }
+
+    private static final class LogicTask extends ForkJoinTask<Database> {
+        private static final long serialVersionUID = -1375078574164947441L;
+
+        private final Runnable    runnable;
+        private final Database    database;
+
+        private LogicTask(Runnable runnable, Database init) {
+            this.runnable = runnable;
+            this.database = new Database(init);
+        }
+
+        @Override
+        public Database getRawResult() {
+            return database;
+        }
+
+        @Override
+        protected void setRawResult(Database database) {
+        }
+
+        @Override
+        protected boolean exec() {
+            DATABASE.run(database, runnable);
+            return true;
+        }
     }
 
     @SuppressWarnings("rawtypes")
-    private static final class Database {
-        private final AtomicReference<Map<TermImpl, Set<TermImpl>>>   facts = new AtomicReference<>(Map.of());
-        private final AtomicReference<Map<FunctImpl, List<RuleImpl>>> rules = new AtomicReference<>(Map.of());
+    public static final class Database {
+        private final AtomicReference<Map<TermImpl, Set<TermImpl>>>   facts;
+        private final AtomicReference<Map<FunctImpl, List<RuleImpl>>> rules;
+
+        private Database(Database init) {
+            facts = new AtomicReference<>(init != null ? init.facts.get() : Map.of());
+            rules = new AtomicReference<>(init != null ? init.rules.get() : Map.of());
+        }
     }
 
     // Clauses
