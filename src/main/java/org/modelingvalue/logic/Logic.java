@@ -842,20 +842,20 @@ public final class Logic {
                     Optional<TermImpl> ic = set.filter(TermImpl::isToDepthIcomplete).findAny();
                     if (ic.isPresent()) {
                         List<TermImpl> list = (List) ic.get().get(1);
-                        List<TermImpl> todo = list.sublist(der.size() + 1, list.size());
+                        List<TermImpl> todo = list.sublist(der.size(), list.size());
                         while (todo.size() > 0) {
                             TermImpl t = todo.last();
                             set = t.fixpoint(database.rules.get().get(t.functor()), t.nrOfNulls(), der.append(t), rec, database);
                             ic = set.filter(TermImpl::isToDepthIcomplete).findAny();
                             if (ic.isPresent()) {
                                 list = (List) ic.get().get(1);
-                                todo = todo.appendList(list.sublist(der.size() + 1, list.size()));
+                                todo = todo.appendList(list.sublist(der.size(), list.size()));
                             } else {
                                 t.memoization(set, database);
+                                todo = todo.removeLast();
                             }
-                            todo = todo.removeLast();
                         }
-                        set = fixpoint(rules, non, der.append(this), rec, database);
+                        return set;
                     }
                 }
                 memoization(set, database);
