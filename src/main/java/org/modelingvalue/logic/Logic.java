@@ -48,33 +48,35 @@ public final class Logic {
     private Logic() {
     }
 
-    private static final int                                                  MAX_LOGIC_DEPTH = Integer.getInteger("MAX_LOGIC_DEPTH", 32);
+    private static final int                                                  MAX_LOGIC_DEPTH  = Integer.getInteger("MAX_LOGIC_DEPTH", 32);
 
-    private static final boolean                                              TRACE_LOGIC     = Boolean.getBoolean("TRACE_LOGIC");
+    private static final int                                                  MAX_LOGIC_MEMOIZ = Integer.getInteger("MAX_LOGIC_MEMOIZ", 128);
 
-    private static final ContextPool                                          LOGIC_POOL      = ContextThread.createPool();
+    private static final boolean                                              TRACE_LOGIC      = Boolean.getBoolean("TRACE_LOGIC");
 
-    private static final Context<Database>                                    DATABASE        = Context.of();
+    private static final ContextPool                                          LOGIC_POOL       = ContextThread.createPool();
+
+    private static final Context<Database>                                    DATABASE         = Context.of();
 
     @SuppressWarnings("rawtypes")
-    private static final BiFunction<Set<TermImpl>, TermImpl, Set<TermImpl>>   ADD_FACT        = (s, e) -> s == null ? Set.of(e) : s.add(e);
+    private static final BiFunction<Set<TermImpl>, TermImpl, Set<TermImpl>>   ADD_FACT         = (s, e) -> s == null ? Set.of(e) : s.add(e);
 
-    private static final BiFunction<List<RuleImpl>, RuleImpl, List<RuleImpl>> ADD_RULE        = (l, e) -> {
-                                                                                                  if (l == null) {
-                                                                                                      return List.of(e);
-                                                                                                  } else {
-                                                                                                      int p = e.rulePrio();
-                                                                                                      for (int i = 0; i < l.size(); i++) {
-                                                                                                          RuleImpl r = l.get(i);
-                                                                                                          if (r.equals(e)) {
-                                                                                                              return l;
-                                                                                                          } else if (r.rulePrio() > p) {
-                                                                                                              return l.insert(i, e);
-                                                                                                          }
-                                                                                                      }
-                                                                                                      return l.append(e);
-                                                                                                  }
-                                                                                              };
+    private static final BiFunction<List<RuleImpl>, RuleImpl, List<RuleImpl>> ADD_RULE         = (l, e) -> {
+                                                                                                   if (l == null) {
+                                                                                                       return List.of(e);
+                                                                                                   } else {
+                                                                                                       int p = e.rulePrio();
+                                                                                                       for (int i = 0; i < l.size(); i++) {
+                                                                                                           RuleImpl r = l.get(i);
+                                                                                                           if (r.equals(e)) {
+                                                                                                               return l;
+                                                                                                           } else if (r.rulePrio() > p) {
+                                                                                                               return l.insert(i, e);
+                                                                                                           }
+                                                                                                       }
+                                                                                                       return l.append(e);
+                                                                                                   }
+                                                                                               };
 
     public static final Database run(Runnable runnable) {
         return run(runnable, null);
@@ -115,12 +117,14 @@ public final class Logic {
     public static final class Database {
         private final AtomicReference<Map<TermImpl, Set<TermImpl>>>   facts;
         private final AtomicReference<Map<FunctImpl, List<RuleImpl>>> rules;
-        private final AtomicReference<Map<TermImpl, Set<TermImpl>>>   memoiz;
+        private final AtomicReference<Map<TermImpl, Set<TermImpl>>>   memoiz1;
+        private final AtomicReference<Map<TermImpl, Set<TermImpl>>>   memoiz2;
 
         private Database(Database init) {
             facts = new AtomicReference<>(init != null ? init.facts.get() : Map.of());
             rules = new AtomicReference<>(init != null ? init.rules.get() : Map.of());
-            memoiz = new AtomicReference<>(init != null ? init.memoiz.get() : Map.of());
+            memoiz1 = new AtomicReference<>(init != null ? init.memoiz1.get() : Map.of());
+            memoiz2 = new AtomicReference<>(init != null ? init.memoiz2.get() : Map.of());
         }
     }
 
@@ -832,7 +836,11 @@ public final class Logic {
                 if (r != null) {
                     return r;
                 }
-                facts = database.memoiz.get().get(this);
+                facts = database.memoiz1.get().get(this);
+                if (facts != null) {
+                    return facts;
+                }
+                facts = database.memoiz2.get().get(this);
                 if (facts != null) {
                     return facts;
                 }
@@ -888,7 +896,11 @@ public final class Logic {
 
         @SuppressWarnings("rawtypes")
         private void memoization(Set<TermImpl> set, Database database) {
-            database.memoiz.updateAndGet(m -> {
+            database.memoiz1.updateAndGet(m -> {
+                if (m.size() >= MAX_LOGIC_MEMOIZ) {
+                    database.memoiz2.set(m);
+                    m = Map.of();
+                }
                 m = m.put(this, set);
                 for (TermImpl e : set) {
                     m = m.put(e, Set.of(e));
