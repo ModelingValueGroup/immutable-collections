@@ -20,8 +20,6 @@
 
 package org.modelingvalue.logic;
 
-import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -36,7 +34,6 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
-import org.modelingvalue.collections.QualifiedSet;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.struct.impl.StructImpl;
 import org.modelingvalue.collections.util.*;
@@ -110,86 +107,20 @@ public final class Logic {
         @Override
         protected boolean exec() {
             DATABASE.run(database, runnable);
-            database.stop();
             return true;
         }
     }
 
     @SuppressWarnings("rawtypes")
     public static final class Database {
-        private final ReferenceQueue<TermImpl>                        queue;
-        private final Thread                                          remover;
         private final AtomicReference<Map<TermImpl, Set<TermImpl>>>   facts;
         private final AtomicReference<Map<FunctImpl, List<RuleImpl>>> rules;
-        private final AtomicReference<QualifiedSet<Object, MemRef>>   memoization;
-        private boolean                                               stopRequested;
+        private final AtomicReference<Map<TermImpl, Set<TermImpl>>>   memoiz;
 
         private Database(Database init) {
             facts = new AtomicReference<>(init != null ? init.facts.get() : Map.of());
             rules = new AtomicReference<>(init != null ? init.rules.get() : Map.of());
-            memoization = new AtomicReference<>(QualifiedSet.of(MemRef::object));
-            queue = new ReferenceQueue<>();
-            remover = new Thread(() -> {
-                while (!stopRequested) {
-                    try {
-                        ((MemRef) queue.remove()).remove();
-                    } catch (InterruptedException e) {
-                        if (!stopRequested) {
-                            throw new Error("unexpected InterruptedException in Memoization.remover Thread", e);
-                        }
-                    }
-                }
-            }, "Memoization.remover");
-            remover.setDaemon(true);
-            remover.start();
-        }
-
-        protected void stop() {
-            stopRequested = true;
-            remover.interrupt();
-        }
-
-        protected MemRef geMemRef(TermImpl term) {
-            MemRef memRef = memoization.get().get(term);
-            if (memRef == null) {
-                memRef = memoization.updateAndGet(m -> {
-                    Database.MemRef mr = m.get(this);
-                    return mr != null ? m : m.put(new MemRef(term, queue));
-                }).get(term);
-            }
-            return memRef;
-        }
-
-        @SuppressWarnings("rawtypes")
-        private class MemRef extends WeakReference<TermImpl> {
-            private final int                      hash;
-            private AtomicReference<Set<TermImpl>> facts;
-
-            public MemRef(TermImpl referent, ReferenceQueue<TermImpl> queue) {
-                super(referent, queue);
-                hash = referent.hashCode();
-                facts = new AtomicReference<Set<TermImpl>>(null);
-            }
-
-            @Override
-            public boolean equals(Object o) {
-                return o == this;
-            }
-
-            @Override
-            public int hashCode() {
-                return hash;
-            }
-
-            private Object object() {
-                Object o = get();
-                return o == null ? this : o;
-            }
-
-            private final void remove() {
-                memoization.updateAndGet(m -> m.removeKey(object()));
-            }
-
+            memoiz = new AtomicReference<>(init != null ? init.memoiz.get() : Map.of());
         }
     }
 
@@ -901,8 +832,7 @@ public final class Logic {
                 if (r != null) {
                     return r;
                 }
-                Database.MemRef memRef = database.memoization.get().get(this);
-                facts = memRef != null ? memRef.facts.get() : null;
+                facts = database.memoiz.get().get(this);
                 if (facts != null) {
                     return facts;
                 }
@@ -958,10 +888,13 @@ public final class Logic {
 
         @SuppressWarnings("rawtypes")
         private void memoization(Set<TermImpl> set, Database database) {
-            database.geMemRef(this).facts.set(set);
-            for (TermImpl e : set) {
-                database.geMemRef(e).facts.set(Set.of(e));
-            }
+            database.memoiz.updateAndGet(m -> {
+                m = m.put(this, set);
+                for (TermImpl e : set) {
+                    m = m.put(e, Set.of(e));
+                }
+                return m;
+            });
         }
 
         @SuppressWarnings("rawtypes")

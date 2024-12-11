@@ -346,7 +346,7 @@ public class LogicTest {
     }
 
     @RepeatedTest(100)
-    public void famTest4() {
+    public void rootTest() {
         run(() -> {
             rootRules();
 
