@@ -31,6 +31,7 @@ import org.modelingvalue.collections.util.SerializableTriFunction;
 import org.modelingvalue.logic.Logic.Atom;
 import org.modelingvalue.logic.Logic.Func;
 import org.modelingvalue.logic.Logic.Functor;
+import org.modelingvalue.logic.Logic.LogicLambda;
 import org.modelingvalue.logic.Logic.Pred;
 import org.modelingvalue.logic.Logic.Term;
 import org.modelingvalue.logic.Logic.TermImpl;
@@ -76,7 +77,7 @@ public final class Arithmetic {
     // Operators
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> compare = functor((SerializableTriFunction<IntAtom, IntAtom, IntAtom, Pred>) Arithmetic::compare, t -> {
+    private static Functor<Pred> compare = functor((SerializableTriFunction<IntAtom, IntAtom, IntAtom, Pred>) Arithmetic::compare, (LogicLambda) t -> {
         TermImpl<IntAtom> at = t.getTerm(1);
         TermImpl<IntAtom> bt = t.getTerm(2);
         TermImpl<IntAtom> ct = t.getTerm(3);
@@ -105,7 +106,7 @@ public final class Arithmetic {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> plusPred = functor((SerializableTriFunction<IntAtom, IntAtom, IntAtom, Pred>) Arithmetic::plus, t -> {
+    private static Functor<Pred> plusPred = functor((SerializableTriFunction<IntAtom, IntAtom, IntAtom, Pred>) Arithmetic::plus, (LogicLambda) t -> {
         TermImpl<IntAtom> at = t.getTerm(1);
         TermImpl<IntAtom> bt = t.getTerm(2);
         TermImpl<IntAtom> ct = t.getTerm(3);
@@ -130,7 +131,7 @@ public final class Arithmetic {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> multiplyPred = functor((SerializableTriFunction<IntAtom, IntAtom, IntAtom, Pred>) Arithmetic::multiply, t -> {
+    private static Functor<Pred> multiplyPred = functor((SerializableTriFunction<IntAtom, IntAtom, IntAtom, Pred>) Arithmetic::multiply, (LogicLambda) t -> {
         TermImpl<IntAtom> at = t.getTerm(1);
         TermImpl<IntAtom> bt = t.getTerm(2);
         TermImpl<IntAtom> ct = t.getTerm(3);
@@ -155,7 +156,7 @@ public final class Arithmetic {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> powerPred = functor((SerializableBiFunction<IntAtom, IntAtom, Pred>) Arithmetic::power, t -> {
+    private static Functor<Pred> powerPred = functor((SerializableBiFunction<IntAtom, IntAtom, Pred>) Arithmetic::power, (LogicLambda) t -> {
         TermImpl<IntAtom> at = t.getTerm(1);
         TermImpl<IntAtom> bt = t.getTerm(2);
         BigInteger ai = at != null ? at.getVal(1) : null;
