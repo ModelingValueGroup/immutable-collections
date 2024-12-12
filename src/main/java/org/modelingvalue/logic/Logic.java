@@ -48,9 +48,14 @@ public final class Logic {
     private Logic() {
     }
 
+    public enum FunctorModifier {
+        factual,
+        derived;
+    }
+
     private static final int                                                  MAX_LOGIC_DEPTH  = Integer.getInteger("MAX_LOGIC_DEPTH", 32);
 
-    private static final int                                                  MAX_LOGIC_MEMOIZ = Integer.getInteger("MAX_LOGIC_MEMOIZ", 128);
+    private static final int                                                  MAX_LOGIC_MEMOIZ = Integer.getInteger("MAX_LOGIC_MEMOIZ", 5000);
 
     private static final boolean                                              TRACE_LOGIC      = Boolean.getBoolean("TRACE_LOGIC");
 
@@ -117,14 +122,13 @@ public final class Logic {
     public static final class Database {
         private final AtomicReference<Map<TermImpl, Set<TermImpl>>>   facts;
         private final AtomicReference<Map<FunctImpl, List<RuleImpl>>> rules;
-        private final AtomicReference<Map<TermImpl, Set<TermImpl>>>   memoiz1;
-        private final AtomicReference<Map<TermImpl, Set<TermImpl>>>   memoiz2;
+        private final AtomicReference<Map<TermImpl, Set<TermImpl>>[]> memoiz;
 
+        @SuppressWarnings("unchecked")
         private Database(Database init) {
             facts = new AtomicReference<>(init != null ? init.facts.get() : Map.of());
             rules = new AtomicReference<>(init != null ? init.rules.get() : Map.of());
-            memoiz1 = new AtomicReference<>(init != null ? init.memoiz1.get() : Map.of());
-            memoiz2 = new AtomicReference<>(init != null ? init.memoiz2.get() : Map.of());
+            memoiz = new AtomicReference<>(init != null ? init.memoiz.get() : new Map[]{Map.of(), Map.of()});
         }
     }
 
@@ -408,9 +412,22 @@ public final class Logic {
     public static final class FunctImpl<T extends Term> extends ClauseImpl<Functor<T>> {
         private static final long serialVersionUID = 285147889847599160L;
 
+        private boolean           factual;
+        private boolean           derived;
+
         @SuppressWarnings({"unchecked", "rawtypes"})
-        private FunctImpl(Class<T> type, String name, List<Class<?>> args, SerializableFunction<TermImpl<T>, Collection<TermImpl>> l) {
+        private FunctImpl(Class<T> type, String name, List<Class<?>> args, SerializableFunction<TermImpl<T>, Collection<TermImpl>> l, FunctorModifier... modifiers) {
             super((Class) Functor.class, type, name, args, l);
+            for (FunctorModifier m : modifiers) {
+                switch (m) {
+                case factual:
+                    factual = true;
+                    break;
+                case derived:
+                    derived = true;
+                    break;
+                }
+            }
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
@@ -818,7 +835,8 @@ public final class Logic {
 
         @SuppressWarnings({"rawtypes", "unchecked"})
         protected Collection<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
-            SerializableFunction<TermImpl<F>, Collection<TermImpl>> lambda = functor().lambda();
+            FunctImpl<F> functor = functor();
+            SerializableFunction<TermImpl<F>, Collection<TermImpl>> lambda = functor.lambda();
             if (lambda != null) {
                 return lambda.apply(this);
             }
@@ -830,19 +848,17 @@ public final class Logic {
             if (facts != null) {
                 return facts;
             }
-            List<RuleImpl> rules = database.rules.get().get(functor());
+            List<RuleImpl> rules = database.rules.get().get(functor);
             if (rules != null) {
                 Set<TermImpl> r = rec.get(this);
                 if (r != null) {
                     return r;
                 }
-                facts = database.memoiz1.get().get(this);
-                if (facts != null) {
-                    return facts;
-                }
-                facts = database.memoiz2.get().get(this);
-                if (facts != null) {
-                    return facts;
+                for (Map<TermImpl, Set<TermImpl>> m : database.memoiz.get()) {
+                    facts = m.get(this);
+                    if (facts != null) {
+                        return facts;
+                    }
                 }
                 int li = der.lastIndexOf(this);
                 if (li >= 0) {
@@ -859,20 +875,21 @@ public final class Logic {
                         List<TermImpl> todo = list.sublist(der.size(), list.size());
                         while (todo.size() > 0) {
                             TermImpl t = todo.last();
-                            set = t.fixpoint(database.rules.get().get(t.functor()), t.nrOfNulls(), der.append(t), rec, database);
+                            FunctImpl tf = t.functor();
+                            set = t.fixpoint(database.rules.get().get(tf), t.nrOfNulls(), der.append(t), rec, database);
                             ic = set.filter(TermImpl::isToDepthIcomplete).findAny();
                             if (ic.isPresent()) {
                                 list = (List) ic.get().get(1);
                                 todo = todo.appendList(list.sublist(der.size(), list.size()));
                             } else {
-                                t.memoization(set, database);
+                                t.memoization(tf, set, database);
                                 todo = todo.removeLast();
                             }
                         }
                         return set;
                     }
                 }
-                memoization(set, database);
+                memoization(functor, set, database);
                 return set;
             }
             return Set.of();
@@ -895,18 +912,29 @@ public final class Logic {
         }
 
         @SuppressWarnings("rawtypes")
-        private void memoization(Set<TermImpl> set, Database database) {
-            database.memoiz1.updateAndGet(m -> {
-                if (m.size() >= MAX_LOGIC_MEMOIZ) {
-                    database.memoiz2.set(m);
-                    m = Map.of();
-                }
-                m = m.put(this, set);
-                for (TermImpl e : set) {
-                    m = m.put(e, Set.of(e));
-                }
-                return m;
-            });
+        private void memoization(FunctImpl<F> functor, Set<TermImpl> set, Database database) {
+            if (functor.factual) {
+                database.facts.updateAndGet(m -> {
+                    m = m.put(this, set);
+                    for (TermImpl e : set) {
+                        m = m.put(e, Set.of(e));
+                    }
+                    return m;
+                });
+            } else if (!functor.derived) {
+                database.memoiz.updateAndGet(a -> {
+                    a = a.clone();
+                    if (a[0].size() >= MAX_LOGIC_MEMOIZ) {
+                        a[1] = a[0];
+                        a[0] = Map.of();
+                    }
+                    a[0] = a[0].put(this, set);
+                    for (TermImpl e : set) {
+                        a[0] = a[0].put(e, Set.of(e));
+                    }
+                    return a;
+                });
+            }
         }
 
         @SuppressWarnings("rawtypes")
