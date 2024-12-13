@@ -414,12 +414,14 @@ public final class Logic {
     public static final class FunctImpl<T extends Term> extends ClauseImpl<Functor<T>> {
         private static final long serialVersionUID = 285147889847599160L;
 
+        private final LogicLambda lambda;
         private final boolean     factual;
         private final boolean     derived;
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         private FunctImpl(Class<T> type, String name, List<Class<?>> args, FunctorModifier... modifiers) {
-            super((Class) Functor.class, type, name, args, lambda(modifiers));
+            super((Class) Functor.class, type, name, args);
+            this.lambda = lambda(modifiers);
             this.factual = has(FunctorModifierEnum.factual, modifiers);
             this.derived = has(FunctorModifierEnum.derived, modifiers);
         }
@@ -451,8 +453,6 @@ public final class Logic {
         @SuppressWarnings({"unchecked", "rawtypes"})
         private FunctImpl(Object[] args) {
             super(args);
-            factual = false;
-            derived = false;
             throw new UnsupportedOperationException();
         }
 
@@ -486,7 +486,7 @@ public final class Logic {
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         protected LogicLambda lambda() {
-            return (LogicLambda) get(4);
+            return lambda;
         }
 
         @SuppressWarnings("unchecked")
@@ -497,57 +497,46 @@ public final class Logic {
 
     // Lists
 
-    public interface L<E> extends Term {
+    public interface L<E> extends Atom<L<E>> {
     }
 
     @SuppressWarnings("rawtypes")
-    private static final FunctImpl<L> LIST_FUNCTOR_0       = functImpl((SerializableSupplier<L>) Logic::l);
+    private static final FunctImpl<L> LIST_FUNCTOR       = functImpl((SerializableFunction<List, L>) Logic::l);
     @SuppressWarnings("rawtypes")
-    private static final FunctImpl<L> LIST_FUNCTOR_2       = functImpl((SerializableBiFunction<Object, L, L>) Logic::l);
+    private static final Functor<L>   LIST_FUNCTOR_PROXY = LIST_FUNCTOR.proxy();
     @SuppressWarnings("rawtypes")
-    private static final Functor<L>   LIST_FUNCTOR_2_PROXY = LIST_FUNCTOR_2.proxy();
+    private static final TermImpl<L>  EMPTY_LIST         = termImpl(LIST_FUNCTOR, List.of());
     @SuppressWarnings("rawtypes")
-    private static final TermImpl<L>  EMPTY_LIST           = termImpl(LIST_FUNCTOR_0);
-    @SuppressWarnings("rawtypes")
-    private static final L            EMPTY_LIST_PROXY     = EMPTY_LIST.proxy();
-
-    @SuppressWarnings("unchecked")
-    public static <E> L<E> l(E head, L<E> tail) {
-        return term(LIST_FUNCTOR_2_PROXY, head, tail);
-    }
+    private static final L            EMPTY_LIST_PROXY   = EMPTY_LIST.proxy();
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <E> L<E> l() {
+    public static <E extends Term> L<E> l() {
         return EMPTY_LIST_PROXY;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <E> L<E> l(E... es) {
-        return list(es).proxy();
+    @SuppressWarnings("unchecked")
+    public static <E extends Term> L<E> l(List<E> es) {
+        return term(LIST_FUNCTOR_PROXY, es);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static <E> TermImpl<L> list(E... es) {
-        TermImpl<L> l = EMPTY_LIST;
-        for (int i = es.length - 1; i >= 0; i--) {
-            l = termImpl(LIST_FUNCTOR_2, unproxy(es[i]), l);
-        }
-        return l;
+    public static <E extends Term> L<E> l(E... es) {
+        return l(List.of(es));
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static <E extends Term> TermImpl<L> lImpl(TermImpl<E>... es) {
+        return lImpl(List.of(es));
     }
 
     @SuppressWarnings("rawtypes")
-    private static <E> TermImpl<L> list(List<E> es) {
-        TermImpl<L> l = EMPTY_LIST;
-        for (int i = es.size() - 1; i >= 0; i--) {
-            l = termImpl(LIST_FUNCTOR_2, unproxy(es.get(i)), l);
-        }
-        return l;
+    private static <E extends Term> TermImpl<L> lImpl(List<TermImpl<E>> es) {
+        return termImpl(LIST_FUNCTOR, es);
     }
 
     // Add
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private static List<TermImpl> addOrdered(List<TermImpl> l, TermImpl e) {
+    private static <E extends Term> List<TermImpl<E>> addOrdered(List<TermImpl<E>> l, TermImpl<E> e) {
         for (int i = 0; i < l.size(); i++) {
             if (l.get(i).compareTo(e) > 0) {
                 return l.insert(i, e);
@@ -556,26 +545,25 @@ public final class Logic {
         return l.append(e);
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Set<List<TermImpl>> remove(List<TermImpl> l, TermImpl e) {
-        Set<List<TermImpl>> ls = Set.of();
+    private static <E extends Term> Set<List<TermImpl<E>>> remove(List<TermImpl<E>> l, TermImpl<E> e) {
+        Set<List<TermImpl<E>>> ls = Set.of();
         for (int i = l.firstIndexOf(e); i >= 0; i = l.firstIndexOf(i, l.size(), e)) {
             ls = ls.add(l.removeIndex(i));
         }
         return ls;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({"unchecked", "rawtypes"})
     private static final FunctImpl<Pred> ADD_FUNCTOR       = functImpl((SerializableTriFunction<Object, L, L, Pred>) Logic::add, (LogicLambda) t -> {
-                                                               TermImpl e = t.getTerm(1);
-                                                               TermImpl<L> i = t.getTerm(2);
-                                                               TermImpl<L> o = t.getTerm(3);
-                                                               List<TermImpl> il = i != null ? i.list() : null;
-                                                               List<TermImpl> ol = o != null ? o.list() : null;
+                                                               TermImpl<Term> e = t.getTerm(1);
+                                                               TermImpl<L<Term>> i = t.getTerm(2);
+                                                               TermImpl<L<Term>> o = t.getTerm(3);
+                                                               List<TermImpl<Term>> il = i != null ? i.getVal(1) : null;
+                                                               List<TermImpl<Term>> ol = o != null ? o.getVal(1) : null;
                                                                if (e != null && il != null && ol != null) {
                                                                    return addOrdered(il, e).equals(ol) ? Set.of(t) : Set.of();
                                                                } else if (e != null && il != null && ol == null) {
-                                                                   return Set.of(t.set(3, list(addOrdered(il, e))));
+                                                                   return Set.of(t.set(3, lImpl(addOrdered(il, e))));
                                                                } else if (e != null && il == null && ol != null) {
                                                                    return remove(ol, e).map(r -> (TermImpl) t.set(2, r)).asSet();
                                                                } else if (e == null && il != null && ol != null) {
@@ -690,20 +678,11 @@ public final class Logic {
         @Override
         public String toString() {
             if (type() == L.class) {
-                return list().toString().substring(4);
+                return get(1).toString().substring(4);
             } else {
                 String string = super.toString();
                 return string.substring(1, string.length() - 1).replaceFirst(",", "(") + ")";
             }
-        }
-
-        public boolean isAtom() {
-            for (int i = 1; i < length(); i++) {
-                if (get(i) instanceof TermImpl) {
-                    return false;
-                }
-            }
-            return true;
         }
 
         @SuppressWarnings("unchecked")
@@ -1032,17 +1011,6 @@ public final class Logic {
                 }
             }
             return nr[0] - nr[1];
-        }
-
-        @SuppressWarnings("rawtypes")
-        protected List<TermImpl> list() {
-            List<TermImpl> l = List.of();
-            TermImpl t = this;
-            while (t.length() == 3) {
-                l = l.add((TermImpl) t.get(1));
-                t = (TermImpl) t.get(2);
-            }
-            return l;
         }
 
         @SuppressWarnings("rawtypes")
@@ -1386,7 +1354,7 @@ public final class Logic {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static Goal goal(Pred... goals) {
-        return new GoalImpl(list(goals)).proxy();
+        return new GoalImpl(lImpl((List<TermImpl<Pred>>) unproxy(List.of(goals)))).proxy();
     }
 
     @SuppressWarnings("unchecked")
@@ -1434,7 +1402,7 @@ public final class Logic {
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         protected List<TermImpl> goals() {
-            return ((TermImpl) get(1)).list();
+            return (List<TermImpl>) ((TermImpl) get(1)).get(1);
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
