@@ -34,7 +34,9 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
+import org.modelingvalue.collections.QualifiedSet;
 import org.modelingvalue.collections.Set;
+import org.modelingvalue.collections.struct.impl.Struct2Impl;
 import org.modelingvalue.collections.struct.impl.StructImpl;
 import org.modelingvalue.collections.util.*;
 import org.modelingvalue.collections.util.SerializableBiFunction.SerializableBiFunctionImpl;
@@ -80,35 +82,37 @@ public final class Logic {
         }
     }
 
-    private static final int                                                  MAX_LOGIC_DEPTH  = Integer.getInteger("MAX_LOGIC_DEPTH", 32);
+    private static final int                                                  KEEP_MEMOIZ_MINIMUM = Integer.getInteger("KEEP_MEMOIZ_MINIMUM", 5);
 
-    private static final int                                                  MAX_LOGIC_MEMOIZ = Integer.getInteger("MAX_LOGIC_MEMOIZ", 5000);
+    private static final int                                                  MAX_LOGIC_DEPTH     = Integer.getInteger("MAX_LOGIC_DEPTH", 32);
 
-    private static final boolean                                              TRACE_LOGIC      = Boolean.getBoolean("TRACE_LOGIC");
+    private static final int                                                  MAX_LOGIC_MEMOIZ    = Integer.getInteger("MAX_LOGIC_MEMOIZ", 512);
 
-    private static final ContextPool                                          LOGIC_POOL       = ContextThread.createPool();
+    private static final boolean                                              TRACE_LOGIC         = Boolean.getBoolean("TRACE_LOGIC");
 
-    private static final Context<Database>                                    DATABASE         = Context.of();
+    private static final ContextPool                                          LOGIC_POOL          = ContextThread.createPool();
+
+    private static final Context<Database>                                    DATABASE            = Context.of();
 
     @SuppressWarnings("rawtypes")
-    private static final BiFunction<Set<TermImpl>, TermImpl, Set<TermImpl>>   ADD_FACT         = (s, e) -> s == null ? Set.of(e) : s.add(e);
+    private static final BiFunction<Set<TermImpl>, TermImpl, Set<TermImpl>>   ADD_FACT            = (s, e) -> s == null ? Set.of(e) : s.add(e);
 
-    private static final BiFunction<List<RuleImpl>, RuleImpl, List<RuleImpl>> ADD_RULE         = (l, e) -> {
-                                                                                                   if (l == null) {
-                                                                                                       return List.of(e);
-                                                                                                   } else {
-                                                                                                       int p = e.rulePrio();
-                                                                                                       for (int i = 0; i < l.size(); i++) {
-                                                                                                           RuleImpl r = l.get(i);
-                                                                                                           if (r.equals(e)) {
-                                                                                                               return l;
-                                                                                                           } else if (r.rulePrio() > p) {
-                                                                                                               return l.insert(i, e);
-                                                                                                           }
-                                                                                                       }
-                                                                                                       return l.append(e);
-                                                                                                   }
-                                                                                               };
+    private static final BiFunction<List<RuleImpl>, RuleImpl, List<RuleImpl>> ADD_RULE            = (l, e) -> {
+                                                                                                      if (l == null) {
+                                                                                                          return List.of(e);
+                                                                                                      } else {
+                                                                                                          int p = e.rulePrio();
+                                                                                                          for (int i = 0; i < l.size(); i++) {
+                                                                                                              RuleImpl r = l.get(i);
+                                                                                                              if (r.equals(e)) {
+                                                                                                                  return l;
+                                                                                                              } else if (r.rulePrio() > p) {
+                                                                                                                  return l.insert(i, e);
+                                                                                                              }
+                                                                                                          }
+                                                                                                          return l.append(e);
+                                                                                                      }
+                                                                                                  };
 
     public static final Database run(Runnable runnable) {
         return run(runnable, null);
@@ -146,16 +150,50 @@ public final class Logic {
     }
 
     @SuppressWarnings("rawtypes")
+    private static final QualifiedSet<TermImpl, Memoiz> EMPTY_MEMOIZ = QualifiedSet.of(Memoiz::term);
+
+    @SuppressWarnings("rawtypes")
+    private static class Memoiz extends Struct2Impl<TermImpl, Set<TermImpl>> {
+        private static final long serialVersionUID = 1531759272582548244L;
+
+        private int               count;
+
+        private Memoiz(TermImpl t, Set<TermImpl> s) {
+            super(t, s);
+        }
+
+        private TermImpl term() {
+            return get0();
+        }
+
+        private Set<TermImpl> set() {
+            return get1();
+        }
+
+        protected boolean keep() {
+            return count >= KEEP_MEMOIZ_MINIMUM;
+        }
+    }
+
+    @SuppressWarnings("rawtypes")
     public static final class Database {
-        private final AtomicReference<Map<TermImpl, Set<TermImpl>>>   facts;
-        private final AtomicReference<Map<FunctImpl, List<RuleImpl>>> rules;
-        private final AtomicReference<Map<TermImpl, Set<TermImpl>>[]> memoiz;
+        private final AtomicReference<Map<TermImpl, Set<TermImpl>>>     facts;
+        private final AtomicReference<Map<FunctImpl, List<RuleImpl>>>   rules;
+        private final AtomicReference<QualifiedSet<TermImpl, Memoiz>[]> memoiz;
 
         @SuppressWarnings("unchecked")
         private Database(Database init) {
             facts = new AtomicReference<>(init != null ? init.facts.get() : Map.of());
             rules = new AtomicReference<>(init != null ? init.rules.get() : Map.of());
-            memoiz = new AtomicReference<>(init != null ? init.memoiz.get() : new Map[]{Map.of(), Map.of()});
+            memoiz = new AtomicReference<>(init != null ? init.memoiz.get() : new QualifiedSet[]{EMPTY_MEMOIZ, EMPTY_MEMOIZ, EMPTY_MEMOIZ});
+        }
+
+        protected void cleanup() {
+            memoiz.updateAndGet(a -> {
+                a = a.clone();
+                a[2] = a[2].filter(Memoiz::keep).asQualifiedSet(EMPTY_MEMOIZ.qualifier());
+                return a;
+            });
         }
     }
 
@@ -530,11 +568,6 @@ public final class Logic {
         return l(List.of(es));
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private static <E extends Term> TermImpl<L> lImpl(TermImpl<E>... es) {
-        return lImpl(List.of(es));
-    }
-
     @SuppressWarnings("rawtypes")
     private static <E extends Term> TermImpl<L> lImpl(List<TermImpl<E>> es) {
         return termImpl(LIST_FUNCTOR, es);
@@ -865,10 +898,11 @@ public final class Logic {
                 if (r != null) {
                     return r;
                 }
-                for (Map<TermImpl, Set<TermImpl>> m : database.memoiz.get()) {
-                    facts = m.get(this);
-                    if (facts != null) {
-                        return facts;
+                for (QualifiedSet<TermImpl, Memoiz> m : database.memoiz.get()) {
+                    Memoiz memoiz = m.get(this);
+                    if (memoiz != null) {
+                        memoiz.count++;
+                        return memoiz.set();
                     }
                 }
                 int li = der.lastIndexOf(this);
@@ -936,12 +970,14 @@ public final class Logic {
                 database.memoiz.updateAndGet(a -> {
                     a = a.clone();
                     if (a[0].size() >= MAX_LOGIC_MEMOIZ) {
+                        a[2] = a[2].putAll(a[1]);
                         a[1] = a[0];
-                        a[0] = Map.of();
+                        a[0] = EMPTY_MEMOIZ;
+                        LOGIC_POOL.execute(database::cleanup);
                     }
-                    a[0] = a[0].put(this, set);
+                    a[0] = a[0].put(new Memoiz(this, set));
                     for (TermImpl e : set) {
-                        a[0] = a[0].put(e, Set.of(e));
+                        a[0] = a[0].put(new Memoiz(e, Set.of(e)));
                     }
                     return a;
                 });
@@ -1525,7 +1561,7 @@ public final class Logic {
     }
 
     @SuppressWarnings("rawtypes")
-    private static Functor<Pred> is = functor((SerializableBiFunction<Func, Atom, Pred>) Logic::is);
+    private static Functor<Pred> is = functor((SerializableBiFunction<Func, Atom, Pred>) Logic::is, FunctorModifierEnum.derived);
 
     public static <T extends Term> Pred is(T a, T b) {
         return term(is, a, b);
