@@ -317,9 +317,15 @@ public final class Logic {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     private static final Object noProxy(Object object) {
         if (object instanceof Term) {
             throw new IllegalArgumentException();
+        } else if (object instanceof List) {
+            for (Object e : (List) object) {
+                noProxy(e);
+            }
+            return object;
         } else {
             return object;
         }
@@ -721,10 +727,15 @@ public final class Logic {
         protected Map<VarImpl, Object> variables() {
             Map<VarImpl, Object> vars = Map.of();
             for (int i = 1; i < length(); i++) {
-                if (get(i) instanceof VarImpl) {
-                    vars = vars.put((VarImpl) get(i), ((VarImpl) get(i)).type());
-                } else if (get(i) instanceof TermImpl) {
-                    vars = vars.putAll(((TermImpl) get(i)).variables());
+                Object v = get(i);
+                if (v instanceof VarImpl) {
+                    vars = vars.put((VarImpl) v, ((VarImpl) v).type());
+                } else if (v instanceof TermImpl) {
+                    vars = vars.putAll(((TermImpl) v).variables());
+                } else if (v instanceof List) {
+                    for (TermImpl e : (List<TermImpl>) v) {
+                        vars = vars.putAll(e.variables());
+                    }
                 }
             }
             return vars;
