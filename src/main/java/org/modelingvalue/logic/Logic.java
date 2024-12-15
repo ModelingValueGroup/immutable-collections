@@ -144,6 +144,7 @@ public final class Logic {
         @Override
         protected boolean exec() {
             DATABASE.run(database, runnable);
+            database.stopped = true;
             return true;
         }
     }
@@ -180,6 +181,8 @@ public final class Logic {
         private final AtomicReference<Map<FunctImpl, List<RuleImpl>>>   rules;
         private final AtomicReference<QualifiedSet<TermImpl, Memoiz>[]> memoiz;
 
+        private boolean                                                 stopped;
+
         @SuppressWarnings("unchecked")
         private Database(Database init) {
             facts = new AtomicReference<>(init != null ? init.facts.get() : Map.of());
@@ -191,6 +194,9 @@ public final class Logic {
             QualifiedSet<TermImpl, Memoiz>[] mem = memoiz.get();
             while (mem[2].size() > MAX_LOGIC_MEMOIZ) {
                 for (int i = 0; i < mem[2].size(); i++) {
+                    if (stopped) {
+                        return;
+                    }
                     Memoiz m = mem[2].get(i);
                     if (!m.keep()) {
                         mem = memoiz.updateAndGet(a -> {
