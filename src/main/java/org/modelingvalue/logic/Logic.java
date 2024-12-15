@@ -82,21 +82,18 @@ public final class Logic {
         }
     }
 
-    private static final int                                                  KEEP_MEMOIZ_MINIMUM = Integer.getInteger("KEEP_MEMOIZ_MINIMUM", 5);
+    private static final int                                                  MAX_LOGIC_MEMOIZ    = Integer.getInteger("MAX_LOGIC_MEMOIZ", 512);
+    private static final int                                                  INITIAL_USAGE_COUNT = Integer.getInteger("INITIAL_USAGE_COUNT", 4);
 
     private static final int                                                  MAX_LOGIC_DEPTH     = Integer.getInteger("MAX_LOGIC_DEPTH", 32);
-
-    private static final int                                                  MAX_LOGIC_MEMOIZ    = Integer.getInteger("MAX_LOGIC_MEMOIZ", 512);
 
     private static final boolean                                              TRACE_LOGIC         = Boolean.getBoolean("TRACE_LOGIC");
 
     private static final ContextPool                                          LOGIC_POOL          = ContextThread.createPool();
-
     private static final Context<Database>                                    DATABASE            = Context.of();
 
     @SuppressWarnings("rawtypes")
     private static final BiFunction<Set<TermImpl>, TermImpl, Set<TermImpl>>   ADD_FACT            = (s, e) -> s == null ? Set.of(e) : s.add(e);
-
     private static final BiFunction<List<RuleImpl>, RuleImpl, List<RuleImpl>> ADD_RULE            = (l, e) -> {
                                                                                                       if (l == null) {
                                                                                                           return List.of(e);
@@ -156,7 +153,7 @@ public final class Logic {
     private static class Memoiz extends Struct2Impl<TermImpl, Set<TermImpl>> {
         private static final long serialVersionUID = 1531759272582548244L;
 
-        private int               count;
+        private int               count            = INITIAL_USAGE_COUNT;
 
         private Memoiz(TermImpl t, Set<TermImpl> s) {
             super(t, s);
@@ -171,7 +168,7 @@ public final class Logic {
         }
 
         protected boolean keep() {
-            return count >= KEEP_MEMOIZ_MINIMUM;
+            return count-- > 0;
         }
     }
 
@@ -189,11 +186,14 @@ public final class Logic {
         }
 
         protected void cleanup() {
-            memoiz.updateAndGet(a -> {
+            QualifiedSet<TermImpl, Memoiz>[] mem = memoiz.updateAndGet(a -> {
                 a = a.clone();
                 a[2] = a[2].filter(Memoiz::keep).asQualifiedSet(EMPTY_MEMOIZ.qualifier());
                 return a;
             });
+            if (mem[2].size() > MAX_LOGIC_MEMOIZ) {
+                LOGIC_POOL.execute(this::cleanup);
+            }
         }
     }
 
@@ -967,13 +967,12 @@ public final class Logic {
                     return m;
                 });
             } else if (!functor.derived) {
-                database.memoiz.updateAndGet(a -> {
+                QualifiedSet<TermImpl, Memoiz>[] mem = database.memoiz.updateAndGet(a -> {
                     a = a.clone();
-                    if (a[0].size() >= MAX_LOGIC_MEMOIZ) {
+                    if (a[0].size() >= MAX_LOGIC_MEMOIZ / 4) {
                         a[2] = a[2].putAll(a[1]);
                         a[1] = a[0];
                         a[0] = EMPTY_MEMOIZ;
-                        LOGIC_POOL.execute(database::cleanup);
                     }
                     a[0] = a[0].put(new Memoiz(this, set));
                     for (TermImpl e : set) {
@@ -981,6 +980,9 @@ public final class Logic {
                     }
                     return a;
                 });
+                if (mem[2].size() > MAX_LOGIC_MEMOIZ && mem[0].size() == set.size() + 1) {
+                    LOGIC_POOL.execute(database::cleanup);
+                }
             }
         }
 
@@ -1561,7 +1563,7 @@ public final class Logic {
     }
 
     @SuppressWarnings("rawtypes")
-    private static Functor<Pred> is = functor((SerializableBiFunction<Func, Atom, Pred>) Logic::is, FunctorModifierEnum.derived);
+    private static Functor<Pred> is = functor((SerializableBiFunction<Func, Atom, Pred>) Logic::is);
 
     public static <T extends Term> Pred is(T a, T b) {
         return term(is, a, b);
