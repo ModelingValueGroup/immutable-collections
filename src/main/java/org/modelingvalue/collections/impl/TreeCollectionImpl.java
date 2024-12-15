@@ -22,13 +22,16 @@ package org.modelingvalue.collections.impl;
 
 import java.io.Serializable;
 import java.lang.reflect.Array;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterator.OfInt;
 import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.function.Predicate;
@@ -42,10 +45,11 @@ import org.modelingvalue.collections.StreamCollection;
 import org.modelingvalue.collections.util.*;
 
 public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements ContainingCollection<T> {
-    private static final long         serialVersionUID = 7999808719969099597L;
-    protected static final int        CHARACTERISTICS  = Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL;
-    private static final int          SPLIT_START      = Integer.getInteger("SPLIT_START", 64);
-    private static final Predicate<?> ALL_INTERNABLE   = e -> e instanceof Internable && ((Internable) e).isInternable();
+    private static final long         serialVersionUID   = 7999808719969099597L;
+    protected static final int        CHARACTERISTICS    = Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL;
+    private static final int          SPLIT_START        = Integer.getInteger("SPLIT_START", 64);
+    private static final Predicate<?> ALL_INTERNABLE     = e -> e instanceof Internable && ((Internable) e).isInternable();
+    private static final int          MAX_NO_STREAM_SIZE = Integer.getInteger("MAX_NO_STREAM_SIZE", 8);
 
     protected static boolean split(int amount) {
         Thread thread = Thread.currentThread();
@@ -651,4 +655,165 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
             this.value = newSet.value;
         }
     }
+
+    @Override
+    public void forEach(Consumer<? super T> action) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            super.forEach(action);
+        } else {
+            for (T t : this) {
+                action.accept(t);
+            }
+        }
+    }
+
+    @Override
+    public void forEachOrdered(Consumer<? super T> action) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            super.forEachOrdered(action);
+        } else {
+            for (T t : this) {
+                action.accept(t);
+            }
+        }
+    }
+
+    @Override
+    public boolean anyMatch(Predicate<? super T> predicate) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.anyMatch(predicate);
+        } else {
+            for (T t : this) {
+                if (predicate.test(t)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    @Override
+    public boolean allMatch(Predicate<? super T> predicate) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.allMatch(predicate);
+        } else {
+            for (T t : this) {
+                if (!predicate.test(t)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    @Override
+    public boolean noneMatch(Predicate<? super T> predicate) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.noneMatch(predicate);
+        } else {
+            for (T t : this) {
+                if (predicate.test(t)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    @Override
+    public T reduce(T identity, BinaryOperator<T> accumulator) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.reduce(identity, accumulator);
+        } else {
+            T r = identity;
+            for (T t : this) {
+                r = accumulator.apply(r, t);
+            }
+            return r;
+        }
+
+    }
+
+    @Override
+    public Optional<T> reduce(BinaryOperator<T> accumulator) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.reduce(accumulator);
+        } else {
+            T r = null;
+            for (T t : this) {
+                r = r == null ? t : accumulator.apply(r, t);
+            }
+            return r == null ? Optional.empty() : Optional.of(r);
+        }
+    }
+
+    @Override
+    public Optional<T> min(Comparator<? super T> comparator) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.min(comparator);
+        } else {
+            T r = null;
+            for (T t : this) {
+                r = r == null ? t : comparator.compare(r, t) > 0 ? t : r;
+            }
+            return r == null ? Optional.empty() : Optional.of(r);
+        }
+    }
+
+    @Override
+    public Optional<T> max(Comparator<? super T> comparator) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.max(comparator);
+        } else {
+            T r = null;
+            for (T t : this) {
+                r = r == null ? t : comparator.compare(r, t) < 0 ? t : r;
+            }
+            return r == null ? Optional.empty() : Optional.of(r);
+        }
+    }
+
+    @Override
+    public Optional<T> findAny(Predicate<? super T> predicate) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.findAny(predicate);
+        } else {
+            for (T t : this) {
+                if (predicate.test(t)) {
+                    return Optional.of(t);
+                }
+            }
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public Optional<T> findFirst(Predicate<? super T> predicate) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.findFirst(predicate);
+        } else {
+            for (T t : this) {
+                if (predicate.test(t)) {
+                    return Optional.of(t);
+                }
+            }
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public long count() {
+        return size();
+    }
+
+    @Override
+    public Optional<T> findFirst() {
+        return isEmpty() ? Optional.empty() : Optional.of(get(0));
+    }
+
+    @Override
+    public Optional<T> findAny() {
+        return findFirst();
+    }
+
 }

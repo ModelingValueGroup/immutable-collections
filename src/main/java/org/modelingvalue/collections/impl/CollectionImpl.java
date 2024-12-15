@@ -466,8 +466,28 @@ public abstract class CollectionImpl<T> implements Collection<T> {
     }
 
     @Override
+    public Optional<T> findAny(Predicate<? super T> predicate) {
+        return baseStream().filter(predicate).findAny();
+    }
+
+    @Override
+    public Optional<T> findFirst(Predicate<? super T> predicate) {
+        return baseStream().filter(predicate).findFirst();
+    }
+
+    @Override
     public void close() {
         baseStream().close();
+    }
+
+    @Override
+    public Object[] toArray() {
+        return baseStream().toArray();
+    }
+
+    @Override
+    public <A> A[] toArray(IntFunction<A[]> generator) {
+        return baseStream().toArray(wrap(isParallel(), generator));
     }
 
     @Override
@@ -539,17 +559,6 @@ public abstract class CollectionImpl<T> implements Collection<T> {
     @Override
     public Collection<T> onClose(Runnable closeHandler) {
         return new StreamCollectionImpl<>(baseStream().onClose(wrap(isParallel(), closeHandler)));
-    }
-
-    @Override
-    public Object[] toArray() {
-        return baseStream().toArray();
-    }
-
-    @Override
-    public <A> A[] toArray(IntFunction<A[]> generator) {
-        //noinspection SuspiciousToArrayCall
-        return baseStream().toArray(wrap(isParallel(), generator));
     }
 
     @Override

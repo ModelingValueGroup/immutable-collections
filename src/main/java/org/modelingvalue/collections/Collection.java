@@ -23,6 +23,7 @@ package org.modelingvalue.collections;
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiFunction;
@@ -98,6 +99,10 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
     default Collection<T> exclude(Predicate<? super T> predicate) {
         return filter(predicate.negate());
     }
+
+    Optional<T> findAny(Predicate<? super T> predicate);
+
+    Optional<T> findFirst(Predicate<? super T> predicate);
 
     @Override
     <R> Collection<R> map(Function<? super T, ? extends R> mapper);

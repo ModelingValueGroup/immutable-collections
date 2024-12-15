@@ -188,13 +188,19 @@ public final class Logic {
         }
 
         protected void cleanup() {
-            QualifiedSet<TermImpl, Memoiz>[] mem = memoiz.updateAndGet(a -> {
-                a = a.clone();
-                a[2] = a[2].filter(Memoiz::keep).asQualifiedSet(EMPTY_MEMOIZ.qualifier());
-                return a;
-            });
-            if (mem[2].size() > MAX_LOGIC_MEMOIZ) {
-                LOGIC_POOL.execute(this::cleanup);
+            QualifiedSet<TermImpl, Memoiz>[] mem = memoiz.get();
+            while (mem[2].size() > MAX_LOGIC_MEMOIZ) {
+                for (int i = 0; i < mem[2].size(); i++) {
+                    Memoiz m = mem[2].get(i);
+                    if (!m.keep()) {
+                        mem = memoiz.updateAndGet(a -> {
+                            a = a.clone();
+                            a[2] = a[2].removeKey(m.term());
+                            return a;
+                        });
+                        i--;
+                    }
+                }
             }
         }
     }
@@ -916,7 +922,7 @@ public final class Logic {
                 }
                 Set<TermImpl> set = fixpoint(rules, non, der.append(this), rec, database);
                 if (der.size() >= MAX_LOGIC_DEPTH_D2) {
-                    Optional<TermImpl> ic = set.filter(TermImpl::isToDepthIcomplete).findAny();
+                    Optional<TermImpl> ic = set.findAny(TermImpl::isToDepthIcomplete);
                     if (ic.isPresent()) {
                         if (der.size() == MAX_LOGIC_DEPTH_D2) {
                             List<TermImpl> list = (List) ic.get().get(1);
@@ -925,7 +931,7 @@ public final class Logic {
                                 TermImpl t = todo.last();
                                 FunctImpl tf = t.functor();
                                 set = t.fixpoint(database.rules.get().get(tf), t.nrOfNulls(), der.append(t), rec, database);
-                                ic = set.filter(TermImpl::isToDepthIcomplete).findAny();
+                                ic = set.findAny(TermImpl::isToDepthIcomplete);
                                 if (ic.isPresent()) {
                                     list = (List) ic.get().get(1);
                                     todo = todo.appendList(list.sublist(der.size(), list.size()));
