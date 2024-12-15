@@ -559,7 +559,7 @@ public final class Logic {
 
     // Lists
 
-    public interface L<E> extends Atom<L<E>> {
+    public interface L<E> extends Term {
     }
 
     @SuppressWarnings("rawtypes")
@@ -1371,7 +1371,7 @@ public final class Logic {
                 return Set.of();
             }
             if (TRACE_LOGIC) {
-                System.err.println("!!!!!!!!!!!!!! " + "  ".repeat(der.size()) + this + " " + binding.toString().substring(3));
+                System.err.println("LOGIC " + "  ".repeat(der.size()) + this + " " + binding.toString().substring(3));
             }
             Collection<Map<VarImpl, Object>> r = goal().eval(variables().putAll(binding), der, rec, database);
             return r.map(m -> {
