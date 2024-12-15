@@ -382,7 +382,11 @@ public final class Logic {
         if (object instanceof Term) {
             return Proxy.getInvocationHandler(object);
         } else if (object instanceof List) {
-            return ((List) object).map(Logic::unproxy).asList();
+            List l = List.of();
+            for (Object e : (List) object) {
+                l = l.add(unproxy(e));
+            }
+            return l;
         } else {
             Objects.requireNonNull(object);
             return object;
