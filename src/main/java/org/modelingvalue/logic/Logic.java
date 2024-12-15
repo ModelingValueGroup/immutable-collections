@@ -83,9 +83,11 @@ public final class Logic {
     }
 
     private static final int                                                  MAX_LOGIC_MEMOIZ    = Integer.getInteger("MAX_LOGIC_MEMOIZ", 512);
+    private static final int                                                  MAX_LOGIC_MEMOIZ_D4 = MAX_LOGIC_MEMOIZ / 4;
     private static final int                                                  INITIAL_USAGE_COUNT = Integer.getInteger("INITIAL_USAGE_COUNT", 4);
 
     private static final int                                                  MAX_LOGIC_DEPTH     = Integer.getInteger("MAX_LOGIC_DEPTH", 32);
+    private static final int                                                  MAX_LOGIC_DEPTH_D2  = MAX_LOGIC_DEPTH / 2;
 
     private static final boolean                                              TRACE_LOGIC         = Boolean.getBoolean("TRACE_LOGIC");
 
@@ -909,26 +911,28 @@ public final class Logic {
                 if (li >= 0) {
                     return Set.of(Logic.incompleteImpl(der.append(this)));
                 }
-                if (der.size() == MAX_LOGIC_DEPTH) {
+                if (der.size() >= MAX_LOGIC_DEPTH) {
                     return Set.of(Logic.incompleteImpl(der.append(this)));
                 }
                 Set<TermImpl> set = fixpoint(rules, non, der.append(this), rec, database);
-                if (der.size() == MAX_LOGIC_DEPTH / 2) {
+                if (der.size() >= MAX_LOGIC_DEPTH_D2) {
                     Optional<TermImpl> ic = set.filter(TermImpl::isToDepthIcomplete).findAny();
                     if (ic.isPresent()) {
-                        List<TermImpl> list = (List) ic.get().get(1);
-                        List<TermImpl> todo = list.sublist(der.size(), list.size());
-                        while (todo.size() > 0) {
-                            TermImpl t = todo.last();
-                            FunctImpl tf = t.functor();
-                            set = t.fixpoint(database.rules.get().get(tf), t.nrOfNulls(), der.append(t), rec, database);
-                            ic = set.filter(TermImpl::isToDepthIcomplete).findAny();
-                            if (ic.isPresent()) {
-                                list = (List) ic.get().get(1);
-                                todo = todo.appendList(list.sublist(der.size(), list.size()));
-                            } else {
-                                t.memoization(tf, set, database);
-                                todo = todo.removeLast();
+                        if (der.size() == MAX_LOGIC_DEPTH_D2) {
+                            List<TermImpl> list = (List) ic.get().get(1);
+                            List<TermImpl> todo = list.sublist(der.size(), list.size());
+                            while (todo.size() > 0) {
+                                TermImpl t = todo.last();
+                                FunctImpl tf = t.functor();
+                                set = t.fixpoint(database.rules.get().get(tf), t.nrOfNulls(), der.append(t), rec, database);
+                                ic = set.filter(TermImpl::isToDepthIcomplete).findAny();
+                                if (ic.isPresent()) {
+                                    list = (List) ic.get().get(1);
+                                    todo = todo.appendList(list.sublist(der.size(), list.size()));
+                                } else {
+                                    t.memoization(tf, set, database);
+                                    todo = todo.removeLast();
+                                }
                             }
                         }
                         return set;
@@ -969,7 +973,7 @@ public final class Logic {
             } else if (!functor.derived) {
                 QualifiedSet<TermImpl, Memoiz>[] mem = database.memoiz.updateAndGet(a -> {
                     a = a.clone();
-                    if (a[0].size() >= MAX_LOGIC_MEMOIZ / 4) {
+                    if (a[0].size() >= MAX_LOGIC_MEMOIZ_D4) {
                         a[2] = a[2].putAll(a[1]);
                         a[1] = a[0];
                         a[0] = EMPTY_MEMOIZ;
