@@ -288,9 +288,11 @@ public final class Logic {
 
         private static final Object[] array(Object functor, Object[] args) {
             Object[] result = new Object[args.length + 1];
-            result[0] = noProxy(functor);
+            noProxy(functor);
+            result[0] = functor;
             for (int i = 0; i < args.length; i++) {
-                result[i + 1] = noProxy(args[i]);
+                noProxy(args[i]);
+                result[i + 1] = args[i];
             }
             return result;
         }
@@ -395,17 +397,12 @@ public final class Logic {
         }
     }
 
-    @SuppressWarnings("rawtypes")
-    private static final Object noProxy(Object object) {
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static final void noProxy(Object object) {
         if (object instanceof Term) {
             throw new IllegalArgumentException();
         } else if (object instanceof List) {
-            for (Object e : (List) object) {
-                noProxy(e);
-            }
-            return object;
-        } else {
-            return object;
+            ((List) object).forEach(Logic::noProxy);
         }
     }
 
@@ -414,11 +411,7 @@ public final class Logic {
         if (object instanceof Term) {
             return Proxy.getInvocationHandler(object);
         } else if (object instanceof List) {
-            List l = List.of();
-            for (Object e : (List) object) {
-                l = l.add(unproxy(e));
-            }
-            return l;
+            return ((List) object).replaceAll(Logic::unproxy);
         } else {
             Objects.requireNonNull(object);
             return object;
