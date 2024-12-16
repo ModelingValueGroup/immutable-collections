@@ -818,50 +818,12 @@ public final class Logic {
             return vars;
         }
 
-        @SuppressWarnings({"rawtypes", "unchecked"})
+        @SuppressWarnings("rawtypes")
         protected Map<VarImpl, Object> getBinding(TermImpl<F> term, Map<VarImpl, Object> vars) {
             if (get(0).equals(term.get(0))) {
                 for (int i = 1; i < length(); i++) {
-                    Object tv = term.get(i);
-                    Class tt = typeOf(tv);
-                    tv = tv instanceof Class ? null : tv;
-                    if (get(i) instanceof VarImpl) {
-                        VarImpl var = (VarImpl) get(i);
-                        Object vv = vars.get(var);
-                        Class vt = typeOf(vv);
-                        vv = vv instanceof Class ? null : vv;
-                        if (vv != null) {
-                            if (tv != null && !tv.equals(vv)) {
-                                return null;
-                            }
-                        } else if (tv != null) {
-                            if (var.type().isAssignableFrom(tt)) {
-                                vars = vars.put(var, tv);
-                            } else {
-                                return null;
-                            }
-                        } else if (tt == null || !var.type().isAssignableFrom(tt)) {
-                            return null;
-                        } else if (vt != null && !vt.equals(tt)) {
-                            return null;
-                        } else {
-                            vars = vars.put(var, tt);
-                        }
-                    } else if (get(i) instanceof TermImpl) {
-                        TermImpl t = (TermImpl) get(i);
-                        if (tv != null) {
-                            if (tv instanceof TermImpl) {
-                                vars = t.getBinding((TermImpl) tv, vars);
-                                if (vars == null) {
-                                    return null;
-                                }
-                            } else {
-                                return null;
-                            }
-                        } else if (tt == null || !t.type().isAssignableFrom(tt)) {
-                            return null;
-                        }
-                    } else if (tv != null && !tv.equals(get(i))) {
+                    vars = bindings(vars, get(i), term.get(i));
+                    if (vars == null) {
                         return null;
                     }
                 }
@@ -871,25 +833,93 @@ public final class Logic {
             }
         }
 
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        private static Map<VarImpl, Object> bindings(Map<VarImpl, Object> vars, Object v, Object tv) {
+            Class tt = typeOf(tv);
+            tv = tv instanceof Class ? null : tv;
+            if (v instanceof VarImpl) {
+                VarImpl var = (VarImpl) v;
+                Object vv = vars.get(var);
+                Class vt = typeOf(vv);
+                vv = vv instanceof Class ? null : vv;
+                if (vv != null) {
+                    if (tv != null && !tv.equals(vv)) {
+                        return null;
+                    }
+                } else if (tv != null) {
+                    if (var.type().isAssignableFrom(tt)) {
+                        vars = vars.put(var, tv);
+                    } else {
+                        return null;
+                    }
+                } else if (tt == null || !var.type().isAssignableFrom(tt)) {
+                    return null;
+                } else if (vt != null && !vt.equals(tt)) {
+                    return null;
+                } else {
+                    vars = vars.put(var, tt);
+                }
+            } else if (v instanceof TermImpl) {
+                TermImpl t = (TermImpl) v;
+                if (tv != null) {
+                    if (tv instanceof TermImpl) {
+                        vars = t.getBinding((TermImpl) tv, vars);
+                    } else {
+                        return null;
+                    }
+                } else if (tt == null || !t.type().isAssignableFrom(tt)) {
+                    return null;
+                }
+            } else if (v instanceof List) {
+                List l = (List) v;
+                if (tv instanceof List) {
+                    List tl = (List) tv;
+                    for (int i = 0; i < l.size() && i < tl.size(); i++) {
+                        vars = bindings(vars, l.get(i), tl.get(i));
+                        if (vars == null) {
+                            return null;
+                        }
+                    }
+                } else {
+                    return null;
+                }
+            } else if (tv != null && !tv.equals(v)) {
+                return null;
+            }
+            return vars;
+        }
+
         @SuppressWarnings("rawtypes")
         private static Class typeOf(Object v) {
             return v instanceof ClauseImpl ? ((ClauseImpl) v).type() : v instanceof Class ? (Class) v : null;
         }
 
-        @SuppressWarnings({"rawtypes", "unchecked"})
+        @SuppressWarnings("rawtypes")
         protected TermImpl setBinding(Map<VarImpl, Object> vars) {
             Object[] array = toArray();
             for (int i = 1; i < length(); i++) {
-                if (get(i) instanceof VarImpl) {
-                    Object v = vars.get((VarImpl) get(i));
-                    if (v != null) {
-                        array[i] = v;
-                    }
-                } else if (get(i) instanceof TermImpl) {
-                    array[i] = ((TermImpl) get(i)).setBinding(vars);
-                }
+                array[i] = binding(vars, get(i));
             }
             return term(array);
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        private static Object binding(Map<VarImpl, Object> vars, Object iv) {
+            if (iv instanceof VarImpl) {
+                Object v = vars.get((VarImpl) iv);
+                return v != null ? v : iv;
+            } else if (iv instanceof TermImpl) {
+                return ((TermImpl) iv).setBinding(vars);
+            } else if (iv instanceof List) {
+                List il = (List) iv;
+                List rl = List.of();
+                for (int i = 1; i < il.size(); i++) {
+                    rl = rl.add(binding(vars, il.get(i)));
+                }
+                return rl;
+            } else {
+                return iv;
+            }
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
