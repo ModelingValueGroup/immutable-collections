@@ -22,6 +22,7 @@ package org.modelingvalue.collections;
 
 import java.util.ListIterator;
 import java.util.Spliterator;
+import java.util.function.Predicate;
 
 import org.modelingvalue.collections.util.Deserializer;
 import org.modelingvalue.collections.util.Internable;
@@ -61,6 +62,26 @@ public interface ContainingCollection<T> extends Collection<T>, Internable {
     ContainingCollection<T> replace(Object pre, T post);
 
     ContainingCollection<T> replaceFirst(Object pre, T post);
+
+    default ContainingCollection<T> removeAll(Predicate<? super T> predicate) {
+        ContainingCollection<T> r = this;
+        for (T t : this) {
+            if (predicate.test(t)) {
+                r = r.remove(t);
+            }
+        }
+        return r;
+    }
+
+    default ContainingCollection<T> retainAll(Predicate<? super T> predicate) {
+        ContainingCollection<T> r = this;
+        for (T t : this) {
+            if (!predicate.test(t)) {
+                r = r.remove(t);
+            }
+        }
+        return r;
+    }
 
     ContainingCollection<T> clear();
 

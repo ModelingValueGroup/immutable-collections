@@ -83,6 +83,16 @@ public interface DefaultMap<K, V> extends ContainingCollection<Entry<K, V>>, Mer
     @Override
     DefaultMap<K, V> clear();
 
+    @Override
+    default DefaultMap<K, V> removeAll(Predicate<? super Entry<K, V>> predicate) {
+        return (DefaultMap<K, V>) ContainingCollection.super.removeAll(predicate);
+    }
+
+    @Override
+    default DefaultMap<K, V> retainAll(Predicate<? super Entry<K, V>> predicate) {
+        return (DefaultMap<K, V>) ContainingCollection.super.retainAll(predicate);
+    }
+
     DefaultMap<K, V> merge(QuadFunction<K, V, V[], Integer, V> merger, DefaultMap<K, V>[] branches, int length);
 
     @Override

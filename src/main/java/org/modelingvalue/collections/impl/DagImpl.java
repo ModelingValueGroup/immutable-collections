@@ -285,4 +285,5 @@ public class DagImpl<N> extends DirGraphImpl<N> implements Dag<N> {
         DirGraph<N> merged = merge(da, size);
         return merged.setEnd(end).invRemoveCycles().setEnd(end);
     }
+
 }

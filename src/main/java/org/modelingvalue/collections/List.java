@@ -23,6 +23,7 @@ package org.modelingvalue.collections;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.modelingvalue.collections.impl.ListImpl;
 import org.modelingvalue.collections.mutable.MutableList;
@@ -151,6 +152,34 @@ public interface List<T> extends ContainingCollection<T>, Mergeable<List<T>> {
 
     @Override
     List<T> clear();
+
+    @Override
+    default List<T> removeAll(Predicate<? super T> predicate) {
+        return (List<T>) ContainingCollection.super.removeAll(predicate);
+    }
+
+    @Override
+    default List<T> retainAll(Predicate<? super T> predicate) {
+        return (List<T>) ContainingCollection.super.retainAll(predicate);
+    }
+
+    @SuppressWarnings("unchecked")
+    default <R> List<R> replaceAll(Function<? super T, R> mapper) {
+        List<R> r = (List<R>) clear();
+        for (T t : this) {
+            r = r.add(mapper.apply(t));
+        }
+        return r;
+    }
+
+    @SuppressWarnings("unchecked")
+    default <R> List<R> replaceAllAll(Function<? super T, List<R>> mapper) {
+        List<R> r = (List<R>) clear();
+        for (T t : this) {
+            r = r.appendList(mapper.apply(t));
+        }
+        return r;
+    }
 
     java.util.List<T> toMutable();
 

@@ -703,4 +703,5 @@ public class GraphImpl<V, E> extends CollectionImpl<Triple<V, E, V>> implements 
     public int index(Object e) {
         throw new UnsupportedOperationException();
     }
+
 }

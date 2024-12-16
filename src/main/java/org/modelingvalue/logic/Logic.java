@@ -30,7 +30,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
@@ -60,7 +59,7 @@ public final class Logic {
 
     @SuppressWarnings("rawtypes")
     @FunctionalInterface
-    public interface LogicLambda extends Function<TermImpl, Collection<TermImpl>>, LambdaReflection, FunctorModifier {
+    public interface LogicLambda extends Function<TermImpl, Set<TermImpl>>, LambdaReflection, FunctorModifier {
 
         @Override
         default LogicLambdaImpl of() {
@@ -75,7 +74,7 @@ public final class Logic {
             }
 
             @Override
-            public final Collection<TermImpl> apply(TermImpl t) {
+            public final Set<TermImpl> apply(TermImpl t) {
                 return f.apply(t);
             }
 
@@ -251,20 +250,40 @@ public final class Logic {
             }
         }
 
+        private final int hashCode;
+
         protected ClauseImpl(Functor<F> functor, Object... args) {
             super(unproxy(functor, args));
+            this.hashCode = getHashCode();
         }
 
         protected ClauseImpl(FunctImpl<F> functor, Object... args) {
             super(array(functor, args));
+            this.hashCode = getHashCode();
         }
 
         protected ClauseImpl(Class<F> type, Object... args) {
             super(array(type, args));
+            this.hashCode = getHashCode();
         }
 
         protected ClauseImpl(Object[] args) {
             super(args);
+            this.hashCode = getHashCode();
+        }
+
+        private final int getHashCode() {
+            int r = 1;
+            for (int i = 1; i < length(); i++) {
+                Object e = get(i);
+                r = 31 * r + (e == null ? 0 : e.hashCode());
+            }
+            return 31 * r + get(0).hashCode();
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode;
         }
 
         private static final Object[] array(Object functor, Object[] args) {
@@ -319,53 +338,60 @@ public final class Logic {
             return r;
         }
 
-        @SuppressWarnings({"rawtypes", "unchecked"})
         protected ClauseImpl<F> eq(ClauseImpl<F> other) {
-            if (this == other) {
+            if (equals(other)) {
                 return this;
+            } else if (length() != other.length()) {
+                return null;
             }
             Object[] array = toArray();
             for (int i = 0; i < array.length; i++) {
-                Object tv = get(i);
-                Object ov = other.get(i);
-                if (tv != ov) {
-                    if (tv instanceof ClauseImpl && ov instanceof ClauseImpl) {
-                        ClauseImpl eq = ((ClauseImpl) tv).eq((ClauseImpl) ov);
-                        if (eq != null) {
-                            array[i] = eq;
-                        } else {
-                            return null;
-                        }
-                    } else if (tv instanceof ClauseImpl && ov instanceof Class) {
-                        if (((Class) ov).isAssignableFrom(((ClauseImpl) tv).type())) {
-                            array[i] = tv;
-                        } else {
-                            return null;
-                        }
-                    } else if (tv instanceof Class && ov instanceof ClauseImpl) {
-                        if (((Class) tv).isAssignableFrom(((ClauseImpl) ov).type())) {
-                            array[i] = ov;
-                        } else {
-                            return null;
-                        }
-                    } else if (!(tv instanceof Class) && ov instanceof Class) {
-                        if (((Class) ov).isAssignableFrom(tv.getClass())) {
-                            array[i] = tv;
-                        } else {
-                            return null;
-                        }
-                    } else if (tv instanceof Class && !(ov instanceof Class)) {
-                        if (((Class) tv).isAssignableFrom(ov.getClass())) {
-                            array[i] = ov;
-                        } else {
-                            return null;
-                        }
-                    } else if (!Objects.equals(tv, ov)) {
-                        return null;
-                    }
+                Object eq = eq(get(i), other.get(i));
+                if (eq == null) {
+                    return null;
+                } else {
+                    array[i] = eq;
                 }
             }
             return term(array);
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        private static Object eq(Object tv, Object ov) {
+            if (tv != ov) {
+                if (tv instanceof ClauseImpl && ov instanceof ClauseImpl) {
+                    return ((ClauseImpl) tv).eq((ClauseImpl) ov);
+                } else if (tv instanceof List && ov instanceof List) {
+                    List tl = (List) tv;
+                    List ol = (List) ov;
+                    if (tl.equals(ol)) {
+                        return tl;
+                    } else if (tl.size() != ol.size()) {
+                        return null;
+                    }
+                    List l = List.of();
+                    for (int i = 0; i < tl.size(); i++) {
+                        Object eq = eq(tl.get(i), ol.get(i));
+                        if (eq == null) {
+                            return null;
+                        } else {
+                            l = l.add(eq);
+                        }
+                    }
+                    return l;
+                } else if (tv instanceof ClauseImpl && ov instanceof Class) {
+                    return ((Class) ov).isAssignableFrom(((ClauseImpl) tv).type()) ? tv : null;
+                } else if (tv instanceof Class && ov instanceof ClauseImpl) {
+                    return ((Class) tv).isAssignableFrom(((ClauseImpl) ov).type()) ? ov : null;
+                } else if (!(tv instanceof Class) && ov instanceof Class) {
+                    return ((Class) ov).isAssignableFrom(tv.getClass()) ? tv : null;
+                } else if (tv instanceof Class && !(ov instanceof Class)) {
+                    return ((Class) tv).isAssignableFrom(ov.getClass()) ? ov : null;
+                } else if (!Objects.equals(tv, ov)) {
+                    return null;
+                }
+            }
+            return tv;
         }
     }
 
@@ -622,12 +648,12 @@ public final class Logic {
                                                                } else if (e != null && il != null && ol == null) {
                                                                    return Set.of(t.set(3, lImpl(addOrdered(il, e))));
                                                                } else if (e != null && il == null && ol != null) {
-                                                                   return remove(ol, e).map(r -> (TermImpl) t.set(2, r)).asSet();
+                                                                   return remove(ol, e).replaceAll(l -> (TermImpl) t.set(2, lImpl(l)));
                                                                } else if (e == null && il != null && ol != null) {
                                                                    if (il.anyMatch(ol::notContains)) {
                                                                        return Set.of();
                                                                    }
-                                                                   return ol.removeAll(il).map(r -> (TermImpl) t.set(1, r)).asSet();
+                                                                   return ol.asSet().removeAll(il).replaceAll(r -> (TermImpl) t.set(1, r));
                                                                } else {
                                                                    return t.incomplete();
                                                                }
@@ -896,7 +922,7 @@ public final class Logic {
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
-        protected Collection<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
+        protected Set<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
             FunctImpl<F> functor = functor();
             LogicLambda lambda = functor.lambda();
             if (lambda != null) {
@@ -969,7 +995,7 @@ public final class Logic {
                 found = add.anyMatch(this::equalFunctor);
                 incomplete |= add.anyMatch(this::isIncomplete);
                 if (incomplete && found && set.isEmpty()) {
-                    add = add.filter(this::equalFunctor).asSet();
+                    add = add.retainAll(this::equalFunctor);
                 }
                 set = set.addAll(add);
             } while (found && incomplete);
@@ -1011,12 +1037,8 @@ public final class Logic {
             int non = nrOfNulls();
             LogicLambda lambda = functor().lambda();
             if (lambda != null) {
-                Collection<TermImpl> result = lambda.apply(this);
-                if (result instanceof Set) {
-                    Set<TermImpl> set = (Set<TermImpl>) result;
-                    return set.anyMatch(TermImpl::isIncomplete) ? Integer.MAX_VALUE : Integer.MIN_VALUE + set.size();
-                }
-                return non - nrOfBindings(goal);
+                Set<TermImpl> result = lambda.apply(this);
+                return result.anyMatch(TermImpl::isIncomplete) ? Integer.MAX_VALUE : Integer.MIN_VALUE + result.size();
             }
             if (non > 1 || non >= totalLength()) {
                 return Integer.MAX_VALUE;
@@ -1211,7 +1233,7 @@ public final class Logic {
             if (localVariables == null) {
                 Map<VarImpl, Object> predVars = pred().variables();
                 Map<VarImpl, Object> accumVars = accum().variables();
-                localVariables = predVars.filter(accumVars::contains).asMap(Function.identity());
+                localVariables = predVars.retainAll(accumVars::contains);
             }
             return localVariables;
         }
@@ -1225,7 +1247,7 @@ public final class Logic {
             if (variables == null) {
                 Map<VarImpl, Object> predVars = pred().variables();
                 Map<VarImpl, Object> accumVars = accum().variables();
-                variables = Collection.concat(predVars.exclude(accumVars::contains), accumVars.exclude(predVars::contains)).asMap(Function.identity());
+                variables = predVars.removeAll(accumVars::contains).addAll(accumVars.removeAll(predVars::contains));
             }
             return variables;
         }
@@ -1268,7 +1290,7 @@ public final class Logic {
 
         @SuppressWarnings({"rawtypes", "unchecked"})
         @Override
-        protected Collection<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
+        protected Set<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
             Map<VarImpl, Object> localVars = ((CollectImpl) goal).localVariables();
             int ii = ((CollectImpl) goal).identityIndex();
             int ri = ((CollectImpl) goal).resultIndex();
@@ -1282,21 +1304,24 @@ public final class Logic {
                     inc = inc.add(pm);
                 } else {
                     Map<VarImpl, Object> b = goalPred.getBinding(pm, Map.of());
-                    Set<TermImpl> a = Set.of();
+                    Set<TermImpl> irs = Set.of();
                     for (TermImpl r : rs) {
                         TermImpl s = accum.setBinding(b).set(ii, r);
                         for (TermImpl am : ((TermImpl<?>) s).match(goalAccum, der, rec, database)) {
                             if (am.isIncomplete()) {
                                 inc = inc.add(am);
                             } else {
-                                a = a.add(am);
+                                irs = irs.add(am.getTerm(ri));
                             }
                         }
                     }
-                    rs = a.map(t -> t.getTerm(ri)).asSet();
+                    rs = irs;
                 }
             }
-            return Collection.concat(inc, rs.map(t -> set(2, accum.set(ri, t))));
+            for (TermImpl t : rs) {
+                inc = inc.add(set(2, accum.set(ri, t)));
+            }
+            return inc;
         }
 
         @SuppressWarnings("rawtypes")
@@ -1309,7 +1334,7 @@ public final class Logic {
         @Override
         protected Map<VarImpl, Object> getBinding(TermImpl<Pred> term, Map<VarImpl, Object> vars) {
             Map<VarImpl, Object> localVars = localVariables();
-            return super.getBinding(term, vars).exclude(e -> localVars.containsKey(e.getKey())).asMap(Function.identity());
+            return super.getBinding(term, vars).removeAll(e -> localVars.containsKey(e.getKey()));
         }
     }
 
@@ -1373,11 +1398,11 @@ public final class Logic {
             if (TRACE_LOGIC) {
                 System.err.println("LOGIC " + "  ".repeat(der.size()) + this + " " + binding.toString().substring(3));
             }
-            Collection<Map<VarImpl, Object>> r = goal().eval(variables().putAll(binding), der, rec, database);
-            return r.map(m -> {
+            Set<Map<VarImpl, Object>> r = goal().eval(variables().putAll(binding), der, rec, database);
+            return r.replaceAll(m -> {
                 TermImpl it = (TermImpl) m.get(INCOMPLETE_VAR);
                 return it != null ? it : head.setBinding(m);
-            }).asSet();
+            });
         }
 
         @Override
@@ -1418,7 +1443,7 @@ public final class Logic {
 
     @SuppressWarnings("rawtypes")
     public static Set<Map<Variable, Object>> getBindings(Goal goal) {
-        return getImpl(goal).eval().map(m -> m.asMap(e -> Entry.of((Variable) e.getKey().proxy(), proxy(e.getValue())))).asSet();
+        return getImpl(goal).eval().replaceAll(m -> m.replaceAll(e -> Entry.of((Variable) e.getKey().proxy(), proxy(e.getValue()))));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -1460,12 +1485,12 @@ public final class Logic {
         }
 
         @SuppressWarnings("rawtypes")
-        protected Collection<Map<VarImpl, Object>> eval() {
+        protected Set<Map<VarImpl, Object>> eval() {
             return eval(variables(), List.of(), Map.of(), DATABASE.get());
         }
 
         @SuppressWarnings("rawtypes")
-        protected Collection<Map<VarImpl, Object>> eval(Map<VarImpl, Object> vars, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
+        protected Set<Map<VarImpl, Object>> eval(Map<VarImpl, Object> vars, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
             return eval(goals(), Set.of(vars), der, rec, database);
         }
 
@@ -1475,11 +1500,11 @@ public final class Logic {
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
-        private Collection<Map<VarImpl, Object>> eval(List<TermImpl> goals, Collection<Map<VarImpl, Object>> vars, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
+        private Set<Map<VarImpl, Object>> eval(List<TermImpl> goals, Set<Map<VarImpl, Object>> vars, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
             if (goals.isEmpty()) {
                 return vars;
             }
-            return vars.<Map<VarImpl, Object>> flatMap(v -> {
+            return vars.<Map<VarImpl, Object>> replaceAllAll(v -> {
                 if (v.containsKey(INCOMPLETE_VAR)) {
                     return Set.of(v);
                 }
@@ -1490,8 +1515,8 @@ public final class Logic {
                 int i = first(actual, goals, der, rec, database);
                 TermImpl f = actual.get(i);
                 TermImpl g = goals.get(i);
-                Collection<TermImpl> m = f.match(g, der, rec, database);
-                return eval(goals.removeIndex(i), m.<Map<VarImpl, Object>> map(t -> {
+                Set<TermImpl> m = f.match(g, der, rec, database);
+                return eval(goals.removeIndex(i), m.<Map<VarImpl, Object>> replaceAll(t -> {
                     if (t.type() == Incomplete.class) {
                         return Map.of(Entry.of(INCOMPLETE_VAR, t));
                     } else {

@@ -132,4 +132,44 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
     static <S, E> Map<S, E> fromMutable(java.util.Map<S, E> mutable) {
         return mutable instanceof MutableMap ? ((MutableMap<S, E>) mutable).toImmutable() : Collection.of(mutable.entrySet()).asMap(e -> Entry.of(e.getKey(), e.getValue()));
     }
+
+    @Override
+    default Map<K, V> removeAll(Predicate<? super Entry<K, V>> predicate) {
+        Map<K, V> r = this;
+        for (Entry<K, V> t : this) {
+            if (predicate.test(t)) {
+                r = r.removeKey(t.getKey());
+            }
+        }
+        return r;
+    }
+
+    @Override
+    default Map<K, V> retainAll(Predicate<? super Entry<K, V>> predicate) {
+        Map<K, V> r = this;
+        for (Entry<K, V> t : this) {
+            if (!predicate.test(t)) {
+                r = r.removeKey(t.getKey());
+            }
+        }
+        return r;
+    }
+
+    @SuppressWarnings("unchecked")
+    default <KR, VR> Map<KR, VR> replaceAll(Function<? super Entry<K, V>, Entry<KR, VR>> mapper) {
+        Map<KR, VR> r = (Map<KR, VR>) clear();
+        for (Entry<K, V> t : this) {
+            r = r.put(mapper.apply(t));
+        }
+        return r;
+    }
+
+    @SuppressWarnings("unchecked")
+    default <KR, VR> Map<KR, VR> replaceAllAll(Function<? super Entry<K, V>, Map<KR, VR>> mapper) {
+        Map<KR, VR> r = (Map<KR, VR>) clear();
+        for (Entry<K, V> t : this) {
+            r = r.putAll(mapper.apply(t));
+        }
+        return r;
+    }
 }

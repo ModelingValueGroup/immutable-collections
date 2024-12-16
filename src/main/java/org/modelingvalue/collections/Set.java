@@ -21,6 +21,7 @@
 package org.modelingvalue.collections;
 
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.modelingvalue.collections.impl.SetImpl;
 import org.modelingvalue.collections.mutable.MutableSet;
@@ -91,4 +92,31 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
         return mutable instanceof MutableSet ? ((MutableSet<E>) mutable).toImmutable() : Collection.of(mutable).asSet();
     }
 
+    @Override
+    default Set<T> removeAll(Predicate<? super T> predicate) {
+        return (Set<T>) ContainingCollection.super.removeAll(predicate);
+    }
+
+    @Override
+    default Set<T> retainAll(Predicate<? super T> predicate) {
+        return (Set<T>) ContainingCollection.super.retainAll(predicate);
+    }
+
+    @SuppressWarnings("unchecked")
+    default <R> Set<R> replaceAll(Function<? super T, R> mapper) {
+        Set<R> r = (Set<R>) clear();
+        for (T t : this) {
+            r = r.add(mapper.apply(t));
+        }
+        return r;
+    }
+
+    @SuppressWarnings("unchecked")
+    default <R> Set<R> replaceAllAll(Function<? super T, Set<R>> mapper) {
+        Set<R> r = (Set<R>) clear();
+        for (T t : this) {
+            r = r.addAll(mapper.apply(t));
+        }
+        return r;
+    }
 }

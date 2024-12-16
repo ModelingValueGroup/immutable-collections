@@ -423,4 +423,14 @@ public interface Graph<V, E> extends ContainingCollection<Triple<V, E, V>>, Merg
      */
     @Override
     Graph<V, E> clear();
+
+    @Override
+    default Graph<V, E> removeAll(Predicate<? super Triple<V, E, V>> predicate) {
+        return (Graph<V, E>) ContainingCollection.super.removeAll(predicate);
+    }
+
+    @Override
+    default Graph<V, E> retainAll(Predicate<? super Triple<V, E, V>> predicate) {
+        return (Graph<V, E>) ContainingCollection.super.retainAll(predicate);
+    }
 }

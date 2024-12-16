@@ -571,5 +571,4 @@ public abstract class CollectionImpl<T> implements Collection<T> {
     public <U extends Mergeable<U>> U reduce(U identity, BiFunction<U, ? super T, U> accumulator) {
         return reduce(identity, accumulator, identity::merge);
     }
-
 }

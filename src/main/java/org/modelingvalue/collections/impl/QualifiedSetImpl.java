@@ -352,5 +352,4 @@ public class QualifiedSetImpl<K, V> extends HashCollectionImpl<V> implements Qua
     public QualifiedSet<K, V> clear() {
         return create(null);
     }
-
 }

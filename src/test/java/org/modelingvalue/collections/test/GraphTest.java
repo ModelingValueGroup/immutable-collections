@@ -1343,7 +1343,7 @@ public class GraphTest {
     public void removeAll4() {
         Graph<String, Integer> graph = Graph.of(Triple.of("a", 0, "a"));
 
-        assertEquals(graph, graph.removeAll(null));
+        assertEquals(graph, graph.removeAll((Set<?>) null));
         assertEquals(graph, graph.removeAll(Set.of((Triple<String, Integer, String>) null)));
     }
 

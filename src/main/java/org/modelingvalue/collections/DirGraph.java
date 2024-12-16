@@ -21,6 +21,7 @@
 package org.modelingvalue.collections;
 
 import java.util.function.BiFunction;
+import java.util.function.Predicate;
 
 import org.modelingvalue.collections.impl.DirGraphImpl;
 import org.modelingvalue.collections.util.Mergeable;
@@ -223,6 +224,16 @@ public interface DirGraph<N> extends ContainingCollection<Vertex<N>>, Mergeable<
     @FunctionalInterface
     interface Setter<N, A> {
         Map<N, A> set(A val);
+    }
+
+    @Override
+    default DirGraph<N> removeAll(Predicate<? super Vertex<N>> predicate) {
+        return (DirGraph<N>) ContainingCollection.super.removeAll(predicate);
+    }
+
+    @Override
+    default DirGraph<N> retainAll(Predicate<? super Vertex<N>> predicate) {
+        return (DirGraph<N>) ContainingCollection.super.retainAll(predicate);
     }
 
 }

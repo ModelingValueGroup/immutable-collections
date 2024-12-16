@@ -20,6 +20,8 @@
 
 package org.modelingvalue.collections;
 
+import java.util.function.Predicate;
+
 import org.modelingvalue.collections.impl.DirGraphImpl;
 import org.modelingvalue.collections.util.Pair;
 import org.modelingvalue.collections.util.TriFunction;
@@ -137,4 +139,15 @@ public interface Dag<N> extends DirGraph<N> {
     Dag<N> mergeBegin(Set<Dag<N>> branches);
 
     Dag<N> mergeEnd(Set<Dag<N>> branches);
+
+    @Override
+    default Dag<N> removeAll(Predicate<? super Vertex<N>> predicate) {
+        return (Dag<N>) DirGraph.super.removeAll(predicate);
+    }
+
+    @Override
+    default Dag<N> retainAll(Predicate<? super Vertex<N>> predicate) {
+        return (Dag<N>) DirGraph.super.retainAll(predicate);
+    }
+
 }

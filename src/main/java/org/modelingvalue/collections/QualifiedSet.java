@@ -100,4 +100,15 @@ public interface QualifiedSet<K, V> extends ContainingCollection<V>, Mergeable<Q
     @Override
     QualifiedSet<K, V> clear();
 
+    @SuppressWarnings("unchecked")
+    @Override
+    default QualifiedSet<K, V> removeAll(Predicate<? super V> predicate) {
+        return (QualifiedSet<K, V>) ContainingCollection.super.removeAll(predicate);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    default QualifiedSet<K, V> retainAll(Predicate<? super V> predicate) {
+        return (QualifiedSet<K, V>) ContainingCollection.super.retainAll(predicate);
+    }
 }
