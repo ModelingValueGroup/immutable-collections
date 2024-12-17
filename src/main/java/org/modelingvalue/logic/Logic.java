@@ -932,38 +932,6 @@ public final class Logic {
             }
         }
 
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        protected int termPrio(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
-            int non = nrOfNulls();
-            LogicLambda lambda = functor().lambda();
-            if (lambda != null) {
-                Set<TermImpl> result = lambda.apply((TermImpl) this);
-                return result.anyMatch(TermImpl::isIncomplete) ? Integer.MAX_VALUE : Integer.MIN_VALUE + result.size();
-            }
-            if (non > 1 || non >= totalLength()) {
-                return Integer.MAX_VALUE;
-            }
-            Set<TermImpl> facts = database.facts.get().get(this);
-            if (facts != null) {
-                return Integer.MIN_VALUE + facts.size();
-            }
-            List<RuleImpl> rules = database.rules.get().get(functor());
-            if (rules != null) {
-                Set<TermImpl> r = rec.get(this);
-                if (r != null) {
-                    return Integer.MIN_VALUE + r.size();
-                }
-                for (int i = der.size() - 1; i >= 0; i--) {
-                    TermImpl other = der.get(i);
-                    if (equals(other) || moreNullsThen(other) >= 0) {
-                        return Integer.MAX_VALUE;
-                    }
-                }
-                return non - nrOfBindings(goal);
-            }
-            return Integer.MIN_VALUE;
-        }
-
         @SuppressWarnings("rawtypes")
         private Set<TermImpl> or(List<RuleImpl> rules, int non, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
             Set<TermImpl> r = Set.of();
@@ -975,33 +943,6 @@ public final class Logic {
                 r = r.addAll(eval);
             }
             return r;
-        }
-
-        @SuppressWarnings("rawtypes")
-        private int moreNullsThen(TermImpl other) {
-            if (!get(0).equals(other.get(0))) {
-                return Integer.MIN_VALUE;
-            }
-            int[] nr = new int[2];
-            for (int i = 1; i < length(); i++) {
-                if (!Objects.equals(get(i), other.get(i))) {
-                    if (get(i) == null || get(i) instanceof Class) {
-                        nr[0]++;
-                    } else if (other.get(i) == null || other.get(i) instanceof Class) {
-                        nr[1]++;
-                    } else if (get(i) instanceof TermImpl && other.get(i) instanceof TermImpl) {
-                        int r = ((TermImpl) get(i)).moreNullsThen((TermImpl) other.get(i));
-                        if (r == Integer.MIN_VALUE) {
-                            return Integer.MIN_VALUE;
-                        } else {
-                            nr[0] += r;
-                        }
-                    } else {
-                        return Integer.MIN_VALUE;
-                    }
-                }
-            }
-            return nr[0] - nr[1];
         }
 
         @SuppressWarnings("rawtypes")
@@ -1027,21 +968,6 @@ public final class Logic {
                     nr += ((TermImpl) v).totalLength();
                 }
                 nr++;
-            }
-            return nr;
-        }
-
-        @SuppressWarnings("rawtypes")
-        protected int nrOfBindings(TermImpl goal) {
-            int nr = 0;
-            for (int i = 1; i < length(); i++) {
-                Object g = goal.get(i);
-                Object v = get(i);
-                if (g instanceof VarImpl && !(v == null || v instanceof Class)) {
-                    nr++;
-                } else if (g instanceof TermImpl && v instanceof TermImpl) {
-                    nr += ((TermImpl) v).nrOfBindings((TermImpl) g);
-                }
             }
             return nr;
         }
@@ -1216,12 +1142,6 @@ public final class Logic {
 
         @SuppressWarnings("rawtypes")
         @Override
-        protected int termPrio(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
-            return super.termPrio(goal, der, rec, database);
-        }
-
-        @SuppressWarnings("rawtypes")
-        @Override
         protected Map<VarImpl, Object> getBinding(TermImpl<Pred> term, Map<VarImpl, Object> vars) {
             Map<VarImpl, Object> localVars = localVariables();
             return super.getBinding(term, vars).removeAll(e -> localVars.containsKey(e.getKey()));
@@ -1390,41 +1310,25 @@ public final class Logic {
                 return vars;
             }
             return vars.<Map<VarImpl, Object>> replaceAllAll(v -> {
-                if (v.containsKey(INCOMPLETE_VAR)) {
-                    return Set.of(v);
-                }
-                List<TermImpl<Term>> actual = List.of();
-                for (TermImpl g : goals) {
-                    actual = actual.add(g.setBinding(v));
-                }
-                int i = first(actual, goals, der, rec, database);
-                TermImpl f = actual.get(i);
-                TermImpl g = goals.get(i);
-                Set<TermImpl> m = f.match(g, der, rec, database);
-                return eval(goals.removeIndex(i), m.<Map<VarImpl, Object>> replaceAll(t -> {
-                    if (t.type() == Incomplete.class) {
-                        return Map.of(Entry.of(INCOMPLETE_VAR, t));
+                Set<Map<VarImpl, Object>> incv = Set.of();
+                for (TermImpl goal : goals.random()) {
+                    Set<TermImpl> match = goal.setBinding(v).match(goal, der, rec, database);
+                    Set<TermImpl> inc = match.retainAll(TermImpl::isIncomplete);
+                    if (inc.isEmpty()) {
+                        return eval(goals.remove(goal), match.<Map<VarImpl, Object>> replaceAll(t -> {
+                            Map<VarImpl, Object> b = goal.getBinding(t, Map.of());
+                            return b == null ? Map.of() : v.putAll(b);
+                        }), der, rec, database);
+                    } else if (inc.anyMatch(TermImpl::isToDepthIcomplete)) {
+                        return Set.of(inc.asMap(i -> Entry.of(INCOMPLETE_VAR, i)));
                     } else {
-                        Map<VarImpl, Object> b = g.getBinding(t, Map.of());
-                        return b == null ? Map.of() : v.putAll(b);
+                        incv = incv.add(inc.asMap(i -> Entry.of(INCOMPLETE_VAR, i)));
                     }
-                }), der, rec, database);
+                }
+                return incv;
             });
         }
 
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        private static int first(List<TermImpl<Term>> actual, List<TermImpl<Term>> goals, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
-            int first = -1;
-            int min = Integer.MAX_VALUE;
-            for (int i = 0; i < actual.size(); i++) {
-                int prio = actual.get(i).termPrio(goals.get(i), der, rec, database);
-                if (first == -1 || prio < min) {
-                    first = i;
-                    min = prio;
-                }
-            }
-            return first;
-        }
     }
 
     // Incomplete

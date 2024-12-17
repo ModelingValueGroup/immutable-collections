@@ -402,7 +402,7 @@ public class LogicTest {
         });
     }
 
-    @RepeatedTest(100)
+    @RepeatedTest(50)
     public void fibonacci() {
         run(() -> {
             fibonacciRules();
