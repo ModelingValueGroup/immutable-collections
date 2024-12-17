@@ -73,6 +73,7 @@ public final class Logic {
                 super(f);
             }
 
+            @SuppressWarnings("unchecked")
             @Override
             public final Set<TermImpl<Term>> apply(TermImpl t) {
                 return f.apply(t);
