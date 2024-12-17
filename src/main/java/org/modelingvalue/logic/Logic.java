@@ -1310,7 +1310,7 @@ public final class Logic {
                 return vars;
             }
             return vars.<Map<VarImpl, Object>> replaceAllAll(v -> {
-                Set<Map<VarImpl, Object>> incv = Set.of();
+                Set<Set<TermImpl>> inr = Set.of();
                 for (TermImpl goal : goals.random()) {
                     Set<TermImpl> match = goal.setBinding(v).match(goal, der, rec, database);
                     Set<TermImpl> inc = match.retainAll(TermImpl::isIncomplete);
@@ -1322,10 +1322,10 @@ public final class Logic {
                     } else if (inc.anyMatch(TermImpl::isToDepthIcomplete)) {
                         return Set.of(inc.asMap(i -> Entry.of(INCOMPLETE_VAR, i)));
                     } else {
-                        incv = incv.add(inc.asMap(i -> Entry.of(INCOMPLETE_VAR, i)));
+                        inr = inr.add(inc);
                     }
                 }
-                return incv;
+                return inr.replaceAll(s -> s.asMap(i -> Entry.of(INCOMPLETE_VAR, i)));
             });
         }
 
