@@ -1148,6 +1148,100 @@ public final class Logic {
         }
     }
 
+    // Yes
+
+    private static final FunctImpl<Pred> YES_FUNCTOR = functImpl((SerializableSupplier<Pred>) Logic::yes);
+    private static final YesImpl         YES         = new YesImpl();
+    private static final Pred            YES_PROXY   = (Pred) Proxy.newProxyInstance(Pred.class.getClassLoader(), new Class[]{Pred.class}, YES);
+
+    @SuppressWarnings("unchecked")
+    public static Pred yes() {
+        return YES_PROXY;
+    }
+
+    private static final class YesImpl extends TermImpl<Pred> {
+        private static final long serialVersionUID = -8515171118744898263L;
+
+        private YesImpl() {
+            super(YES_FUNCTOR);
+        }
+
+        private YesImpl(Object[] args) {
+            super(args);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        protected Pred proxy() {
+            return YES_PROXY;
+        }
+
+        @Override
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        protected YesImpl term(Object[] array) {
+            return new YesImpl(array);
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        @Override
+        protected Set<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
+            return Set.of(this);
+        }
+
+        @SuppressWarnings("rawtypes")
+        @Override
+        protected Map<VarImpl, Object> getBinding(TermImpl<Pred> term, Map<VarImpl, Object> vars) {
+            return vars;
+        }
+    }
+
+    // No
+
+    private static final FunctImpl<Pred> NO_FUNCTOR = functImpl((SerializableSupplier<Pred>) Logic::no);
+    private static final NoImpl          NO         = new NoImpl();
+    private static final Pred            NO_PROXY   = (Pred) Proxy.newProxyInstance(Pred.class.getClassLoader(), new Class[]{Pred.class}, NO);
+
+    @SuppressWarnings("unchecked")
+    public static Pred no() {
+        return NO_PROXY;
+    }
+
+    private static final class NoImpl extends TermImpl<Pred> {
+        private static final long serialVersionUID = -8515171118744898263L;
+
+        private NoImpl() {
+            super(NO_FUNCTOR);
+        }
+
+        private NoImpl(Object[] args) {
+            super(args);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        protected Pred proxy() {
+            return NO_PROXY;
+        }
+
+        @Override
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        protected NoImpl term(Object[] array) {
+            return new NoImpl(array);
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        @Override
+        protected Set<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
+            return Set.of();
+        }
+
+        @SuppressWarnings("rawtypes")
+        @Override
+        protected Map<VarImpl, Object> getBinding(TermImpl<Pred> term, Map<VarImpl, Object> vars) {
+            return vars;
+        }
+    }
+
     // Not
 
     private static final FunctImpl<Pred> NOT_FUNCTOR       = functImpl((SerializableFunction<Pred, Pred>) Logic::not);
@@ -1202,19 +1296,22 @@ public final class Logic {
 
     // Or
 
-    private static final FunctImpl<Pred> OR_FUNCTOR       = functImpl((SerializableBiFunction<Pred, Pred, Pred>) Logic::or);
-    private static final Functor<Pred>   OR_FUNCTOR_PROXY = OR_FUNCTOR.proxy();
+    private static final FunctImpl<Pred> OR_FUNCTOR = functImpl((SerializableBiFunction<Pred, Pred, Pred>) Logic::or);
 
     @SuppressWarnings("unchecked")
-    public static Pred or(Pred pred1, Pred pred2) {
-        return new OrImpl(pred1, pred2).proxy();
+    public static Pred or(Pred... ps) {
+        TermImpl<Pred> impl = NO;
+        for (int i = ps.length - 1; i >= 0; i--) {
+            impl = impl == NO ? unproxy(ps[i]) : new OrImpl(unproxy(ps[i]), impl);
+        }
+        return impl.proxy();
     }
 
     private static final class OrImpl extends TermImpl<Pred> {
         private static final long serialVersionUID = -1732549494864415986L;
 
-        private OrImpl(Pred pred1, Pred pred2) {
-            super(OR_FUNCTOR_PROXY, pred1, pred2);
+        private OrImpl(TermImpl<Pred> pred1, TermImpl<Pred> pred2) {
+            super(OR_FUNCTOR, pred1, pred2);
         }
 
         private OrImpl(Object[] args) {
@@ -1255,6 +1352,65 @@ public final class Logic {
             return i1.isEmpty() && !c1.isEmpty() && !i2.isEmpty() ? c1.replaceAll(r -> (TermImpl) set(1, r)) : //
                     i2.isEmpty() && !c2.isEmpty() && !i1.isEmpty() ? c2.replaceAll(r -> (TermImpl) set(2, r)) : //
                             i1.addAll(i2).addAll(c1.replaceAll(r -> (TermImpl) set(1, r)).addAll(c2.replaceAll(r -> (TermImpl) set(2, r))));
+        }
+    }
+
+    // And
+
+    private static final FunctImpl<Pred> AND_FUNCTOR = functImpl((SerializableBiFunction<Pred, Pred, Pred>) Logic::and);
+
+    // TODO: Should solve Variable bindings and integrate with Goal matching 
+    @SuppressWarnings("unchecked")
+    private static Pred and(Pred... ps) {
+        TermImpl<Pred> impl = YES;
+        for (int i = ps.length - 1; i >= 0; i--) {
+            impl = impl == YES ? unproxy(ps[i]) : new AndImpl(unproxy(ps[i]), impl);
+        }
+        return impl.proxy();
+    }
+
+    private static final class AndImpl extends TermImpl<Pred> {
+        private static final long serialVersionUID = -7248491569810098948L;
+
+        private AndImpl(TermImpl<Pred> pred1, TermImpl<Pred> pred2) {
+            super(AND_FUNCTOR, pred1, pred2);
+        }
+
+        private AndImpl(Object[] args) {
+            super(args);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        protected Pred proxy() {
+            return (Pred) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{Pred.class}, this);
+        }
+
+        @Override
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        protected AndImpl term(Object[] array) {
+            return new AndImpl(array);
+        }
+
+        @SuppressWarnings("rawtypes")
+        protected final TermImpl<?> pred1() {
+            return ((TermImpl) get(1));
+        }
+
+        @SuppressWarnings("rawtypes")
+        protected final TermImpl<?> pred2() {
+            return ((TermImpl) get(2));
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        @Override
+        protected Set<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
+            Set<TermImpl> r1 = pred1().match(((OrImpl) goal).pred1(), der, rec, database);
+            Set<TermImpl> r2 = pred2().match(((OrImpl) goal).pred2(), der, rec, database);
+            Set<TermImpl> ic = r1.retainAll(TermImpl::isIncomplete).addAll(r2.retainAll(TermImpl::isIncomplete));
+            Set<TermImpl> c1 = r1.removeAll(TermImpl::isIncomplete);
+            Set<TermImpl> c2 = r2.removeAll(TermImpl::isIncomplete);
+            return !c1.isEmpty() && !c2.isEmpty() ? ic.addAll(c1.replaceAll(r -> (TermImpl) set(1, r)).addAll(c2.replaceAll(r -> (TermImpl) set(2, r)))) : ic;
         }
     }
 
