@@ -1200,6 +1200,64 @@ public final class Logic {
         }
     }
 
+    // Or
+
+    private static final FunctImpl<Pred> OR_FUNCTOR       = functImpl((SerializableBiFunction<Pred, Pred, Pred>) Logic::or);
+    private static final Functor<Pred>   OR_FUNCTOR_PROXY = OR_FUNCTOR.proxy();
+
+    @SuppressWarnings("unchecked")
+    public static Pred or(Pred pred1, Pred pred2) {
+        return new OrImpl(pred1, pred2).proxy();
+    }
+
+    private static final class OrImpl extends TermImpl<Pred> {
+        private static final long serialVersionUID = -1732549494864415986L;
+
+        private OrImpl(Pred pred1, Pred pred2) {
+            super(OR_FUNCTOR_PROXY, pred1, pred2);
+        }
+
+        private OrImpl(Object[] args) {
+            super(args);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        protected Pred proxy() {
+            return (Pred) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{Pred.class}, this);
+        }
+
+        @Override
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        protected OrImpl term(Object[] array) {
+            return new OrImpl(array);
+        }
+
+        @SuppressWarnings("rawtypes")
+        protected final TermImpl<?> pred1() {
+            return ((TermImpl) get(1));
+        }
+
+        @SuppressWarnings("rawtypes")
+        protected final TermImpl<?> pred2() {
+            return ((TermImpl) get(2));
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        @Override
+        protected Set<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
+            Set<TermImpl> r1 = pred1().match(((OrImpl) goal).pred1(), der, rec, database);
+            Set<TermImpl> r2 = pred2().match(((OrImpl) goal).pred2(), der, rec, database);
+            Set<TermImpl> i1 = r1.retainAll(TermImpl::isIncomplete);
+            Set<TermImpl> i2 = r2.retainAll(TermImpl::isIncomplete);
+            Set<TermImpl> c1 = r1.removeAll(TermImpl::isIncomplete);
+            Set<TermImpl> c2 = r2.removeAll(TermImpl::isIncomplete);
+            return i1.isEmpty() && !c1.isEmpty() && !i2.isEmpty() ? c1.replaceAll(r -> (TermImpl) set(1, r)) : //
+                    i2.isEmpty() && !c2.isEmpty() && !i1.isEmpty() ? c2.replaceAll(r -> (TermImpl) set(2, r)) : //
+                            i1.addAll(i2).addAll(c1.replaceAll(r -> (TermImpl) set(1, r)).addAll(c2.replaceAll(r -> (TermImpl) set(2, r))));
+        }
+    }
+
     // Rules
 
     public static interface Rule extends Term {

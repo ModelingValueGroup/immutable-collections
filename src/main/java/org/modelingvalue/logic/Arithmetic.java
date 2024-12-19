@@ -259,10 +259,8 @@ public final class Arithmetic {
         rule(is(sqrt(X), R), goal(is(X, P), power(R, P)));
         rule(gt(X, Y), goal(is(X, P), is(Y, Q), compare(P, Q, i(1))));
         rule(lt(X, Y), goal(is(X, P), is(Y, Q), compare(P, Q, i(-1))));
-        rule(ge(X, Y), goal(is(X, P), is(Y, Q), compare(P, Q, i(1))));
-        rule(ge(X, Y), goal(is(X, P), is(Y, Q), compare(P, Q, i(0))));
-        rule(le(X, Y), goal(is(X, P), is(Y, Q), compare(P, Q, i(-1))));
-        rule(le(X, Y), goal(is(X, P), is(Y, Q), compare(P, Q, i(0))));
+        rule(ge(X, Y), goal(is(X, P), is(Y, Q), compare(P, Q, R), or(eq(R, i(1)), eq(R, i(0)))));
+        rule(le(X, Y), goal(is(X, P), is(Y, Q), compare(P, Q, R), or(eq(R, i(-1)), eq(R, i(0)))));
     }
 
 }
