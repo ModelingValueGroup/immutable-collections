@@ -398,6 +398,8 @@ public class LogicTest {
 
             hasBindings(goal(is(sqrt(i(49)), P)), binding(P, i(7)), binding(P, i(-7)));
 
+            hasBindings(goal(is(sqrt(i(49)), P), not(lt(P, i(0)))), binding(P, i(7)));
+
             hasBindings(goal(collect(is(sqrt(i(49)), P), plus(P, i(0), Q))), binding(Q, i(0)));
         });
     }

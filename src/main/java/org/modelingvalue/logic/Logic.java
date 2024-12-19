@@ -1148,6 +1148,58 @@ public final class Logic {
         }
     }
 
+    // Not
+
+    private static final FunctImpl<Pred> NOT_FUNCTOR       = functImpl((SerializableFunction<Pred, Pred>) Logic::not);
+    private static final Functor<Pred>   NOT_FUNCTOR_PROXY = NOT_FUNCTOR.proxy();
+
+    @SuppressWarnings("unchecked")
+    public static Pred not(Pred pred) {
+        return new NotImpl(pred).proxy();
+    }
+
+    private static final class NotImpl extends TermImpl<Pred> {
+        private static final long serialVersionUID = -4543178470298951866L;
+
+        private NotImpl(Pred pred) {
+            super(NOT_FUNCTOR_PROXY, pred);
+        }
+
+        private NotImpl(Object[] args) {
+            super(args);
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        protected Pred proxy() {
+            return (Pred) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{Pred.class}, this);
+        }
+
+        @Override
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        protected NotImpl term(Object[] array) {
+            return new NotImpl(array);
+        }
+
+        @SuppressWarnings("rawtypes")
+        protected final TermImpl<?> pred() {
+            return ((TermImpl) get(1));
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        @Override
+        protected Set<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
+            Set<TermImpl> r = pred().match(((NotImpl) goal).pred(), der, rec, database);
+            return r.isEmpty() ? Set.of(this) : r.retainAll(TermImpl::isIncomplete);
+        }
+
+        @SuppressWarnings("rawtypes")
+        @Override
+        protected Map<VarImpl, Object> getBinding(TermImpl<Pred> term, Map<VarImpl, Object> vars) {
+            return vars;
+        }
+    }
+
     // Rules
 
     public static interface Rule extends Term {
