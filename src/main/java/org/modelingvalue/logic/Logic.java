@@ -654,12 +654,8 @@ public final class Logic {
         @SuppressWarnings({"unchecked", "rawtypes"})
         @Override
         public String toString() {
-            if (type() == L.class) {
-                return get(1).toString().substring(4);
-            } else {
-                String string = super.toString();
-                return string.substring(1, string.length() - 1).replaceFirst(",", "(") + ")";
-            }
+            String string = super.toString();
+            return string.substring(1, string.length() - 1).replaceFirst(",", "(") + ")";
         }
 
         @SuppressWarnings("unchecked")
@@ -1449,6 +1445,23 @@ public final class Logic {
             return (Rule) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{Rule.class}, this);
         }
 
+        @Override
+        protected RuleImpl term(Object[] array) {
+            return new RuleImpl(array);
+        }
+
+        @SuppressWarnings("rawtypes")
+        private Map<VarImpl, Object> variables;
+
+        @Override
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        protected Map<VarImpl, Object> variables() {
+            if (variables == null) {
+                variables = super.variables();
+            }
+            return variables;
+        }
+
         @SuppressWarnings("rawtypes")
         protected final TermImpl term() {
             return ((TermImpl) get(1));
@@ -1474,12 +1487,6 @@ public final class Logic {
                 TermImpl it = (TermImpl) m.get(INCOMPLETE_VAR);
                 return it != null ? it : head.setBinding(m);
             });
-        }
-
-        @Override
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        protected RuleImpl term(Object[] array) {
-            return new RuleImpl(array);
         }
 
         protected int rulePrio() {
@@ -1553,6 +1560,18 @@ public final class Logic {
         @SuppressWarnings({"unchecked", "rawtypes"})
         protected GoalImpl term(Object[] array) {
             return new GoalImpl(array);
+        }
+
+        @SuppressWarnings("rawtypes")
+        private Map<VarImpl, Object> variables;
+
+        @Override
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        protected Map<VarImpl, Object> variables() {
+            if (variables == null) {
+                variables = super.variables();
+            }
+            return variables;
         }
 
         @SuppressWarnings("rawtypes")
