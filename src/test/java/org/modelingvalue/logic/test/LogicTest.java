@@ -48,20 +48,20 @@ public class LogicTest {
         return Logic.run(test, init);
     }
 
-    static void isTrue(Goal goal) {
+    static void isTrue(Pred goal) {
         assertTrue(Logic.isTrue(goal));
     }
 
-    static void isFalse(Goal goal) {
+    static void isFalse(Pred goal) {
         assertTrue(Logic.isFalse(goal));
     }
 
-    static void isIncomplete(Goal goal) {
+    static void isIncomplete(Pred goal) {
         assertTrue(Logic.isIncomplete(goal));
     }
 
     @SafeVarargs
-    static void hasBindings(Goal goal, Map<Variable, Object>... bindings) {
+    static void hasBindings(Pred goal, Map<Variable, Object>... bindings) {
         assertEquals(Set.of(bindings), getBindings(goal));
     }
 
@@ -90,9 +90,9 @@ public class LogicTest {
         return var(Root.class, name);
     }
 
-    static Functor<Pred> rootPerson = functor(LogicTest::rootPerson);
+    static Functor<AtomPred> rootPerson = functor(LogicTest::rootPerson);
 
-    static Pred rootPerson(RootAtom root, PersonAtom person) {
+    static AtomPred rootPerson(RootAtom root, PersonAtom person) {
         return term(rootPerson, root, person);
     }
 
@@ -155,9 +155,9 @@ public class LogicTest {
         return term(child, parent);
     }
 
-    static Functor<Pred> ancestorDescendent = functor(LogicTest::ancestorDescendent);
+    static Functor<AtomPred> ancestorDescendent = functor(LogicTest::ancestorDescendent);
 
-    static Pred ancestorDescendent(PersonAtom ancestor, PersonAtom descendent) {
+    static AtomPred ancestorDescendent(PersonAtom ancestor, PersonAtom descendent) {
         return term(ancestorDescendent, ancestor, descendent);
     }
 
@@ -175,43 +175,43 @@ public class LogicTest {
 
     // Variables
 
-    IntAtom              P      = iav("P");
-    IntAtom              Q      = iav("Q");
+    IntAtom                  P      = iav("P");
+    IntAtom                  Q      = iav("Q");
 
-    Int                  R      = iv("R");
-    Int                  S      = iv("S");
+    Int                      R      = iv("R");
+    Int                      S      = iv("S");
 
-    PersonAtom           A      = personAtomVar("A");
-    PersonAtom           B      = personAtomVar("B");
-    PersonAtom           C      = personAtomVar("C");
+    PersonAtom               A      = personAtomVar("A");
+    PersonAtom               B      = personAtomVar("B");
+    PersonAtom               C      = personAtomVar("C");
 
-    Person               X      = personVar("X");
-    Person               Y      = personVar("Y");
-    Person               Z      = personVar("Z");
+    Person                   X      = personVar("X");
+    Person                   Y      = personVar("Y");
+    Person                   Z      = personVar("Z");
 
-    RootAtom             U      = rootAtomVar("U");
-    Root                 V      = rootVar("V");
+    RootAtom                 U      = rootAtomVar("U");
+    Root                     V      = rootVar("V");
 
     @SuppressWarnings("unchecked")
-    L<Person>            PL     = var(L.class, "PL");
+    L<Person>                PL     = var(L.class, "PL");
 
     // Terms
 
-    PersonAtom           Carel  = person("Carel");
-    PersonAtom           Jan    = person("Jan");
-    PersonAtom           Elske  = person("Elske");
-    PersonAtom           Wim    = person("Wim");
-    PersonAtom           Joppe  = person("Joppe");
-    PersonAtom           Heleen = person("Heleen");
-    PersonAtom           Marijn = person("Marijn");
+    PersonAtom               Carel  = person("Carel");
+    PersonAtom               Jan    = person("Jan");
+    PersonAtom               Elske  = person("Elske");
+    PersonAtom               Wim    = person("Wim");
+    PersonAtom               Joppe  = person("Joppe");
+    PersonAtom               Heleen = person("Heleen");
+    PersonAtom               Marijn = person("Marijn");
 
-    RootAtom             Root   = root("Root");
+    RootAtom                 Root   = root("Root");
 
     // Fibonacci
 
-    static Functor<Pred> fib2   = functor((SerializableBiFunction<IntAtom, IntAtom, Pred>) LogicTest::fib);
+    static Functor<AtomPred> fib2   = functor((SerializableBiFunction<IntAtom, IntAtom, AtomPred>) LogicTest::fib);
 
-    static Pred fib(IntAtom i, IntAtom f) {
+    static AtomPred fib(IntAtom i, IntAtom f) {
         return term(fib2, i, f);
     }
 
@@ -224,10 +224,10 @@ public class LogicTest {
     private void fibonacciRules() {
         arithmeticRules();
 
-        rule(is(fib(R), Q), goal(is(R, P), fib(P, Q)));
+        rule(is(fib(R), Q), and(is(R, P), fib(P, Q)));
 
-        rule(fib(P, Q), goal(le(P, i(1)), eq(Q, P)));
-        rule(fib(P, Q), goal(gt(P, i(1)), is(plus(fib(minus(P, i(1))), fib(minus(P, i(2)))), Q)));
+        rule(fib(P, Q), and(le(P, i(1)), eq(Q, P)));
+        rule(fib(P, Q), and(gt(P, i(1)), is(plus(fib(minus(P, i(1))), fib(minus(P, i(2)))), Q)));
     }
 
     // Root Rules
@@ -235,14 +235,14 @@ public class LogicTest {
     private void rootRules() {
         arithmeticRules();
 
-        rule(is(parent(X), A), goal(is(X, B), parentChild(A, B)));
-        rule(is(child(X), A), goal(is(X, B), parentChild(B, A)));
+        rule(is(parent(X), A), and(is(X, B), parentChild(A, B)));
+        rule(is(child(X), A), and(is(X, B), parentChild(B, A)));
 
-        rule(is(root(X), U), goal(is(X, B), rootPerson(U, B)));
+        rule(is(root(X), U), and(is(X, B), rootPerson(U, B)));
 
-        rule(parentChild(person(Q), person(P)), goal(lt(Q, i(4)), is(plus(Q, i(1)), P)));
-        rule(rootPerson(U, person(0)), goal());
-        rule(rootPerson(U, C), goal(rootPerson(U, A), parentChild(A, C)));
+        rule(parentChild(person(Q), person(P)), and(lt(Q, i(4)), is(plus(Q, i(1)), P)));
+        rule(rootPerson(U, person(0)), yes());
+        rule(rootPerson(U, C), and(rootPerson(U, A), parentChild(A, C)));
     }
 
     // Family Rules
@@ -250,14 +250,14 @@ public class LogicTest {
     private void familyRules() {
         isRules();
 
-        rule(is(parent(X), A), goal(is(X, B), parentChild(A, B)));
-        rule(is(child(X), A), goal(is(X, B), parentChild(B, A)));
+        rule(is(parent(X), A), and(is(X, B), parentChild(A, B)));
+        rule(is(child(X), A), and(is(X, B), parentChild(B, A)));
 
-        rule(is(ancestor(X), A), goal(is(X, B), ancestorDescendent(A, B)));
-        rule(is(descendent(X), A), goal(is(X, B), ancestorDescendent(B, A)));
+        rule(is(ancestor(X), A), and(is(X, B), ancestorDescendent(A, B)));
+        rule(is(descendent(X), A), and(is(X, B), ancestorDescendent(B, A)));
 
-        rule(ancestorDescendent(A, C), goal(parentChild(A, C)));
-        rule(ancestorDescendent(A, C), goal(ancestorDescendent(A, B), parentChild(B, C)));
+        rule(ancestorDescendent(A, C), parentChild(A, C));
+        rule(ancestorDescendent(A, C), and(ancestorDescendent(A, B), parentChild(B, C)));
     }
 
     @RepeatedTest(100)
@@ -273,20 +273,20 @@ public class LogicTest {
             fact(parentChild(Wim, Marijn));
             fact(parentChild(Heleen, Marijn));
 
-            isTrue(goal(is(parent(Joppe), Heleen)));
-            isTrue(goal(is(Wim, child(Jan))));
+            isTrue(is(parent(Joppe), Heleen));
+            isTrue(is(Wim, child(Jan)));
 
-            isFalse(goal(is(Marijn, parent(Wim))));
-            isFalse(goal(is(parent(Wim), Heleen)));
-            isFalse(goal(is(child(Wim), Wim)));
+            isFalse(is(Marijn, parent(Wim)));
+            isFalse(is(parent(Wim), Heleen));
+            isFalse(is(child(Wim), Wim));
 
-            isTrue(goal(is(ancestor(Marijn), Wim)));
-            isTrue(goal(is(descendent(Carel), Marijn)));
+            isTrue(is(ancestor(Marijn), Wim));
+            isTrue(is(descendent(Carel), Marijn));
 
-            isFalse(goal(is(descendent(Marijn), Wim)));
-            isFalse(goal(is(descendent(Heleen), Wim)));
-            isFalse(goal(is(descendent(Joppe), Carel)));
-            isFalse(goal(is(descendent(Carel), Carel)));
+            isFalse(is(descendent(Marijn), Wim));
+            isFalse(is(descendent(Heleen), Wim));
+            isFalse(is(descendent(Joppe), Carel));
+            isFalse(is(descendent(Carel), Carel));
         });
     }
 
@@ -303,22 +303,22 @@ public class LogicTest {
             fact(parentChild(Wim, Marijn));
             fact(parentChild(Heleen, Marijn));
 
-            isTrue(goal(parentChild(Heleen, Joppe)));
-            isTrue(goal(parentChild(Jan, Wim)));
+            isTrue(parentChild(Heleen, Joppe));
+            isTrue(parentChild(Jan, Wim));
 
-            isFalse(goal(parentChild(Marijn, Wim)));
-            isFalse(goal(parentChild(Heleen, Wim)));
-            isFalse(goal(parentChild(Wim, Wim)));
+            isFalse(parentChild(Marijn, Wim));
+            isFalse(parentChild(Heleen, Wim));
+            isFalse(parentChild(Wim, Wim));
 
-            isTrue(goal(ancestorDescendent(Wim, Marijn)));
-            isTrue(goal(ancestorDescendent(Carel, Marijn)));
+            isTrue(ancestorDescendent(Wim, Marijn));
+            isTrue(ancestorDescendent(Carel, Marijn));
 
-            isFalse(goal(ancestorDescendent(Marijn, Wim)));
-            isFalse(goal(ancestorDescendent(Heleen, Wim)));
-            isFalse(goal(ancestorDescendent(Joppe, Carel)));
-            isFalse(goal(ancestorDescendent(Carel, Carel)));
+            isFalse(ancestorDescendent(Marijn, Wim));
+            isFalse(ancestorDescendent(Heleen, Wim));
+            isFalse(ancestorDescendent(Joppe, Carel));
+            isFalse(ancestorDescendent(Carel, Carel));
 
-            hasBindings(goal(collect(parentChild(Wim, C), add(C, l(), PL))), binding(PL, l(Joppe, Marijn)));
+            hasBindings(collect(parentChild(Wim, C), add(C, l(), PL)), binding(PL, l(Joppe, Marijn)));
         });
     }
 
@@ -330,18 +330,18 @@ public class LogicTest {
             fact(parentChild(Carel, Jan));
             fact(parentChild(Jan, Wim));
 
-            hasBindings(goal(ancestorDescendent(A, Wim)), binding(A, Jan), binding(A, Carel));
-            hasBindings(goal(ancestorDescendent(Carel, C)), binding(C, Jan), binding(C, Wim));
+            hasBindings(ancestorDescendent(A, Wim), binding(A, Jan), binding(A, Carel));
+            hasBindings(ancestorDescendent(Carel, C), binding(C, Jan), binding(C, Wim));
         });
     }
 
     @RepeatedTest(100)
     public void famTest3() {
         run(() -> {
-            rule(parentChild(B, C), goal(parentChild(B, C)));
+            rule(parentChild(B, C), parentChild(B, C));
 
-            hasBindings(goal(parentChild(Wim, Jan)), incomplete(parentChild(Wim, Jan), parentChild(Wim, Jan)));
-            isIncomplete(goal(parentChild(Wim, Jan)));
+            hasBindings(parentChild(Wim, Jan), incomplete(parentChild(Wim, Jan), parentChild(Wim, Jan)));
+            isIncomplete(parentChild(Wim, Jan));
         });
     }
 
@@ -350,17 +350,17 @@ public class LogicTest {
         run(() -> {
             rootRules();
 
-            isTrue(goal(is(child(person(0)), person(1))));
-            isTrue(goal(is(child(person(3)), person(4))));
-            isFalse(goal(is(child(person(4)), person(5))));
+            isTrue(is(child(person(0)), person(1)));
+            isTrue(is(child(person(3)), person(4)));
+            isFalse(is(child(person(4)), person(5)));
 
-            isTrue(goal(is(root(person(0)), Root)));
-            isTrue(goal(is(root(person(1)), Root)));
-            isTrue(goal(is(root(person(4)), Root)));
-            isTrue(goal(is(root(person(3)), Root)));
-            isTrue(goal(is(root(person(2)), Root)));
+            isTrue(is(root(person(0)), Root));
+            isTrue(is(root(person(1)), Root));
+            isTrue(is(root(person(4)), Root));
+            isTrue(is(root(person(3)), Root));
+            isTrue(is(root(person(2)), Root));
 
-            hasBindings(goal(is(root(C), Root)), binding(C, person(0)), binding(C, person(1)), //
+            hasBindings(is(root(C), Root), binding(C, person(0)), binding(C, person(1)), //
                     binding(C, person(2)), binding(C, person(3)), binding(C, person(4)));
         });
     }
@@ -370,9 +370,9 @@ public class LogicTest {
         run(() -> {
             arithmeticRules();
 
-            hasBindings(goal(plus(i(7), i(3), P)), binding(P, i(10)));
-            hasBindings(goal(plus(i(7), P, i(10))), binding(P, i(3)));
-            hasBindings(goal(plus(P, i(3), i(10))), binding(P, i(7)));
+            hasBindings(plus(i(7), i(3), P), binding(P, i(10)));
+            hasBindings(plus(i(7), P, i(10)), binding(P, i(3)));
+            hasBindings(plus(P, i(3), i(10)), binding(P, i(7)));
         });
     }
 
@@ -381,26 +381,26 @@ public class LogicTest {
         run(() -> {
             arithmeticRules();
 
-            isTrue(goal(is(plus(i(11), i(22)), i(33))));
-            isTrue(goal(is(minus(i(33), i(22)), i(11))));
-            isTrue(goal(is(plus(i(11), plus(plus(i(22), i(33)), i(44))), i(110))));
+            isTrue(is(plus(i(11), i(22)), i(33)));
+            isTrue(is(minus(i(33), i(22)), i(11)));
+            isTrue(is(plus(i(11), plus(plus(i(22), i(33)), i(44))), i(110)));
 
-            isTrue(goal(is(plus(i(11), divide(multiply(i(44), i(33)), i(22))), i(77))));
+            isTrue(is(plus(i(11), divide(multiply(i(44), i(33)), i(22))), i(77)));
 
-            isTrue(goal(is(sqrt(i(49)), i(7))));
-            isTrue(goal(is(sqrt(i(49)), i(-7))));
+            isTrue(is(sqrt(i(49)), i(7)));
+            isTrue(is(sqrt(i(49)), i(-7)));
 
-            hasBindings(goal(is(plus(i(11), plus(plus(i(22), i(33)), i(44))), P)), binding(P, i(110)));
-            hasBindings(goal(is(plus(i(11), plus(plus(i(22), P), i(44))), i(110))), binding(P, i(33)));
-            hasBindings(goal(is(plus(i(7), i(3)), P)), binding(P, i(10)));
-            hasBindings(goal(is(plus(i(7), P), i(10))), binding(P, i(3)));
-            hasBindings(goal(is(plus(P, i(3)), i(10))), binding(P, i(7)));
+            hasBindings(is(plus(i(11), plus(plus(i(22), i(33)), i(44))), P), binding(P, i(110)));
+            hasBindings(is(plus(i(11), plus(plus(i(22), P), i(44))), i(110)), binding(P, i(33)));
+            hasBindings(is(plus(i(7), i(3)), P), binding(P, i(10)));
+            hasBindings(is(plus(i(7), P), i(10)), binding(P, i(3)));
+            hasBindings(is(plus(P, i(3)), i(10)), binding(P, i(7)));
 
-            hasBindings(goal(is(sqrt(i(49)), P)), binding(P, i(7)), binding(P, i(-7)));
+            hasBindings(is(sqrt(i(49)), P), binding(P, i(7)), binding(P, i(-7)));
 
-            hasBindings(goal(is(sqrt(i(49)), P), not(lt(P, i(0)))), binding(P, i(7)));
+            hasBindings(and(is(sqrt(i(49)), P), not(lt(P, i(0)))), binding(P, i(7)));
 
-            hasBindings(goal(collect(is(sqrt(i(49)), P), plus(P, i(0), Q))), binding(Q, i(0)));
+            hasBindings(collect(is(sqrt(i(49)), P), plus(P, i(0), Q)), binding(Q, i(0)));
         });
     }
 
@@ -409,8 +409,8 @@ public class LogicTest {
         run(() -> {
             fibonacciRules();
 
-            hasBindings(goal(is(fib(i(21)), P)), binding(P, i(10946)));
-            hasBindings(goal(is(fib(i(1000)), P)), binding(P, i("18nrvsuayughau0blk8aylvbyaqwiaqba77rdsgscn5hzwgbgaws8i8svp4xdmoo82plxiyogd5iaj1cspez8zfeio92a76t9n1frssxklr92wyyxm8r903o1ofgncikuggcwnf", Character.MAX_RADIX)));
+            hasBindings(is(fib(i(21)), P), binding(P, i(10946)));
+            hasBindings(is(fib(i(1000)), P), binding(P, i("18nrvsuayughau0blk8aylvbyaqwiaqba77rdsgscn5hzwgbgaws8i8svp4xdmoo82plxiyogd5iaj1cspez8zfeio92a76t9n1frssxklr92wyyxm8r903o1ofgncikuggcwnf", Character.MAX_RADIX)));
         });
     }
 

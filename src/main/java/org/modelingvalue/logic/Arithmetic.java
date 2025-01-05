@@ -28,13 +28,7 @@ import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.SerializableBiFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
 import org.modelingvalue.collections.util.SerializableTriFunction;
-import org.modelingvalue.logic.Logic.Atom;
-import org.modelingvalue.logic.Logic.Func;
-import org.modelingvalue.logic.Logic.Functor;
-import org.modelingvalue.logic.Logic.LogicLambda;
-import org.modelingvalue.logic.Logic.Pred;
-import org.modelingvalue.logic.Logic.Term;
-import org.modelingvalue.logic.Logic.TermImpl;
+import org.modelingvalue.logic.Logic.*;
 
 public final class Arithmetic {
 
@@ -179,27 +173,27 @@ public final class Arithmetic {
 
     // Functions
 
-    private static Functor<Pred> gt = functor(Arithmetic::gt);
+    private static Functor<AtomPred> gt = functor(Arithmetic::gt);
 
-    public static Pred gt(Int a, Int b) {
+    public static AtomPred gt(Int a, Int b) {
         return term(gt, a, b);
     }
 
-    private static Functor<Pred> lt = functor(Arithmetic::lt);
+    private static Functor<AtomPred> lt = functor(Arithmetic::lt);
 
-    public static Pred lt(Int a, Int b) {
+    public static AtomPred lt(Int a, Int b) {
         return term(lt, a, b);
     }
 
-    private static Functor<Pred> ge = functor(Arithmetic::ge);
+    private static Functor<AtomPred> ge = functor(Arithmetic::ge);
 
-    public static Pred ge(Int a, Int b) {
+    public static AtomPred ge(Int a, Int b) {
         return term(ge, a, b);
     }
 
-    private static Functor<Pred> le = functor(Arithmetic::le);
+    private static Functor<AtomPred> le = functor(Arithmetic::le);
 
-    public static Pred le(Int a, Int b) {
+    public static AtomPred le(Int a, Int b) {
         return term(le, a, b);
     }
 
@@ -251,16 +245,16 @@ public final class Arithmetic {
         Int X = iv("X");
         Int Y = iv("Y");
 
-        rule(is(plus(X, Y), R), goal(is(X, P), is(Y, Q), plus(P, Q, R)));
-        rule(is(minus(X, Y), R), goal(is(X, P), is(Y, Q), plus(R, Q, P)));
-        rule(is(multiply(X, Y), R), goal(is(X, P), is(Y, Q), multiply(P, Q, R)));
-        rule(is(divide(X, Y), R), goal(is(X, P), is(Y, Q), multiply(R, Q, P)));
-        rule(is(power(X), R), goal(is(X, P), power(P, R)));
-        rule(is(sqrt(X), R), goal(is(X, P), power(R, P)));
-        rule(gt(X, Y), goal(is(X, P), is(Y, Q), compare(P, Q, i(1))));
-        rule(lt(X, Y), goal(is(X, P), is(Y, Q), compare(P, Q, i(-1))));
-        rule(ge(X, Y), goal(is(X, P), is(Y, Q), compare(P, Q, R), or(eq(R, i(1)), eq(R, i(0)))));
-        rule(le(X, Y), goal(is(X, P), is(Y, Q), compare(P, Q, R), or(eq(R, i(-1)), eq(R, i(0)))));
+        rule(is(plus(X, Y), R), and(is(X, P), is(Y, Q), plus(P, Q, R)));
+        rule(is(minus(X, Y), R), and(is(X, P), is(Y, Q), plus(R, Q, P)));
+        rule(is(multiply(X, Y), R), and(is(X, P), is(Y, Q), multiply(P, Q, R)));
+        rule(is(divide(X, Y), R), and(is(X, P), is(Y, Q), multiply(R, Q, P)));
+        rule(is(power(X), R), and(is(X, P), power(P, R)));
+        rule(is(sqrt(X), R), and(is(X, P), power(R, P)));
+        rule(gt(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, i(1))));
+        rule(lt(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, i(-1))));
+        rule(ge(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, R), or(eq(R, i(1)), eq(R, i(0)))));
+        rule(le(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, R), or(eq(R, i(-1)), eq(R, i(0)))));
     }
 
 }
