@@ -370,16 +370,18 @@ public final class Logic {
             } else if (length() != other.length()) {
                 return null;
             }
+            boolean changed = false;
             Object[] array = toArray();
             for (int i = 0; i < array.length; i++) {
                 Object eq = eq(get(i), other.get(i));
                 if (eq == null) {
                     return null;
-                } else {
+                } else if (!Objects.equals(eq, array[i])) {
                     array[i] = eq;
+                    changed = true;
                 }
             }
-            return term(array);
+            return changed ? term(array) : this;
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
@@ -826,10 +828,15 @@ public final class Logic {
         @SuppressWarnings("rawtypes")
         protected TermImpl setBinding(TermImpl<F> term, Map<VarImpl, Object> vars) {
             Object[] array = term.toArray();
+            boolean changed = false;
             for (int i = 1; i < length(); i++) {
-                array[i] = setBinding(get(i), term.get(i), vars);
+                Object b = setBinding(get(i), term.get(i), vars);
+                if (!Objects.equals(b, array[i])) {
+                    array[i] = b;
+                    changed = true;
+                }
             }
-            return term.term(array);
+            return changed ? term.term(array) : term;
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
@@ -869,8 +876,12 @@ public final class Logic {
 
         public TermImpl<F> set(int i, Object v) {
             Object[] array = toArray();
-            array[i] = v;
-            return term(array);
+            if (!Objects.equals(v, array[i])) {
+                array[i] = v;
+                return term(array);
+            } else {
+                return this;
+            }
         }
 
         @SuppressWarnings("rawtypes")
