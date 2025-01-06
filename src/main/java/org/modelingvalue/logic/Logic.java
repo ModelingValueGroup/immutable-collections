@@ -1002,7 +1002,12 @@ public final class Logic {
         private Set<TermImpl> evalRules(List<RuleImpl> rules, int non, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
             Set<TermImpl> r = Set.of();
             for (RuleImpl rule : rules) {
-                r = r.addAll(rule.eval(this, der, rec, database));
+                Set<TermImpl> eval = rule.eval(this, der, rec, database);
+                if (eval.anyMatch(TermImpl::isToDepthIcomplete)) {
+                    return eval;
+                } else {
+                    r = r.addAll(eval);
+                }
             }
             return r;
         }
@@ -1461,7 +1466,11 @@ public final class Logic {
             for (int[] i : ((OrImpl) goal).idxList()) {
                 TermImpl g = goal.get(i);
                 Set<TermImpl> m = get(i).match(g, der, rec, database);
-                r = r.addAll(m.replaceAll(t -> t.isIncomplete() ? t : goal.setBinding(this, g.getBinding(t, Map.of()))));
+                if (m.anyMatch(TermImpl::isToDepthIcomplete)) {
+                    return m;
+                } else {
+                    r = r.addAll(m.replaceAll(t -> t.isIncomplete() ? t : goal.setBinding(this, g.getBinding(t, Map.of()))));
+                }
             }
             return r;
         }
@@ -1580,6 +1589,8 @@ public final class Logic {
                                     return a;
                                 }));
                                 continue outer;
+                            } else if (in.anyMatch(TermImpl::isToDepthIcomplete)) {
+                                return in;
                             } else {
                                 ic = ic.addAll(in);
                             }
