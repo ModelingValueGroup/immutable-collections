@@ -23,6 +23,8 @@ package org.modelingvalue.logic.test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.modelingvalue.logic.Arithmetic.*;
+import static org.modelingvalue.logic.Lists.add;
+import static org.modelingvalue.logic.Lists.l;
 import static org.modelingvalue.logic.Logic.*;
 
 import org.junit.jupiter.api.RepeatedTest;
@@ -33,6 +35,7 @@ import org.modelingvalue.collections.util.SerializableFunction;
 import org.modelingvalue.logic.Arithmetic.Int;
 import org.modelingvalue.logic.Arithmetic.IntAtom;
 import org.modelingvalue.logic.Arithmetic.IntFunc;
+import org.modelingvalue.logic.Lists.L;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.*;
 
