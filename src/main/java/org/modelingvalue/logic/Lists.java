@@ -37,7 +37,10 @@ import org.modelingvalue.logic.Logic.Pred;
 import org.modelingvalue.logic.Logic.Term;
 import org.modelingvalue.logic.Logic.TermImpl;
 
-public class Lists {
+public final class Lists {
+
+    private Lists() {
+    }
 
     // Lists
 

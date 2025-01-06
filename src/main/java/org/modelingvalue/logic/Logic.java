@@ -715,7 +715,9 @@ public final class Logic {
         @Override
         public String toString() {
             String string = super.toString();
-            return string.substring(1, string.length() - 1).replaceFirst(",", "(") + ")";
+            string = string.substring(1, string.length() - 1);
+            int i = string.indexOf(',');
+            return i >= 0 ? string.substring(0, i) + "(" + string.substring(i + 1) + ")" : string + "()";
         }
 
         @SuppressWarnings("unchecked")
