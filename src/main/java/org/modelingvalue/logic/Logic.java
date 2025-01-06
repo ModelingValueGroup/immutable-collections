@@ -29,8 +29,8 @@ import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
-import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
@@ -83,6 +83,21 @@ public final class Logic {
         }
     }
 
+    private static final int[]                                                ONE_ARRAY           = new int[]{1};
+    private static final int[]                                                TWO_ARRAY           = new int[]{2};
+    private static final UnaryOperator<int[]>                                 ADD_ONE             = a -> {
+                                                                                                      int[] r = new int[a.length + 1];
+                                                                                                      System.arraycopy(a, 0, r, 1, a.length);
+                                                                                                      r[0] = 1;
+                                                                                                      return r;
+                                                                                                  };
+    private static final UnaryOperator<int[]>                                 ADD_TWO             = a -> {
+                                                                                                      int[] r = new int[a.length + 1];
+                                                                                                      System.arraycopy(a, 0, r, 1, a.length);
+                                                                                                      r[0] = 2;
+                                                                                                      return r;
+                                                                                                  };
+
     private static final int                                                  MAX_LOGIC_MEMOIZ    = Integer.getInteger("MAX_LOGIC_MEMOIZ", 512);
     private static final int                                                  MAX_LOGIC_MEMOIZ_D4 = MAX_LOGIC_MEMOIZ / 4;
     private static final int                                                  INITIAL_USAGE_COUNT = Integer.getInteger("INITIAL_USAGE_COUNT", 4);
@@ -97,6 +112,7 @@ public final class Logic {
 
     @SuppressWarnings("rawtypes")
     private static final BiFunction<Set<TermImpl>, TermImpl, Set<TermImpl>>   ADD_FACT            = (s, e) -> s == null ? Set.of(e) : s.add(e);
+    @SuppressWarnings("unchecked")
     private static final BiFunction<List<RuleImpl>, RuleImpl, List<RuleImpl>> ADD_RULE            = (l, e) -> {
                                                                                                       if (l == null) {
                                                                                                           return List.of(e);
@@ -106,6 +122,8 @@ public final class Logic {
                                                                                                               RuleImpl r = l.get(i);
                                                                                                               if (r.equals(e)) {
                                                                                                                   return l;
+                                                                                                              } else if (r.cons().equals(e.cons())) {
+                                                                                                                  return l.replace(i, r.set(2, new OrImpl(r.cond(), e.cond())));
                                                                                                               } else if (r.rulePrio() > p) {
                                                                                                                   return l.insert(i, e);
                                                                                                               }
@@ -851,6 +869,15 @@ public final class Logic {
             return term(array);
         }
 
+        @SuppressWarnings("rawtypes")
+        protected TermImpl get(int[] ii) {
+            TermImpl r = this;
+            for (int i = 0; i < ii.length; i++) {
+                r = (TermImpl) r.get(ii[i]);
+            }
+            return r;
+        }
+
         @SuppressWarnings({"rawtypes", "unchecked"})
         public Set<TermImpl<Term>> incomplete() {
             return Set.of(Logic.incompleteImpl(List.of(this)));
@@ -971,11 +998,7 @@ public final class Logic {
         private Set<TermImpl> evalRules(List<RuleImpl> rules, int non, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
             Set<TermImpl> r = Set.of();
             for (RuleImpl rule : rules) {
-                Set<TermImpl> eval = rule.eval(this, der, rec, database);
-                if (non == 0 && eval.equals(Set.of(this))) {
-                    return (Set<TermImpl>) eval;
-                }
-                r = r.addAll(eval);
+                r = r.addAll(rule.eval(this, der, rec, database));
             }
             return r;
         }
@@ -1181,6 +1204,11 @@ public final class Logic {
             Map<VarImpl, Object> localVars = localVariables();
             return super.getBinding(term, vars).removeAll(e -> localVars.containsKey(e.getKey()));
         }
+
+        @Override
+        public CollectImpl set(int i, Object v) {
+            return (CollectImpl) super.set(i, v);
+        }
     }
 
     // Yes
@@ -1228,6 +1256,11 @@ public final class Logic {
         protected Map<VarImpl, Object> getBinding(TermImpl<Pred> term, Map<VarImpl, Object> vars) {
             return vars;
         }
+
+        @Override
+        public YesImpl set(int i, Object v) {
+            return (YesImpl) super.set(i, v);
+        }
     }
 
     // No
@@ -1274,6 +1307,11 @@ public final class Logic {
         @Override
         protected Map<VarImpl, Object> getBinding(TermImpl<Pred> term, Map<VarImpl, Object> vars) {
             return vars;
+        }
+
+        @Override
+        public NoImpl set(int i, Object v) {
+            return (NoImpl) super.set(i, v);
         }
     }
 
@@ -1327,6 +1365,11 @@ public final class Logic {
         protected Map<VarImpl, Object> getBinding(TermImpl<Pred> term, Map<VarImpl, Object> vars) {
             return vars;
         }
+
+        @Override
+        public NotImpl set(int i, Object v) {
+            return (NotImpl) super.set(i, v);
+        }
     }
 
     // Or
@@ -1369,6 +1412,29 @@ public final class Logic {
             return new OrImpl(array);
         }
 
+        private List<int[]> idxList;
+
+        @SuppressWarnings("rawtypes")
+        private List<int[]> idxList() {
+            if (idxList == null) {
+                List<int[]> l = List.of();
+                TermImpl p1 = pred1();
+                if (p1 instanceof OrImpl) {
+                    l = l.prependList(((OrImpl) p1).idxList().replaceAll(ADD_ONE));
+                } else {
+                    l = l.append(ONE_ARRAY);
+                }
+                TermImpl p2 = pred2();
+                if (p2 instanceof OrImpl) {
+                    l = l.appendList(((OrImpl) p2).idxList().replaceAll(ADD_TWO));
+                } else {
+                    l = l.append(TWO_ARRAY);
+                }
+                idxList = l;
+            }
+            return idxList;
+        }
+
         @SuppressWarnings("rawtypes")
         protected final TermImpl<?> pred1() {
             return ((TermImpl) get(1));
@@ -1382,15 +1448,18 @@ public final class Logic {
         @SuppressWarnings({"rawtypes", "unchecked"})
         @Override
         protected Set<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
-            Set<TermImpl> r1 = pred1().match(((OrImpl) goal).pred1(), der, rec, database);
-            Set<TermImpl> r2 = pred2().match(((OrImpl) goal).pred2(), der, rec, database);
-            Set<TermImpl> i1 = r1.retainAll(TermImpl::isIncomplete);
-            Set<TermImpl> i2 = r2.retainAll(TermImpl::isIncomplete);
-            Set<TermImpl> c1 = r1.removeAll(TermImpl::isIncomplete);
-            Set<TermImpl> c2 = r2.removeAll(TermImpl::isIncomplete);
-            return i1.isEmpty() && !c1.isEmpty() && !i2.isEmpty() ? c1.replaceAll(r -> (TermImpl) set(1, r)) : //
-                    i2.isEmpty() && !c2.isEmpty() && !i1.isEmpty() ? c2.replaceAll(r -> (TermImpl) set(2, r)) : //
-                            i1.addAll(i2).addAll(c1.replaceAll(r -> (TermImpl) set(1, r)).addAll(c2.replaceAll(r -> (TermImpl) set(2, r))));
+            Set<TermImpl> r = Set.of();
+            for (int[] i : ((OrImpl) goal).idxList()) {
+                TermImpl g = goal.get(i);
+                Set<TermImpl> m = get(i).match(g, der, rec, database);
+                r = r.addAll(m.replaceAll(t -> t.isIncomplete() ? t : goal.setBinding(this, g.getBinding(t, Map.of()))));
+            }
+            return r;
+        }
+
+        @Override
+        public OrImpl set(int i, Object v) {
+            return (OrImpl) super.set(i, v);
         }
     }
 
@@ -1434,35 +1503,25 @@ public final class Logic {
             return new AndImpl(array);
         }
 
-        @SuppressWarnings("rawtypes")
-        private List<TermImpl> list;
+        private List<int[]> idxList;
 
         @SuppressWarnings("rawtypes")
-        private List<TermImpl> list() {
-            if (list == null) {
-                List<TermImpl> l = List.of();
+        private List<int[]> idxList() {
+            if (idxList == null) {
+                List<int[]> l = List.of();
                 TermImpl p1 = pred1();
                 if (p1 instanceof AndImpl) {
-                    l = l.prependList(((AndImpl) p1).list());
+                    l = l.prependList(((AndImpl) p1).idxList().replaceAll(ADD_ONE));
                 } else {
-                    l = l.append(p1);
+                    l = l.append(ONE_ARRAY);
                 }
                 TermImpl p2 = pred2();
                 if (p2 instanceof AndImpl) {
-                    l = l.appendList(((AndImpl) p2).list());
+                    l = l.appendList(((AndImpl) p2).idxList().replaceAll(ADD_TWO));
                 } else {
-                    l = l.append(p2);
+                    l = l.append(TWO_ARRAY);
                 }
-                list = l;
-            }
-            return list;
-        }
-
-        private List<Integer> idxList;
-
-        private List<Integer> idxList() {
-            if (idxList == null) {
-                idxList = Collection.range(list().size()).asList();
+                idxList = l;
             }
             return idxList;
         }
@@ -1481,27 +1540,25 @@ public final class Logic {
         @Override
         protected Set<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
             Set<TermImpl> out = Set.of();
-            List<TermImpl> goals = ((AndImpl) goal).list();
             Set<AndImpl> ands = Set.of(this);
+            idxList = ((AndImpl) goal).idxList();
             do {
                 Set<AndImpl> ands2 = ands;
                 ands = Set.of();
                 outer:
                 for (AndImpl and : ands2) {
-                    List<Integer> idxl = and.idxList();
+                    List<int[]> idxl = and.idxList;
                     if (idxl.isEmpty()) {
                         out = out.add(and);
                     } else {
                         Set<TermImpl> ic = Set.of();
-                        List<TermImpl> terms = and.list();
                         for (int ii = 0; ii < idxl.size(); ii++) {
-                            int i = idxl.get(ii);
-                            TermImpl g = goals.get(i);
-                            TermImpl t = terms.get(i);
-                            Set<TermImpl> ts = t.match(g, der, rec, database);
+                            int[] i = idxl.get(ii);
+                            TermImpl g = goal.get(i);
+                            Set<TermImpl> ts = and.get(i).match(g, der, rec, database);
                             Set<TermImpl> in = ts.retainAll(TermImpl::isIncomplete);
                             if (in.isEmpty()) {
-                                List<Integer> iil = idxl.removeIndex(ii);
+                                List<int[]> iil = idxl.removeIndex(ii);
                                 ands = ands.addAll(ts.replaceAll(m -> {
                                     AndImpl a = (AndImpl) goal.setBinding(and, g.getBinding(m, Map.of()));
                                     a.idxList = iil;
@@ -1518,6 +1575,11 @@ public final class Logic {
                 }
             } while (!ands.isEmpty());
             return out;
+        }
+
+        @Override
+        public AndImpl set(int i, Object v) {
+            return (AndImpl) super.set(i, v);
         }
     }
 
@@ -1600,6 +1662,11 @@ public final class Logic {
 
         protected int rulePrio() {
             return cond().totalLength();
+        }
+
+        @Override
+        public RuleImpl set(int i, Object v) {
+            return (RuleImpl) super.set(i, v);
         }
     }
 
@@ -1799,6 +1866,11 @@ public final class Logic {
                 list = length() == 3 ? tail().list().prepend(head()) : List.of();
             }
             return list;
+        }
+
+        @Override
+        public ListImpl<E> set(int i, Object v) {
+            return (ListImpl<E>) super.set(i, v);
         }
     }
 
