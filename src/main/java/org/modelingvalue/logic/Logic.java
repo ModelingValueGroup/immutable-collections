@@ -370,18 +370,20 @@ public final class Logic {
             } else if (length() != other.length()) {
                 return null;
             }
-            boolean changed = false;
-            Object[] array = toArray();
-            for (int i = 0; i < array.length; i++) {
-                Object eq = eq(get(i), other.get(i));
+            Object[] array = null;
+            for (int i = 0; i < length(); i++) {
+                Object tv = get(i);
+                Object eq = eq(tv, other.get(i));
                 if (eq == null) {
                     return null;
-                } else if (!Objects.equals(eq, array[i])) {
+                } else if (!Objects.equals(eq, tv)) {
+                    if (array == null) {
+                        array = toArray();
+                    }
                     array[i] = eq;
-                    changed = true;
                 }
             }
-            return changed ? term(array) : this;
+            return array != null ? term(array) : this;
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
@@ -827,16 +829,18 @@ public final class Logic {
 
         @SuppressWarnings("rawtypes")
         protected TermImpl setBinding(TermImpl<F> term, Map<VarImpl, Object> vars) {
-            Object[] array = term.toArray();
-            boolean changed = false;
-            for (int i = 1; i < length(); i++) {
-                Object b = setBinding(get(i), term.get(i), vars);
-                if (!Objects.equals(b, array[i])) {
+            Object[] array = null;
+            for (int i = 1; i < term.length(); i++) {
+                Object tv = term.get(i);
+                Object b = setBinding(get(i), tv, vars);
+                if (!Objects.equals(b, tv)) {
+                    if (array == null) {
+                        array = term.toArray();
+                    }
                     array[i] = b;
-                    changed = true;
                 }
             }
-            return changed ? term.term(array) : term;
+            return array != null ? term.term(array) : term;
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
@@ -875,8 +879,8 @@ public final class Logic {
         }
 
         public TermImpl<F> set(int i, Object v) {
-            Object[] array = toArray();
-            if (!Objects.equals(v, array[i])) {
+            if (!Objects.equals(v, get(i))) {
+                Object[] array = toArray();
                 array[i] = v;
                 return term(array);
             } else {
