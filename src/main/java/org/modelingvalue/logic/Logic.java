@@ -28,6 +28,7 @@ import java.util.Optional;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
@@ -80,6 +81,30 @@ public final class Logic {
                 return f.apply(t);
             }
 
+        }
+    }
+
+    @SuppressWarnings("rawtypes")
+    @FunctionalInterface
+    public interface EqualsLambda extends BinaryOperator<TermImpl<Term>>, LambdaReflection, FunctorModifier {
+
+        @Override
+        default EqualsLambdaImpl of() {
+            return this instanceof EqualsLambdaImpl ? (EqualsLambdaImpl) this : new EqualsLambdaImpl(this);
+        }
+
+        class EqualsLambdaImpl extends LambdaImpl<EqualsLambda> implements EqualsLambda {
+            private static final long serialVersionUID = -9099528018203410620L;
+
+            public EqualsLambdaImpl(EqualsLambda f) {
+                super(f);
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public final TermImpl<Term> apply(TermImpl<Term> x, TermImpl<Term> y) {
+                return f.apply(x, y);
+            }
         }
     }
 
@@ -494,22 +519,29 @@ public final class Logic {
     }
 
     public static final class FunctImpl<T extends Term> extends ClauseImpl<Functor<T>> {
-        private static final long serialVersionUID = 285147889847599160L;
+        private static final long  serialVersionUID = 285147889847599160L;
 
-        private final LogicLambda lambda;
-        private final boolean     factual;
-        private final boolean     derived;
+        private final LogicLambda  logic;
+        private final EqualsLambda equals;
+        private final boolean      factual;
+        private final boolean      derived;
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         private FunctImpl(Class<T> type, String name, List<Class<?>> args, FunctorModifier... modifiers) {
             super((Class) Functor.class, type, name, args);
-            this.lambda = lambda(modifiers);
+            this.logic = logic(modifiers);
+            this.equals = equals(modifiers);
             this.factual = has(FunctorModifierEnum.factual, modifiers);
             this.derived = has(FunctorModifierEnum.derived, modifiers);
         }
 
-        private static LogicLambda lambda(FunctorModifier... modifiers) {
+        private static LogicLambda logic(FunctorModifier... modifiers) {
             LogicLambda lambda = get(LogicLambda.class, modifiers);
+            return lambda != null ? lambda.of() : null;
+        }
+
+        private static EqualsLambda equals(FunctorModifier... modifiers) {
+            EqualsLambda lambda = get(EqualsLambda.class, modifiers);
             return lambda != null ? lambda.of() : null;
         }
 
@@ -567,8 +599,13 @@ public final class Logic {
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
-        protected LogicLambda lambda() {
-            return lambda;
+        protected LogicLambda logic() {
+            return logic;
+        }
+
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        protected EqualsLambda equals() {
+            return equals;
         }
 
         @SuppressWarnings("unchecked")
@@ -733,8 +770,8 @@ public final class Logic {
 
         @SuppressWarnings("rawtypes")
         protected final void makeFact(Database database) {
-            if (functor().lambda() != null) {
-                throw new IllegalArgumentException("No facts of a functor with a lambda allowed. " + this);
+            if (functor().logic() != null) {
+                throw new IllegalArgumentException("No facts of a functor with a logic lambda allowed. " + this);
             }
             if (database.rules.get().get(functor()) != null) {
                 throw new IllegalArgumentException("No facts of a functor with rules allowed. " + this);
@@ -907,9 +944,9 @@ public final class Logic {
         @SuppressWarnings({"rawtypes", "unchecked"})
         protected Set<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
             FunctImpl<F> functor = functor();
-            LogicLambda lambda = functor.lambda();
-            if (lambda != null) {
-                return lambda.apply((TermImpl) this);
+            LogicLambda logic = functor.logic();
+            if (logic != null) {
+                return logic.apply((TermImpl) this);
             }
             int non = nrOfNulls();
             if (non > 1 || non >= totalLength()) {
@@ -1078,6 +1115,12 @@ public final class Logic {
         @Override
         @SuppressWarnings({"rawtypes", "unchecked"})
         protected TermImpl<F> eq(ClauseImpl<F> other) {
+            if (other instanceof TermImpl) {
+                EqualsLambda equals = functor().equals();
+                if (equals != null) {
+                    return equals.apply((TermImpl) this, (TermImpl) other);
+                }
+            }
             return (TermImpl<F>) super.eq(other);
         }
 
@@ -1085,6 +1128,7 @@ public final class Logic {
         protected boolean contains(TermImpl cond) {
             return equals(cond);
         }
+
     };
 
     // Collect
