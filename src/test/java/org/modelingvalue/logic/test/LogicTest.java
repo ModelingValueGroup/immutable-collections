@@ -23,9 +23,24 @@ package org.modelingvalue.logic.test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.modelingvalue.logic.Integers.*;
+import static org.modelingvalue.logic.Integers.divide;
+import static org.modelingvalue.logic.Integers.gt;
+import static org.modelingvalue.logic.Integers.le;
+import static org.modelingvalue.logic.Integers.lt;
+import static org.modelingvalue.logic.Integers.minus;
+import static org.modelingvalue.logic.Integers.multiply;
+import static org.modelingvalue.logic.Integers.plus;
+import static org.modelingvalue.logic.Integers.sqrt;
 import static org.modelingvalue.logic.Lists.add;
 import static org.modelingvalue.logic.Lists.l;
 import static org.modelingvalue.logic.Logic.*;
+import static org.modelingvalue.logic.Reals.*;
+import static org.modelingvalue.logic.Reals.divide;
+import static org.modelingvalue.logic.Reals.lt;
+import static org.modelingvalue.logic.Reals.minus;
+import static org.modelingvalue.logic.Reals.multiply;
+import static org.modelingvalue.logic.Reals.plus;
+import static org.modelingvalue.logic.Reals.sqrt;
 
 import org.junit.jupiter.api.RepeatedTest;
 import org.modelingvalue.collections.Entry;
@@ -40,6 +55,7 @@ import org.modelingvalue.logic.Integers.IntFunc;
 import org.modelingvalue.logic.Lists.L;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.*;
+import org.modelingvalue.logic.Reals.RealAtom;
 
 public class LogicTest {
 
@@ -186,6 +202,9 @@ public class LogicTest {
     Int                      R      = iv("R");
     Int                      S      = iv("S");
 
+    RealAtom                 T      = rav("T");
+    RealAtom                 U      = rav("U");
+
     PersonAtom               A      = personAtomVar("A");
     PersonAtom               B      = personAtomVar("B");
     PersonAtom               C      = personAtomVar("C");
@@ -194,8 +213,8 @@ public class LogicTest {
     Person                   Y      = personVar("Y");
     Person                   Z      = personVar("Z");
 
-    RootAtom                 U      = rootAtomVar("U");
-    Root                     V      = rootVar("V");
+    RootAtom                 V      = rootAtomVar("V");
+    Root                     W      = rootVar("W");
 
     @SuppressWarnings("unchecked")
     L<Person>                PL     = var(L.class, "PL");
@@ -243,11 +262,11 @@ public class LogicTest {
         rule(is(parent(X), A), and(is(X, B), parentChild(A, B)));
         rule(is(child(X), A), and(is(X, B), parentChild(B, A)));
 
-        rule(is(root(X), U), and(is(X, B), rootPerson(U, B)));
+        rule(is(root(X), V), and(is(X, B), rootPerson(V, B)));
 
         rule(parentChild(person(Q), person(P)), and(lt(Q, i(4)), is(plus(Q, i(1)), P)));
-        rule(rootPerson(U, person(0)), yes());
-        rule(rootPerson(U, C), and(rootPerson(U, A), parentChild(A, C)));
+        rule(rootPerson(V, person(0)), yes());
+        rule(rootPerson(V, C), and(rootPerson(V, A), parentChild(A, C)));
     }
 
     // Family Rules
@@ -266,10 +285,9 @@ public class LogicTest {
     }
 
     // @Test
-    public void rules() {
+    public void rulesTest() {
         @SuppressWarnings("unused")
         Database db = run(() -> {
-            isRules();
             familyRules();
             fibonacciRules();
         });
@@ -354,7 +372,7 @@ public class LogicTest {
     }
 
     @RepeatedTest(100)
-    public void famTest3() {
+    public void cycleTest() {
         run(() -> {
             rule(parentChild(B, C), parentChild(B, C));
 
@@ -384,7 +402,7 @@ public class LogicTest {
     }
 
     @RepeatedTest(100)
-    public void intTest() {
+    public void intTest1() {
         run(() -> {
             integerRules();
 
@@ -395,7 +413,7 @@ public class LogicTest {
     }
 
     @RepeatedTest(100)
-    public void isTest() {
+    public void intTest2() {
         run(() -> {
             integerRules();
 
@@ -422,8 +440,47 @@ public class LogicTest {
         });
     }
 
+    @RepeatedTest(100)
+    public void realTest1() {
+        run(() -> {
+            realRules();
+
+            hasBindings(plus(r(7), r(3), T), binding(T, r(10)));
+            hasBindings(plus(r(7), T, r(10)), binding(T, r(3)));
+            hasBindings(plus(T, r(3), r(10)), binding(T, r(7)));
+        });
+    }
+
+    @RepeatedTest(100)
+    public void realTest2() {
+        run(() -> {
+            realRules();
+
+            isTrue(is(plus(r(11), r(22)), r(33)));
+            isTrue(is(minus(r(33), r(22)), r(11)));
+            isTrue(is(plus(r(11), plus(plus(r(22), r(33)), r(44))), r(110)));
+
+            isTrue(is(plus(r(11), divide(multiply(r(44), r(33)), r(22))), r(77)));
+
+            isTrue(is(sqrt(r(49)), r(7)));
+            isTrue(is(sqrt(r(49)), r(-7)));
+
+            hasBindings(is(plus(r(11), plus(plus(r(22), r(33)), r(44))), T), binding(T, r(110)));
+            hasBindings(is(plus(r(11), plus(plus(r(22), T), r(44))), r(110)), binding(T, r(33)));
+            hasBindings(is(plus(r(7), r(3)), T), binding(T, r(10)));
+            hasBindings(is(plus(r(7), T), r(10)), binding(T, r(3)));
+            hasBindings(is(plus(T, r(3)), r(10)), binding(T, r(7)));
+
+            hasBindings(is(sqrt(r(49)), T), binding(T, r(7)), binding(T, r(-7)));
+
+            hasBindings(and(is(sqrt(r(49)), T), not(lt(T, r(0)))), binding(T, r(7)));
+
+            hasBindings(collect(is(sqrt(r(49)), T), plus(T, r(0), U)), binding(U, r(0)));
+        });
+    }
+
     @RepeatedTest(50)
-    public void fibonacci() {
+    public void fibonacciTest() {
         run(() -> {
             fibonacciRules();
 
