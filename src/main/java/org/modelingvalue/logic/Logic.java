@@ -721,7 +721,7 @@ public final class Logic {
     public static interface AtomPred extends Pred {
     }
 
-    public static interface CompoundPred extends Pred {
+    public static interface CompPred extends Pred {
     }
 
     public static boolean isTrue(Pred pred) {
@@ -1531,9 +1531,9 @@ public final class Logic {
 
     // Or
 
-    private static final FunctImpl<CompoundPred> OR_FUNCTOR = functImpl((SerializableBiFunction<Pred, Pred, CompoundPred>) Logic::or);
+    private static final FunctImpl<CompPred> OR_FUNCTOR = functImpl((SerializableBiFunction<Pred, Pred, CompPred>) Logic::or);
 
-    private static CompoundPred or(Pred p1, Pred p2) {
+    private static CompPred or(Pred p1, Pred p2) {
         return new OrImpl(unproxy(p1), unproxy(p2)).proxy();
     }
 
@@ -1546,7 +1546,7 @@ public final class Logic {
         return impl.proxy();
     }
 
-    private static final class OrImpl extends TermImpl<CompoundPred> {
+    private static final class OrImpl extends TermImpl<CompPred> {
         private static final long serialVersionUID = -1732549494864415986L;
 
         private OrImpl(TermImpl<Pred> pred1, TermImpl<Pred> pred2) {
@@ -1559,8 +1559,8 @@ public final class Logic {
 
         @Override
         @SuppressWarnings("unchecked")
-        protected CompoundPred proxy() {
-            return (CompoundPred) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{CompoundPred.class}, this);
+        protected CompPred proxy() {
+            return (CompPred) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{CompPred.class}, this);
         }
 
         @Override
@@ -1632,9 +1632,9 @@ public final class Logic {
 
     // And
 
-    private static final FunctImpl<CompoundPred> AND_FUNCTOR = functImpl((SerializableBiFunction<Pred, Pred, CompoundPred>) Logic::and);
+    private static final FunctImpl<CompPred> AND_FUNCTOR = functImpl((SerializableBiFunction<Pred, Pred, CompPred>) Logic::and);
 
-    private static CompoundPred and(Pred p1, Pred p2) {
+    private static CompPred and(Pred p1, Pred p2) {
         return new AndImpl(unproxy(p1), unproxy(p2)).proxy();
     }
 
@@ -1647,7 +1647,7 @@ public final class Logic {
         return impl.proxy();
     }
 
-    private static final class AndImpl extends TermImpl<CompoundPred> {
+    private static final class AndImpl extends TermImpl<CompPred> {
         private static final long serialVersionUID = -7248491569810098948L;
 
         private AndImpl(TermImpl<Pred> pred1, TermImpl<Pred> pred2) {
@@ -1660,8 +1660,8 @@ public final class Logic {
 
         @Override
         @SuppressWarnings("unchecked")
-        protected CompoundPred proxy() {
-            return (CompoundPred) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{CompoundPred.class}, this);
+        protected CompPred proxy() {
+            return (CompPred) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{CompPred.class}, this);
         }
 
         @Override
