@@ -35,7 +35,7 @@ public final class Integers {
     private Integers() {
     }
 
-    public static interface Int extends Term {
+    public static interface Int extends Type<Int> {
     }
 
     public static interface IntAtom extends Int, Atom<Int> {

@@ -36,6 +36,7 @@ import org.modelingvalue.logic.Logic.LogicLambda;
 import org.modelingvalue.logic.Logic.Pred;
 import org.modelingvalue.logic.Logic.Term;
 import org.modelingvalue.logic.Logic.TermImpl;
+import org.modelingvalue.logic.Logic.Type;
 
 public final class Lists {
 
@@ -44,7 +45,7 @@ public final class Lists {
 
     // Lists
 
-    public interface L<E> extends Term {
+    public interface L<E extends Term> extends Type<L<E>> {
     }
 
     @SuppressWarnings("rawtypes")
@@ -206,7 +207,7 @@ public final class Lists {
     @SuppressWarnings("rawtypes")
     private static final Functor<Pred>   ADD_FUNCTOR_PROXY = ADD_FUNCTOR.proxy();
 
-    public static <E> Pred add(E e, L<E> i, L<E> o) {
+    public static <E extends Term> Pred add(E e, L<E> i, L<E> o) {
         return term(ADD_FUNCTOR_PROXY, e, i, o);
     }
 

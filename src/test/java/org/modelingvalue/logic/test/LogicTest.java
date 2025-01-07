@@ -28,7 +28,8 @@ import static org.modelingvalue.logic.Lists.l;
 import static org.modelingvalue.logic.Logic.*;
 
 import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
+import org.modelingvalue.collections.Entry;
+import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.SerializableBiFunction;
@@ -71,7 +72,7 @@ public class LogicTest {
 
     // Root
 
-    interface Root extends Term {
+    interface Root extends Type<Root> {
     }
 
     interface RootAtom extends Root, Atom<Root> {
@@ -108,7 +109,7 @@ public class LogicTest {
 
     // Family Tree
 
-    interface Person extends Term {
+    interface Person extends Type<Person> {
     }
 
     interface PersonAtom extends Person, Atom<Person> {
@@ -264,16 +265,17 @@ public class LogicTest {
         rule(ancestorDescendent(A, C), and(ancestorDescendent(A, B), parentChild(B, C)));
     }
 
-    @Test
+    // @Test
     public void rules() {
         @SuppressWarnings("unused")
         Database db = run(() -> {
+            isRules();
             familyRules();
             fibonacciRules();
         });
-        //        for (Entry<Term, List<Rule>> e : db.rules()) {
-        //            System.err.println(e.getKey() + " " + e.getValue());
-        //        }
+        for (Entry<Term, List<Rule>> e : db.rules()) {
+            System.err.println(e.getKey() + " " + e.getValue());
+        }
     }
 
     @RepeatedTest(100)

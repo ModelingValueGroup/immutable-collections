@@ -24,7 +24,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
-import java.lang.reflect.Type;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ForkJoinTask;
@@ -176,7 +175,7 @@ public final class Logic {
     private static Map<Class, Set<Class>> addToSpecs(Map<Class, Set<Class>> specs, Class type) {
         if (!specs.containsKey(type)) {
             specs = specs.put(type, Set.of());
-            for (Type g : type.getGenericInterfaces()) {
+            for (java.lang.reflect.Type g : type.getGenericInterfaces()) {
                 while (g instanceof ParameterizedType) {
                     g = ((ParameterizedType) g).getRawType();
                 }
@@ -504,7 +503,7 @@ public final class Logic {
 
     // Functor
 
-    public interface Functor<T> extends Term {
+    public interface Functor<T extends Term> extends Term {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -711,6 +710,9 @@ public final class Logic {
     // Terms
 
     public static interface Term {
+    }
+
+    public static interface Type<T extends Type<T>> extends Term {
     }
 
     public static interface Pred extends Term {
@@ -1888,7 +1890,7 @@ public final class Logic {
     // Equals
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> eq = functor(Logic::eq, (LogicLambda) t -> {
+    private static Functor<Pred> eq = functor((SerializableBiFunction<Type, Type, Pred>) Logic::eq, (LogicLambda) t -> {
         TermImpl at = t.getTerm(1);
         TermImpl bt = t.getTerm(2);
         if (at == null && bt == null) {
@@ -1903,24 +1905,25 @@ public final class Logic {
         }
     });
 
-    public static Pred eq(Term a, Term b) {
+    @SuppressWarnings("rawtypes")
+    public static <T extends Type<T>> Pred eq(Type<T> a, Type<T> b) {
         return term(eq, a, b);
     }
 
     // Is
 
     @SuppressWarnings("rawtypes")
-    private static final Functor<AtomPred> is = functor(Logic::is);
+    private static final Functor<AtomPred> is = functor((SerializableBiFunction<Type, Type, AtomPred>) Logic::is);
 
-    public static AtomPred is(Term a, Term b) {
+    public static <T extends Type<T>> AtomPred is(Type<T> a, Type<T> b) {
         return term(is, a, b);
     }
 
-    public static interface Atom<T extends Term> extends Term {
+    public static interface Atom<T extends Type<T>> extends Type<T> {
 
     }
 
-    public static interface Func<T extends Term> extends Term {
+    public static interface Func<T extends Type<T>> extends Type<T> {
 
     }
 
