@@ -1864,6 +1864,27 @@ public final class Logic {
         return termImpl(INCOMPLETE_FUNCTOR, der);
     }
 
+    // Facts
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static void fact(Rel rel) {
+        Logic.<Pred, TermImpl> unproxy(rel).makeFact(DATABASE.get());
+    }
+
+    // Bindings
+
+    public static Map<Variable, Object> incomplete(Term... der) {
+        return Map.of(Entry.of((Variable) incompleteVar(), incomplete(List.of(der))));
+    }
+
+    public static Map<Variable, Object> binding(Term... varVal) {
+        Map<Variable, Object> b = Map.of();
+        for (int i = 0; i < varVal.length; i += 2) {
+            b = b.add(Entry.of((Variable) varVal[i], varVal[i + 1]));
+        }
+        return b;
+    }
+
     // Equals
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -1884,13 +1905,6 @@ public final class Logic {
 
     public static Pred eq(Term a, Term b) {
         return term(eq, a, b);
-    }
-
-    // Facts
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public static void fact(Rel rel) {
-        Logic.<Pred, TermImpl> unproxy(rel).makeFact(DATABASE.get());
     }
 
     // Is
@@ -1922,20 +1936,6 @@ public final class Logic {
         rule(is(A1, A2), eq(A1, A2));
         rule(is(F1, F2), and(is(F2, A2), is(F1, A2)));
         rule(is(A1, F1), is(F1, A1));
-    }
-
-    // Bindings
-
-    public static Map<Variable, Object> incomplete(Term... der) {
-        return Map.of(Entry.of((Variable) incompleteVar(), incomplete(List.of(der))));
-    }
-
-    public static Map<Variable, Object> binding(Term... varVal) {
-        Map<Variable, Object> b = Map.of();
-        for (int i = 0; i < varVal.length; i += 2) {
-            b = b.add(Entry.of((Variable) varVal[i], varVal[i + 1]));
-        }
-        return b;
     }
 
 }
