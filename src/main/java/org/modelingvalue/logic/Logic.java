@@ -25,7 +25,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ForkJoinTask;
@@ -265,6 +264,22 @@ public final class Logic {
             facts = new AtomicReference<>(init != null ? init.facts.get() : Map.of());
             rules = new AtomicReference<>(init != null ? init.rules.get() : Map.of());
             memoiz = new AtomicReference<>(init != null ? init.memoiz.get() : new QualifiedSet[]{EMPTY_MEMOIZ, EMPTY_MEMOIZ, EMPTY_MEMOIZ});
+        }
+
+        public Map<Term, List<Rule>> rules() {
+            return rules.get().replaceAll(e -> {
+                Term k = e.getKey().proxy();
+                List<Rule> v = e.getValue().replaceAll(RuleImpl::proxy);
+                return Entry.of(k, v);
+            });
+        }
+
+        public Map<Term, Set<Term>> facts() {
+            return facts.get().replaceAll(e -> {
+                Term k = e.getKey().proxy();
+                Set<Term> v = e.getValue().replaceAll(TermImpl::proxy);
+                return Entry.of(k, v);
+            });
         }
 
         protected void cleanup() {
@@ -999,16 +1014,6 @@ public final class Logic {
                 r = (TermImpl) r.get(ii[i]);
             }
             return r;
-        }
-
-        @SuppressWarnings("rawtypes")
-        protected TermImpl set(int[] ii, TermImpl v) {
-            if (ii.length == 0) {
-                return v;
-            } else {
-                TermImpl t = (TermImpl) get(ii[0]);
-                return set(ii[0], t.set(Arrays.copyOfRange(ii, 1, ii.length), v));
-            }
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
