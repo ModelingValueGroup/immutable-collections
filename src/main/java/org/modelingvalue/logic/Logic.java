@@ -724,9 +724,6 @@ public final class Logic {
     public static interface CompoundPred extends Pred {
     }
 
-    public static interface Rel extends AtomPred {
-    }
-
     public static boolean isTrue(Pred pred) {
         return match(pred).anyMatch(t -> !t.isIncomplete());
     }
@@ -1872,8 +1869,8 @@ public final class Logic {
     // Facts
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static void fact(Rel rel) {
-        Logic.<Pred, TermImpl> unproxy(rel).makeFact(DATABASE.get());
+    public static void fact(AtomPred pred) {
+        Logic.<Pred, TermImpl> unproxy(pred).makeFact(DATABASE.get());
     }
 
     // Bindings

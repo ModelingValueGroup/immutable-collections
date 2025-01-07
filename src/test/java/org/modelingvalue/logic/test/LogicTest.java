@@ -142,9 +142,9 @@ public class LogicTest {
         return var(Person.class, name);
     }
 
-    static Functor<Rel> parentChild = functor(LogicTest::parentChild);
+    static Functor<AtomPred> parentChild = functor(LogicTest::parentChild);
 
-    static Rel parentChild(PersonAtom parent, PersonAtom child) {
+    static AtomPred parentChild(PersonAtom parent, PersonAtom child) {
         return term(parentChild, parent, child);
     }
 
