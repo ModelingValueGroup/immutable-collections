@@ -1909,21 +1909,19 @@ public final class Logic {
 
     // Is
 
+    @SuppressWarnings("rawtypes")
+    private static final Functor<AtomPred> is = functor(Logic::is);
+
+    public static AtomPred is(Term a, Term b) {
+        return term(is, a, b);
+    }
+
     public static interface Atom<T extends Term> extends Term {
 
     }
 
     public static interface Func<T extends Term> extends Term {
 
-    }
-
-    @SuppressWarnings("rawtypes")
-    private static final FunctImpl<AtomPred> IS_FUNCTOR       = functImpl((SerializableBiFunction<Func, Atom, AtomPred>) Logic::is);
-    @SuppressWarnings("rawtypes")
-    private static Functor<AtomPred>         IS_FUNCTOR_PROXY = IS_FUNCTOR.proxy();
-
-    public static <T extends Term> AtomPred is(T a, T b) {
-        return term(IS_FUNCTOR_PROXY, a, b);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
