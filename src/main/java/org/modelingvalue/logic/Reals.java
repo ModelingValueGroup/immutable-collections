@@ -178,17 +178,11 @@ public final class Reals {
             BigInteger c = cx.multiply(ay).multiply(by);
             return a.multiply(b).equals(c) ? Set.of(t) : Set.of();
         } else if (at != null && bt != null && ct == null) {
-            BigInteger a = ax.multiply(by);
-            BigInteger b = bx.multiply(ay);
-            return Set.of(t.set(3, at.set(1, a.multiply(b)).set(2, by.multiply(ay))));
+            return Set.of(t.set(3, at.set(1, ax.multiply(bx)).set(2, ay.multiply(by))));
         } else if (at != null && bt == null && ct != null) {
-            BigInteger a = ax.multiply(cy);
-            BigInteger c = cx.multiply(ay);
-            return Set.of(t.set(2, at.set(1, c.divide(a)).set(2, cy.multiply(ay))));
+            return Set.of(t.set(2, at.set(1, cx.multiply(ay)).set(2, cy.multiply(ax))));
         } else if (at == null && bt != null && ct != null) {
-            BigInteger b = bx.multiply(cy);
-            BigInteger c = cx.multiply(by);
-            return Set.of(t.set(1, bt.set(1, c.divide(b)).set(2, cy.multiply(by))));
+            return Set.of(t.set(1, bt.set(1, cx.multiply(by)).set(2, cy.multiply(bx))));
         } else {
             return t.incomplete();
         }
