@@ -721,6 +721,9 @@ public final class Logic {
     public static interface AtomPred extends Pred {
     }
 
+    public static interface CompoundPred extends Pred {
+    }
+
     public static interface Rel extends AtomPred {
     }
 
@@ -1531,22 +1534,22 @@ public final class Logic {
 
     // Or
 
-    private static final FunctImpl<Pred> OR_FUNCTOR = functImpl((SerializableBiFunction<Pred, Pred, Pred>) Logic::or);
+    private static final FunctImpl<CompoundPred> OR_FUNCTOR = functImpl((SerializableBiFunction<Pred, Pred, CompoundPred>) Logic::or);
 
-    private static Pred or(Pred p1, Pred p2) {
+    private static CompoundPred or(Pred p1, Pred p2) {
         return new OrImpl(unproxy(p1), unproxy(p2)).proxy();
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static Pred or(Pred... ps) {
         TermImpl<Pred> impl = NO;
         for (int i = ps.length - 1; i >= 0; i--) {
-            impl = impl == NO ? unproxy(ps[i]) : new OrImpl(unproxy(ps[i]), impl);
+            impl = impl == NO ? unproxy(ps[i]) : (TermImpl) new OrImpl(unproxy(ps[i]), impl);
         }
         return impl.proxy();
     }
 
-    private static final class OrImpl extends TermImpl<Pred> {
+    private static final class OrImpl extends TermImpl<CompoundPred> {
         private static final long serialVersionUID = -1732549494864415986L;
 
         private OrImpl(TermImpl<Pred> pred1, TermImpl<Pred> pred2) {
@@ -1559,8 +1562,8 @@ public final class Logic {
 
         @Override
         @SuppressWarnings("unchecked")
-        protected Pred proxy() {
-            return (Pred) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{Pred.class}, this);
+        protected CompoundPred proxy() {
+            return (CompoundPred) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{CompoundPred.class}, this);
         }
 
         @Override
@@ -1632,22 +1635,22 @@ public final class Logic {
 
     // And
 
-    private static final FunctImpl<Pred> AND_FUNCTOR = functImpl((SerializableBiFunction<Pred, Pred, Pred>) Logic::and);
+    private static final FunctImpl<CompoundPred> AND_FUNCTOR = functImpl((SerializableBiFunction<Pred, Pred, CompoundPred>) Logic::and);
 
-    private static Pred and(Pred p1, Pred p2) {
+    private static CompoundPred and(Pred p1, Pred p2) {
         return new AndImpl(unproxy(p1), unproxy(p2)).proxy();
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static Pred and(Pred... ps) {
         TermImpl<Pred> impl = YES;
         for (int i = ps.length - 1; i >= 0; i--) {
-            impl = impl == YES ? unproxy(ps[i]) : new AndImpl(unproxy(ps[i]), impl);
+            impl = impl == YES ? unproxy(ps[i]) : (TermImpl) new AndImpl(unproxy(ps[i]), impl);
         }
         return impl.proxy();
     }
 
-    private static final class AndImpl extends TermImpl<Pred> {
+    private static final class AndImpl extends TermImpl<CompoundPred> {
         private static final long serialVersionUID = -7248491569810098948L;
 
         private AndImpl(TermImpl<Pred> pred1, TermImpl<Pred> pred2) {
@@ -1660,8 +1663,8 @@ public final class Logic {
 
         @Override
         @SuppressWarnings("unchecked")
-        protected Pred proxy() {
-            return (Pred) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{Pred.class}, this);
+        protected CompoundPred proxy() {
+            return (CompoundPred) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{CompoundPred.class}, this);
         }
 
         @Override
@@ -1754,7 +1757,7 @@ public final class Logic {
 
     // Rules
 
-    public static interface Rule extends Term {
+    public static interface Rule extends Type<Rule> {
     }
 
     private static final FunctImpl<Rule> RULE_FUNCTOR       = functImpl((SerializableBiFunction<AtomPred, Pred, Rule>) Logic::rule);
