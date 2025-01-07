@@ -22,7 +22,7 @@ package org.modelingvalue.logic.test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.modelingvalue.logic.Arithmetic.*;
+import static org.modelingvalue.logic.Integers.*;
 import static org.modelingvalue.logic.Lists.add;
 import static org.modelingvalue.logic.Lists.l;
 import static org.modelingvalue.logic.Logic.*;
@@ -32,9 +32,9 @@ import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.SerializableBiFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
-import org.modelingvalue.logic.Arithmetic.Int;
-import org.modelingvalue.logic.Arithmetic.IntAtom;
-import org.modelingvalue.logic.Arithmetic.IntFunc;
+import org.modelingvalue.logic.Integers.Int;
+import org.modelingvalue.logic.Integers.IntAtom;
+import org.modelingvalue.logic.Integers.IntFunc;
 import org.modelingvalue.logic.Lists.L;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.*;
@@ -225,7 +225,7 @@ public class LogicTest {
     }
 
     private void fibonacciRules() {
-        arithmeticRules();
+        integerRules();
 
         rule(is(fib(R), Q), and(is(R, P), fib(P, Q)));
 
@@ -236,7 +236,7 @@ public class LogicTest {
     // Root Rules
 
     private void rootRules() {
-        arithmeticRules();
+        integerRules();
 
         rule(is(parent(X), A), and(is(X, B), parentChild(A, B)));
         rule(is(child(X), A), and(is(X, B), parentChild(B, A)));
@@ -371,7 +371,7 @@ public class LogicTest {
     @RepeatedTest(100)
     public void intTest() {
         run(() -> {
-            arithmeticRules();
+            integerRules();
 
             hasBindings(plus(i(7), i(3), P), binding(P, i(10)));
             hasBindings(plus(i(7), P, i(10)), binding(P, i(3)));
@@ -382,7 +382,7 @@ public class LogicTest {
     @RepeatedTest(100)
     public void isTest() {
         run(() -> {
-            arithmeticRules();
+            integerRules();
 
             isTrue(is(plus(i(11), i(22)), i(33)));
             isTrue(is(minus(i(33), i(22)), i(11)));

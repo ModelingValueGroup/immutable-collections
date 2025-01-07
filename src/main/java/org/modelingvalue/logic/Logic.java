@@ -22,7 +22,10 @@ package org.modelingvalue.logic;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
+import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ForkJoinTask;
@@ -56,7 +59,7 @@ public final class Logic {
 
     public enum FunctorModifierEnum implements FunctorModifier {
         factual,
-        derived;
+        derived,
     }
 
     @SuppressWarnings("rawtypes")
@@ -108,6 +111,8 @@ public final class Logic {
         }
     }
 
+    @SuppressWarnings("rawtypes")
+    private static final AtomicReference<Map<Class, Set<Class>>>              SPECS               = new AtomicReference<>(Map.of());
     private static final int[]                                                ONE_ARRAY           = new int[]{1};
     private static final int[]                                                TWO_ARRAY           = new int[]{2};
     private static final UnaryOperator<int[]>                                 ADD_ONE             = a -> {
@@ -160,6 +165,30 @@ public final class Logic {
                                                                                                           return l.append(e);
                                                                                                       }
                                                                                                   };
+
+    @SuppressWarnings("rawtypes")
+    private static <F extends Term> void updateSpecs(Class type) {
+        if (!SPECS.get().containsKey(type)) {
+            SPECS.updateAndGet(m -> addToSpecs(m, type));
+        }
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static Map<Class, Set<Class>> addToSpecs(Map<Class, Set<Class>> specs, Class type) {
+        if (!specs.containsKey(type)) {
+            specs = specs.put(type, Set.of());
+            for (Type g : type.getGenericInterfaces()) {
+                while (g instanceof ParameterizedType) {
+                    g = ((ParameterizedType) g).getRawType();
+                }
+                if (g instanceof Class && !g.equals(Term.class)) {
+                    specs = addToSpecs(specs, (Class) g);
+                    specs = specs.put((Class) g, specs.get((Class) g).add(type));
+                }
+            }
+        }
+        return specs;
+    }
 
     public static final Database run(Runnable runnable) {
         return run(runnable, null);
@@ -226,7 +255,7 @@ public final class Logic {
     @SuppressWarnings("rawtypes")
     public static final class Database {
         private final AtomicReference<Map<TermImpl, Set<TermImpl>>>     facts;
-        private final AtomicReference<Map<FunctImpl, List<RuleImpl>>>   rules;
+        private final AtomicReference<Map<TermImpl, List<RuleImpl>>>    rules;
         private final AtomicReference<QualifiedSet<TermImpl, Memoiz>[]> memoiz;
 
         private boolean                                                 stopped;
@@ -529,6 +558,10 @@ public final class Logic {
         @SuppressWarnings({"unchecked", "rawtypes"})
         private FunctImpl(Class<T> type, String name, List<Class<?>> args, FunctorModifier... modifiers) {
             super((Class) Functor.class, type, name, args);
+            updateSpecs(type);
+            for (Class arg : args) {
+                updateSpecs(arg);
+            }
             this.logic = logic(modifiers);
             this.equals = equals(modifiers);
             this.factual = has(FunctorModifierEnum.factual, modifiers);
@@ -619,7 +652,7 @@ public final class Logic {
     public static interface Variable extends Term {
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static <F extends Term> F var(Class<F> type, String id) {
         return new VarImpl<F>(type, id).proxy();
     }
@@ -629,6 +662,7 @@ public final class Logic {
 
         private VarImpl(Class<F> type, String name) {
             super(type, name);
+            updateSpecs(type);
         }
 
         private VarImpl(Object[] args) {
@@ -773,7 +807,7 @@ public final class Logic {
             if (functor().logic() != null) {
                 throw new IllegalArgumentException("No facts of a functor with a logic lambda allowed. " + this);
             }
-            if (database.rules.get().get(functor()) != null) {
+            if (database.rules.get().get(signature()) != null) {
                 throw new IllegalArgumentException("No facts of a functor with rules allowed. " + this);
             }
             database.facts.updateAndGet(m -> {
@@ -867,6 +901,37 @@ public final class Logic {
         }
 
         @SuppressWarnings("rawtypes")
+        private final TermImpl signature() {
+            Object[] array = null;
+            for (int i = 1; i < length(); i++) {
+                Object v = get(i);
+                Object s = typeOf(v);
+                if (!Objects.equals(s, v)) {
+                    if (array == null) {
+                        array = toArray();
+                    }
+                    array[i] = s;
+                }
+            }
+            return array != null ? term(array) : this;
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        private Map<TermImpl, List<RuleImpl>> addRule(RuleImpl ruleImpl, Map<TermImpl, List<RuleImpl>> rules, Map<Class, Set<Class>> specs) {
+            rules = rules.put(this, ADD_RULE.apply(rules.get(this), ruleImpl));
+            for (int i = 1; i < length(); i++) {
+                Object v = get(i);
+                if (v instanceof Class) {
+                    for (Class g : specs.get((Class) v)) {
+                        TermImpl gt = set(i, g);
+                        rules = gt.addRule(ruleImpl, rules, specs);
+                    }
+                }
+            }
+            return rules;
+        }
+
+        @SuppressWarnings("rawtypes")
         protected TermImpl setBinding(TermImpl<F> term, Map<VarImpl, Object> vars) {
             Object[] array = null;
             for (int i = 1; i < term.length(); i++) {
@@ -936,6 +1001,16 @@ public final class Logic {
             return r;
         }
 
+        @SuppressWarnings("rawtypes")
+        protected TermImpl set(int[] ii, TermImpl v) {
+            if (ii.length == 0) {
+                return v;
+            } else {
+                TermImpl t = (TermImpl) get(ii[0]);
+                return set(ii[0], t.set(Arrays.copyOfRange(ii, 1, ii.length), v));
+            }
+        }
+
         @SuppressWarnings({"rawtypes", "unchecked"})
         public Set<TermImpl<Term>> incomplete() {
             return Set.of(Logic.incompleteImpl(List.of(this)));
@@ -956,7 +1031,8 @@ public final class Logic {
             if (facts != null) {
                 return facts;
             }
-            List<RuleImpl> rules = database.rules.get().get(functor);
+            TermImpl signature = signature();
+            List<RuleImpl> rules = database.rules.get().get(signature);
             if (rules != null) {
                 Set<TermImpl> r = rec.get(this);
                 if (r != null) {
@@ -986,7 +1062,7 @@ public final class Logic {
                             while (todo.size() > 0) {
                                 TermImpl t = todo.last();
                                 FunctImpl tf = t.functor();
-                                set = t.fixpoint(database.rules.get().get(tf), t.nrOfNulls(), der.append(t), rec, database);
+                                set = t.fixpoint(database.rules.get().get(t.signature()), t.nrOfNulls(), der.append(t), rec, database);
                                 ic = set.findAny(TermImpl::isToDepthIcomplete);
                                 if (ic.isPresent()) {
                                     list = (List) ic.get().get(1);
@@ -1128,7 +1204,6 @@ public final class Logic {
         protected boolean contains(TermImpl cond) {
             return equals(cond);
         }
-
     };
 
     // Collect
@@ -1682,9 +1757,10 @@ public final class Logic {
     public static Rule rule(AtomPred consequence, Pred condition) {
         RuleImpl ruleImpl = new RuleImpl(consequence, condition);
         TermImpl termImpl = Logic.<Pred, TermImpl> unproxy(consequence);
-        FunctImpl functor = termImpl.functor();
+        TermImpl signature = termImpl.signature();
+        Map<Class, Set<Class>> specs = SPECS.get();
         Database database = DATABASE.get();
-        database.rules.updateAndGet(m -> m.put(functor, ADD_RULE.apply(m.get(functor), ruleImpl)));
+        database.rules.updateAndGet(m -> signature.addRule(ruleImpl, m, specs));
         return ruleImpl.proxy();
     }
 
@@ -1823,10 +1899,12 @@ public final class Logic {
     }
 
     @SuppressWarnings("rawtypes")
-    private static Functor<AtomPred> is = functor((SerializableBiFunction<Func, Atom, AtomPred>) Logic::is);
+    private static final FunctImpl<AtomPred> IS_FUNCTOR       = functImpl((SerializableBiFunction<Func, Atom, AtomPred>) Logic::is);
+    @SuppressWarnings("rawtypes")
+    private static Functor<AtomPred>         IS_FUNCTOR_PROXY = IS_FUNCTOR.proxy();
 
     public static <T extends Term> AtomPred is(T a, T b) {
-        return term(is, a, b);
+        return term(IS_FUNCTOR_PROXY, a, b);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

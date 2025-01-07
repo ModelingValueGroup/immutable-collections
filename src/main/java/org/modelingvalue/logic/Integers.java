@@ -30,12 +30,10 @@ import org.modelingvalue.collections.util.SerializableFunction;
 import org.modelingvalue.collections.util.SerializableTriFunction;
 import org.modelingvalue.logic.Logic.*;
 
-public final class Arithmetic {
+public final class Integers {
 
-    private Arithmetic() {
+    private Integers() {
     }
-
-    // Integer
 
     public static interface Int extends Term {
     }
@@ -46,7 +44,7 @@ public final class Arithmetic {
     public static interface IntFunc extends Int, Func<Int> {
     }
 
-    private static Functor<IntAtom> i = functor((SerializableFunction<BigInteger, IntAtom>) Arithmetic::i);
+    private static Functor<IntAtom> i = functor((SerializableFunction<BigInteger, IntAtom>) Integers::i);
 
     public static IntAtom i(BigInteger x) {
         return term(i, x);
@@ -71,7 +69,7 @@ public final class Arithmetic {
     // Operators
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> compare = functor((SerializableTriFunction<IntAtom, IntAtom, IntAtom, Pred>) Arithmetic::compare, (LogicLambda) t -> {
+    private static Functor<Pred> compare = functor((SerializableTriFunction<IntAtom, IntAtom, IntAtom, Pred>) Integers::compare, (LogicLambda) t -> {
         TermImpl<IntAtom> at = t.getTerm(1);
         TermImpl<IntAtom> bt = t.getTerm(2);
         TermImpl<IntAtom> ct = t.getTerm(3);
@@ -100,7 +98,7 @@ public final class Arithmetic {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> plusPred = functor((SerializableTriFunction<IntAtom, IntAtom, IntAtom, Pred>) Arithmetic::plus, (LogicLambda) t -> {
+    private static Functor<Pred> plusPred = functor((SerializableTriFunction<IntAtom, IntAtom, IntAtom, Pred>) Integers::plus, (LogicLambda) t -> {
         TermImpl<IntAtom> at = t.getTerm(1);
         TermImpl<IntAtom> bt = t.getTerm(2);
         TermImpl<IntAtom> ct = t.getTerm(3);
@@ -125,7 +123,7 @@ public final class Arithmetic {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> multiplyPred = functor((SerializableTriFunction<IntAtom, IntAtom, IntAtom, Pred>) Arithmetic::multiply, (LogicLambda) t -> {
+    private static Functor<Pred> multiplyPred = functor((SerializableTriFunction<IntAtom, IntAtom, IntAtom, Pred>) Integers::multiply, (LogicLambda) t -> {
         TermImpl<IntAtom> at = t.getTerm(1);
         TermImpl<IntAtom> bt = t.getTerm(2);
         TermImpl<IntAtom> ct = t.getTerm(3);
@@ -150,7 +148,7 @@ public final class Arithmetic {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> powerPred = functor((SerializableBiFunction<IntAtom, IntAtom, Pred>) Arithmetic::power, (LogicLambda) t -> {
+    private static Functor<Pred> powerPred = functor((SerializableBiFunction<IntAtom, IntAtom, Pred>) Integers::power, (LogicLambda) t -> {
         TermImpl<IntAtom> at = t.getTerm(1);
         TermImpl<IntAtom> bt = t.getTerm(2);
         BigInteger ai = at != null ? at.getVal(1) : null;
@@ -173,69 +171,69 @@ public final class Arithmetic {
 
     // Functions
 
-    private static Functor<AtomPred> gt = functor(Arithmetic::gt);
+    private static Functor<AtomPred> gt = functor(Integers::gt);
 
     public static AtomPred gt(Int a, Int b) {
         return term(gt, a, b);
     }
 
-    private static Functor<AtomPred> lt = functor(Arithmetic::lt);
+    private static Functor<AtomPred> lt = functor(Integers::lt);
 
     public static AtomPred lt(Int a, Int b) {
         return term(lt, a, b);
     }
 
-    private static Functor<AtomPred> ge = functor(Arithmetic::ge);
+    private static Functor<AtomPred> ge = functor(Integers::ge);
 
     public static AtomPred ge(Int a, Int b) {
         return term(ge, a, b);
     }
 
-    private static Functor<AtomPred> le = functor(Arithmetic::le);
+    private static Functor<AtomPred> le = functor(Integers::le);
 
     public static AtomPred le(Int a, Int b) {
         return term(le, a, b);
     }
 
-    private static Functor<IntFunc> plusFunc = functor((SerializableBiFunction<Int, Int, IntFunc>) Arithmetic::plus);
+    private static Functor<IntFunc> plusFunc = functor((SerializableBiFunction<Int, Int, IntFunc>) Integers::plus);
 
     public static IntFunc plus(Int a, Int b) {
         return term(plusFunc, a, b);
     }
 
-    private static Functor<IntFunc> minusFunc = functor((SerializableBiFunction<Int, Int, IntFunc>) Arithmetic::minus);
+    private static Functor<IntFunc> minusFunc = functor((SerializableBiFunction<Int, Int, IntFunc>) Integers::minus);
 
     public static IntFunc minus(Int a, Int b) {
         return term(minusFunc, a, b);
     }
 
-    private static Functor<IntFunc> multiplyFunc = functor((SerializableBiFunction<Int, Int, IntFunc>) Arithmetic::multiply);
+    private static Functor<IntFunc> multiplyFunc = functor((SerializableBiFunction<Int, Int, IntFunc>) Integers::multiply);
 
     public static IntFunc multiply(Int a, Int b) {
         return term(multiplyFunc, a, b);
     }
 
-    private static Functor<IntFunc> divideFunc = functor((SerializableBiFunction<Int, Int, IntFunc>) Arithmetic::divide);
+    private static Functor<IntFunc> divideFunc = functor((SerializableBiFunction<Int, Int, IntFunc>) Integers::divide);
 
     public static IntFunc divide(Int a, Int b) {
         return term(divideFunc, a, b);
     }
 
-    private static Functor<IntFunc> powerFunc = functor((SerializableFunction<Int, IntFunc>) Arithmetic::power);
+    private static Functor<IntFunc> powerFunc = functor((SerializableFunction<Int, IntFunc>) Integers::power);
 
     public static IntFunc power(Int a) {
         return term(powerFunc, a);
     }
 
-    private static Functor<IntFunc> sqrtFunc = functor((SerializableFunction<Int, IntFunc>) Arithmetic::sqrt);
+    private static Functor<IntFunc> sqrtFunc = functor((SerializableFunction<Int, IntFunc>) Integers::sqrt);
 
     public static IntFunc sqrt(Int a) {
         return term(sqrtFunc, a);
     }
 
-    // Is Rules
+    // Rules
 
-    public static void arithmeticRules() {
+    public static void integerRules() {
         isRules();
 
         IntAtom P = iav("PL");
