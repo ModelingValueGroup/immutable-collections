@@ -158,8 +158,8 @@ public final class Lists {
         }
 
         @Override
-        public ListImpl<E> set(int i, Object v) {
-            return (ListImpl<E>) super.set(i, v);
+        public ListImpl<E> set(int i, Object... a) {
+            return (ListImpl<E>) super.set(i, a);
         }
     }
 

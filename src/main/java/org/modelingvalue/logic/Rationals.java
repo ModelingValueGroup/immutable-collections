@@ -47,14 +47,11 @@ public final class Rationals {
     public static interface RationalFunc extends Rational, Func<Rational> {
     }
 
-    private static Functor<RationalAtom> r = functor((SerializableBiFunction<BigInteger, BigInteger, RationalAtom>) Rationals::r, (EqualsLambda) (at, bt) -> {
-        BigInteger ax = at.getVal(1);
-        BigInteger ay = at.getVal(2);
-        BigInteger bx = bt.getVal(1);
-        BigInteger by = bt.getVal(2);
-        BigInteger a = ax.multiply(by);
-        BigInteger b = bx.multiply(ay);
-        return a.equals(b) ? at : null;
+    private static Functor<RationalAtom> r = functor((SerializableBiFunction<BigInteger, BigInteger, RationalAtom>) Rationals::r, (NormalizeLambda) t -> {
+        BigInteger ax = t.getVal(1);
+        BigInteger ay = t.getVal(2);
+        BigInteger gcd = ax.gcd(ay);
+        return t.set(1, ax.divide(gcd), ay.divide(gcd));
     });
 
     public static RationalAtom r(BigInteger x, BigInteger y) {
@@ -143,15 +140,15 @@ public final class Rationals {
         } else if (at != null && bt != null && ct == null) {
             BigInteger a = ax.multiply(by);
             BigInteger b = bx.multiply(ay);
-            return Set.of(t.set(3, at.set(1, a.add(b)).set(2, by.multiply(ay))));
+            return Set.of(t.set(3, at.set(1, a.add(b), by.multiply(ay))));
         } else if (at != null && bt == null && ct != null) {
             BigInteger a = ax.multiply(cy);
             BigInteger c = cx.multiply(ay);
-            return Set.of(t.set(2, at.set(1, c.subtract(a)).set(2, cy.multiply(ay))));
+            return Set.of(t.set(2, at.set(1, c.subtract(a), cy.multiply(ay))));
         } else if (at == null && bt != null && ct != null) {
             BigInteger b = bx.multiply(cy);
             BigInteger c = cx.multiply(by);
-            return Set.of(t.set(1, bt.set(1, c.subtract(b)).set(2, cy.multiply(by))));
+            return Set.of(t.set(1, bt.set(1, c.subtract(b), cy.multiply(by))));
         } else {
             return t.incomplete();
         }
@@ -178,11 +175,11 @@ public final class Rationals {
             BigInteger c = cx.multiply(ay).multiply(by);
             return a.multiply(b).equals(c) ? Set.of(t) : Set.of();
         } else if (at != null && bt != null && ct == null) {
-            return Set.of(t.set(3, at.set(1, ax.multiply(bx)).set(2, ay.multiply(by))));
+            return Set.of(t.set(3, at.set(1, ax.multiply(bx), ay.multiply(by))));
         } else if (at != null && bt == null && ct != null) {
-            return Set.of(t.set(2, at.set(1, cx.multiply(ay)).set(2, cy.multiply(ax))));
+            return Set.of(t.set(2, at.set(1, cx.multiply(ay), cy.multiply(ax))));
         } else if (at == null && bt != null && ct != null) {
-            return Set.of(t.set(1, bt.set(1, cx.multiply(by)).set(2, cy.multiply(bx))));
+            return Set.of(t.set(1, bt.set(1, cx.multiply(by), cy.multiply(bx))));
         } else {
             return t.incomplete();
         }

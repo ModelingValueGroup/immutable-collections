@@ -29,7 +29,6 @@ import java.util.Optional;
 import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.BiFunction;
-import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
@@ -87,24 +86,24 @@ public final class Logic {
 
     @SuppressWarnings("rawtypes")
     @FunctionalInterface
-    public interface EqualsLambda extends BinaryOperator<TermImpl<Term>>, LambdaReflection, FunctorModifier {
+    public interface NormalizeLambda extends UnaryOperator<TermImpl<Term>>, LambdaReflection, FunctorModifier {
 
         @Override
-        default EqualsLambdaImpl of() {
-            return this instanceof EqualsLambdaImpl ? (EqualsLambdaImpl) this : new EqualsLambdaImpl(this);
+        default NormalizeLambdaImpl of() {
+            return this instanceof NormalizeLambdaImpl ? (NormalizeLambdaImpl) this : new NormalizeLambdaImpl(this);
         }
 
-        class EqualsLambdaImpl extends LambdaImpl<EqualsLambda> implements EqualsLambda {
+        class NormalizeLambdaImpl extends LambdaImpl<NormalizeLambda> implements NormalizeLambda {
             private static final long serialVersionUID = -9099528018203410620L;
 
-            public EqualsLambdaImpl(EqualsLambda f) {
+            public NormalizeLambdaImpl(NormalizeLambda f) {
                 super(f);
             }
 
             @SuppressWarnings("unchecked")
             @Override
-            public final TermImpl<Term> apply(TermImpl<Term> x, TermImpl<Term> y) {
-                return f.apply(x, y);
+            public final TermImpl<Term> apply(TermImpl<Term> t) {
+                return f.apply(t);
             }
         }
     }
@@ -562,12 +561,12 @@ public final class Logic {
     }
 
     public static final class FunctImpl<T extends Term> extends ClauseImpl<Functor<T>> {
-        private static final long  serialVersionUID = 285147889847599160L;
+        private static final long     serialVersionUID = 285147889847599160L;
 
-        private final LogicLambda  logic;
-        private final EqualsLambda equals;
-        private final boolean      factual;
-        private final boolean      derived;
+        private final LogicLambda     logic;
+        private final NormalizeLambda normal;
+        private final boolean         factual;
+        private final boolean         derived;
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         private FunctImpl(Class<T> type, String name, List<Class<?>> args, FunctorModifier... modifiers) {
@@ -577,7 +576,7 @@ public final class Logic {
                 updateSpecs(arg);
             }
             this.logic = logic(modifiers);
-            this.equals = equals(modifiers);
+            this.normal = normal(modifiers);
             this.factual = has(FunctorModifierEnum.factual, modifiers);
             this.derived = has(FunctorModifierEnum.derived, modifiers);
         }
@@ -587,8 +586,8 @@ public final class Logic {
             return lambda != null ? lambda.of() : null;
         }
 
-        private static EqualsLambda equals(FunctorModifier... modifiers) {
-            EqualsLambda lambda = get(EqualsLambda.class, modifiers);
+        private static NormalizeLambda normal(FunctorModifier... modifiers) {
+            NormalizeLambda lambda = get(NormalizeLambda.class, modifiers);
             return lambda != null ? lambda.of() : null;
         }
 
@@ -645,14 +644,12 @@ public final class Logic {
             return (List<Class>) get(3);
         }
 
-        @SuppressWarnings({"unchecked", "rawtypes"})
         protected LogicLambda logic() {
             return logic;
         }
 
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        protected EqualsLambda equals() {
-            return equals;
+        protected NormalizeLambda normal() {
+            return normal;
         }
 
         @SuppressWarnings("unchecked")
@@ -765,11 +762,11 @@ public final class Logic {
 
     @SuppressWarnings("unchecked")
     public static <F extends Term> F term(Functor<F> functor, Object... args) {
-        return new TermImpl<F>(functor, args).proxy();
+        return new TermImpl<F>(functor, args).normal().proxy();
     }
 
     private static <F extends Term> TermImpl<F> termImpl(FunctImpl<F> functor, Object... args) {
-        return new TermImpl<F>(functor, args);
+        return new TermImpl<F>(functor, args).normal();
     }
 
     public static class TermImpl<F extends Term> extends ClauseImpl<F> {
@@ -793,10 +790,16 @@ public final class Logic {
             return (F) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{type()}, this);
         }
 
+        @SuppressWarnings("unchecked")
+        protected final TermImpl<F> normal() {
+            NormalizeLambda n = functor().normal();
+            return n != null ? (TermImpl<F>) n.apply((TermImpl<Term>) this) : this;
+        }
+
         @Override
         @SuppressWarnings("unchecked")
         protected TermImpl<F> term(Object[] array) {
-            return new TermImpl<F>(array);
+            return new TermImpl<F>(array).normal();
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
@@ -999,14 +1002,18 @@ public final class Logic {
             return v instanceof Class || v instanceof TermImpl ? null : (V) v;
         }
 
-        public TermImpl<F> set(int i, Object v) {
-            if (!Objects.equals(v, get(i))) {
-                Object[] array = toArray();
-                array[i] = v;
-                return term(array);
-            } else {
-                return this;
+        public TermImpl<F> set(int f, Object... a) {
+            Object[] array = null;
+            for (int i = 0; i < a.length; i++) {
+                Object v = get(i + f);
+                if (!Objects.equals(a[i], v)) {
+                    if (array == null) {
+                        array = toArray();
+                    }
+                    array[i + f] = a[i];
+                }
             }
+            return array != null ? term(array) : this;
         }
 
         @SuppressWarnings("rawtypes")
@@ -1198,12 +1205,6 @@ public final class Logic {
         @Override
         @SuppressWarnings({"rawtypes", "unchecked"})
         protected TermImpl<F> eq(ClauseImpl<F> other) {
-            if (other instanceof TermImpl) {
-                EqualsLambda equals = functor().equals();
-                if (equals != null) {
-                    return equals.apply((TermImpl) this, (TermImpl) other);
-                }
-            }
             return (TermImpl<F>) super.eq(other);
         }
 
@@ -1363,8 +1364,8 @@ public final class Logic {
         }
 
         @Override
-        public CollectImpl set(int i, Object v) {
-            return (CollectImpl) super.set(i, v);
+        public CollectImpl set(int i, Object... a) {
+            return (CollectImpl) super.set(i, a);
         }
     }
 
@@ -1415,8 +1416,8 @@ public final class Logic {
         }
 
         @Override
-        public YesImpl set(int i, Object v) {
-            return (YesImpl) super.set(i, v);
+        public YesImpl set(int i, Object... a) {
+            return (YesImpl) super.set(i, a);
         }
     }
 
@@ -1467,8 +1468,8 @@ public final class Logic {
         }
 
         @Override
-        public NoImpl set(int i, Object v) {
-            return (NoImpl) super.set(i, v);
+        public NoImpl set(int i, Object... a) {
+            return (NoImpl) super.set(i, a);
         }
     }
 
@@ -1524,8 +1525,8 @@ public final class Logic {
         }
 
         @Override
-        public NotImpl set(int i, Object v) {
-            return (NotImpl) super.set(i, v);
+        public NotImpl set(int i, Object... a) {
+            return (NotImpl) super.set(i, a);
         }
     }
 
@@ -1619,8 +1620,8 @@ public final class Logic {
         }
 
         @Override
-        public OrImpl set(int i, Object v) {
-            return (OrImpl) super.set(i, v);
+        public OrImpl set(int i, Object... a) {
+            return (OrImpl) super.set(i, a);
         }
 
         @Override
@@ -1747,8 +1748,8 @@ public final class Logic {
         }
 
         @Override
-        public AndImpl set(int i, Object v) {
-            return (AndImpl) super.set(i, v);
+        public AndImpl set(int i, Object... a) {
+            return (AndImpl) super.set(i, a);
         }
     }
 
@@ -1835,8 +1836,8 @@ public final class Logic {
         }
 
         @Override
-        public RuleImpl set(int i, Object v) {
-            return (RuleImpl) super.set(i, v);
+        public RuleImpl set(int i, Object... a) {
+            return (RuleImpl) super.set(i, a);
         }
     }
 
