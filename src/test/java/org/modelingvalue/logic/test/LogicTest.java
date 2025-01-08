@@ -441,7 +441,7 @@ public class LogicTest {
     }
 
     @RepeatedTest(100)
-    public void realTest1() {
+    public void rationalTest1() {
         run(() -> {
             rationalRules();
 
