@@ -123,9 +123,9 @@ public final class Rationals {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Functor<Pred> plusPred = functor((SerializableTriFunction<RationalAtom, RationalAtom, RationalAtom, Pred>) Rationals::plus, (LogicLambda) t -> {
-        TermImpl<IntAtom> at = t.getTerm(1);
-        TermImpl<IntAtom> bt = t.getTerm(2);
-        TermImpl<IntAtom> ct = t.getTerm(3);
+        TermImpl<RationalAtom> at = t.getTerm(1);
+        TermImpl<RationalAtom> bt = t.getTerm(2);
+        TermImpl<RationalAtom> ct = t.getTerm(3);
         BigInteger ax = at != null ? at.getVal(1) : null;
         BigInteger bx = bt != null ? bt.getVal(1) : null;
         BigInteger cx = ct != null ? ct.getVal(1) : null;
@@ -133,10 +133,10 @@ public final class Rationals {
         BigInteger by = bt != null ? bt.getVal(2) : null;
         BigInteger cy = ct != null ? ct.getVal(2) : null;
         if (at != null && bt != null && ct != null) {
-            BigInteger a = ax.multiply(by).multiply(cy);
-            BigInteger b = bx.multiply(ay).multiply(cy);
-            BigInteger c = cx.multiply(ay).multiply(by);
-            return a.add(b).equals(c) ? Set.of(t) : Set.of();
+            BigInteger a = ax.multiply(by);
+            BigInteger b = bx.multiply(ay);
+            TermImpl<RationalAtom> pt = at.set(1, a.add(b), by.multiply(ay));
+            return pt.equals(ct) ? Set.of(t) : Set.of();
         } else if (at != null && bt != null && ct == null) {
             BigInteger a = ax.multiply(by);
             BigInteger b = bx.multiply(ay);
@@ -160,9 +160,9 @@ public final class Rationals {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Functor<Pred> multiplyPred = functor((SerializableTriFunction<RationalAtom, RationalAtom, RationalAtom, Pred>) Rationals::multiply, (LogicLambda) t -> {
-        TermImpl<IntAtom> at = t.getTerm(1);
-        TermImpl<IntAtom> bt = t.getTerm(2);
-        TermImpl<IntAtom> ct = t.getTerm(3);
+        TermImpl<RationalAtom> at = t.getTerm(1);
+        TermImpl<RationalAtom> bt = t.getTerm(2);
+        TermImpl<RationalAtom> ct = t.getTerm(3);
         BigInteger ax = at != null ? at.getVal(1) : null;
         BigInteger bx = bt != null ? bt.getVal(1) : null;
         BigInteger cx = ct != null ? ct.getVal(1) : null;
@@ -170,10 +170,8 @@ public final class Rationals {
         BigInteger by = bt != null ? bt.getVal(2) : null;
         BigInteger cy = ct != null ? ct.getVal(2) : null;
         if (at != null && bt != null && ct != null) {
-            BigInteger a = ax.multiply(by).multiply(cy);
-            BigInteger b = bx.multiply(ay).multiply(cy);
-            BigInteger c = cx.multiply(ay).multiply(by);
-            return a.multiply(b).equals(c) ? Set.of(t) : Set.of();
+            TermImpl<RationalAtom> mt = at.set(1, ax.multiply(bx), ay.multiply(by));
+            return mt.equals(ct) ? Set.of(t) : Set.of();
         } else if (at != null && bt != null && ct == null) {
             return Set.of(t.set(3, at.set(1, ax.multiply(bx), ay.multiply(by))));
         } else if (at != null && bt == null && ct != null) {
@@ -191,19 +189,18 @@ public final class Rationals {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Functor<Pred> powerPred = functor((SerializableBiFunction<RationalAtom, RationalAtom, Pred>) Rationals::power, (LogicLambda) t -> {
-        TermImpl<IntAtom> at = t.getTerm(1);
-        TermImpl<IntAtom> bt = t.getTerm(2);
+        TermImpl<RationalAtom> at = t.getTerm(1);
+        TermImpl<RationalAtom> bt = t.getTerm(2);
         BigInteger ax = at != null ? at.getVal(1) : null;
-        BigInteger bx = bt != null ? bt.getVal(1) : null;
         BigInteger ay = at != null ? at.getVal(2) : null;
-        BigInteger by = bt != null ? bt.getVal(2) : null;
         if (at != null && bt != null) {
-            BigInteger a = ax.multiply(by);
-            BigInteger b = bx.multiply(ay);
-            return a.multiply(a).equals(b) ? Set.of(t) : Set.of();
+            TermImpl<RationalAtom> mt = at.set(1, ax.multiply(ax), ay.multiply(ay));
+            return mt.equals(bt) ? Set.of(t) : Set.of();
         } else if (at != null && bt == null) {
-            return Set.of(t.set(2, at.set(1, ax.multiply(ax))));
+            return Set.of(t.set(2, at.set(1, ax.multiply(ax), ay.multiply(ay))));
         } else if (at == null && bt != null) {
+            BigInteger bx = bt.getVal(1);
+            BigInteger by = bt.getVal(2);
             BigInteger sqrt = bx.multiply(by).sqrt();
             bt = bt.set(2, by.abs());
             return Set.of(t.set(1, bt.set(1, sqrt)), t.set(1, bt.set(1, sqrt.negate())));

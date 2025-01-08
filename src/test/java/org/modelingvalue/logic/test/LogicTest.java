@@ -445,6 +445,9 @@ public class LogicTest {
         run(() -> {
             rationalRules();
 
+            isTrue(is(divide(r(7), r(5)), r(7, 5)));
+            isTrue(is(r(7, 5), divide(r(7), r(5))));
+
             hasBindings(plus(r(7), r(3), T), binding(T, r(20, 2)));
             hasBindings(plus(r(7), T, r(20, 2)), binding(T, r(6, 2)));
             hasBindings(plus(T, r(3), r(40, 4)), binding(T, r(7)));
