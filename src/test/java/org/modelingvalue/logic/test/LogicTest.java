@@ -445,9 +445,9 @@ public class LogicTest {
         run(() -> {
             rationalRules();
 
-            hasBindings(plus(r(7, 1), r(3, 1), T), binding(T, r(20, 2)));
-            hasBindings(plus(r(7, 1), T, r(20, 2)), binding(T, r(3, 1)));
-            hasBindings(plus(T, r(3, 1), r(20, 2)), binding(T, r(7, 1)));
+            hasBindings(plus(r(7), r(3), T), binding(T, r(20, 2)));
+            hasBindings(plus(r(7), T, r(20, 2)), binding(T, r(6, 2)));
+            hasBindings(plus(T, r(3), r(40, 4)), binding(T, r(7)));
         });
     }
 
@@ -456,14 +456,14 @@ public class LogicTest {
         run(() -> {
             rationalRules();
 
-            isTrue(is(plus(r(11), r(22)), r(33)));
+            isTrue(is(plus(r(11), r(88, 4)), r(66, 2)));
             isTrue(is(minus(r(33), r(22)), r(11)));
             isTrue(is(plus(r(11), plus(plus(r(22), r(33)), r(44))), r(110)));
 
-            isTrue(is(plus(r(11), divide(multiply(r(44), r(33)), r(22))), r(77)));
+            isTrue(is(plus(r(44, 4), divide(multiply(r(88, 2), r(66, 2)), r(22))), r(77)));
 
-            isTrue(is(sqrt(r(49)), r(7)));
-            isTrue(is(sqrt(r(49)), r(-7)));
+            isTrue(is(sqrt(r(49)), r(-14, 2)));
+            isTrue(is(sqrt(r(98, 2)), r(7)));
 
             hasBindings(is(plus(r(11), plus(plus(r(22), r(33)), r(44))), T), binding(T, r(110)));
             hasBindings(is(plus(r(11), plus(plus(r(22), T), r(44))), r(110)), binding(T, r(33)));
