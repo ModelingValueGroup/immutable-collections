@@ -202,8 +202,8 @@ public class LogicTest {
     Int                      R      = iv("R");
     Int                      S      = iv("S");
 
-    RationalAtom                 T      = rav("T");
-    RationalAtom                 U      = rav("U");
+    RationalAtom             T      = rav("T");
+    RationalAtom             U      = rav("U");
 
     PersonAtom               A      = personAtomVar("A");
     PersonAtom               B      = personAtomVar("B");
@@ -452,7 +452,7 @@ public class LogicTest {
     }
 
     @RepeatedTest(100)
-    public void realTest2() {
+    public void rationalTest2() {
         run(() -> {
             rationalRules();
 
