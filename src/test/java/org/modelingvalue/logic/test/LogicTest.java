@@ -34,13 +34,13 @@ import static org.modelingvalue.logic.Integers.sqrt;
 import static org.modelingvalue.logic.Lists.add;
 import static org.modelingvalue.logic.Lists.l;
 import static org.modelingvalue.logic.Logic.*;
-import static org.modelingvalue.logic.Reals.*;
-import static org.modelingvalue.logic.Reals.divide;
-import static org.modelingvalue.logic.Reals.lt;
-import static org.modelingvalue.logic.Reals.minus;
-import static org.modelingvalue.logic.Reals.multiply;
-import static org.modelingvalue.logic.Reals.plus;
-import static org.modelingvalue.logic.Reals.sqrt;
+import static org.modelingvalue.logic.Rationals.*;
+import static org.modelingvalue.logic.Rationals.divide;
+import static org.modelingvalue.logic.Rationals.lt;
+import static org.modelingvalue.logic.Rationals.minus;
+import static org.modelingvalue.logic.Rationals.multiply;
+import static org.modelingvalue.logic.Rationals.plus;
+import static org.modelingvalue.logic.Rationals.sqrt;
 
 import org.junit.jupiter.api.RepeatedTest;
 import org.modelingvalue.collections.Entry;
@@ -55,7 +55,7 @@ import org.modelingvalue.logic.Integers.IntFunc;
 import org.modelingvalue.logic.Lists.L;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.*;
-import org.modelingvalue.logic.Reals.RealAtom;
+import org.modelingvalue.logic.Rationals.RationalAtom;
 
 public class LogicTest {
 
@@ -202,8 +202,8 @@ public class LogicTest {
     Int                      R      = iv("R");
     Int                      S      = iv("S");
 
-    RealAtom                 T      = rav("T");
-    RealAtom                 U      = rav("U");
+    RationalAtom                 T      = rav("T");
+    RationalAtom                 U      = rav("U");
 
     PersonAtom               A      = personAtomVar("A");
     PersonAtom               B      = personAtomVar("B");
@@ -443,18 +443,18 @@ public class LogicTest {
     @RepeatedTest(100)
     public void realTest1() {
         run(() -> {
-            realRules();
+            rationalRules();
 
-            hasBindings(plus(r(7), r(3), T), binding(T, r(10)));
-            hasBindings(plus(r(7), T, r(10)), binding(T, r(3)));
-            hasBindings(plus(T, r(3), r(10)), binding(T, r(7)));
+            hasBindings(plus(r(7), r(3), T), binding(T, r(20, 2)));
+            hasBindings(plus(r(7), T, r(10, 2)), binding(T, r(3)));
+            hasBindings(plus(T, r(3), r(10, 2)), binding(T, r(7)));
         });
     }
 
     @RepeatedTest(100)
     public void realTest2() {
         run(() -> {
-            realRules();
+            rationalRules();
 
             isTrue(is(plus(r(11), r(22)), r(33)));
             isTrue(is(minus(r(33), r(22)), r(11)));

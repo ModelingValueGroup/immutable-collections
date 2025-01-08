@@ -33,21 +33,21 @@ import org.modelingvalue.collections.util.SerializableTriFunction;
 import org.modelingvalue.logic.Integers.IntAtom;
 import org.modelingvalue.logic.Logic.*;
 
-public final class Reals {
+public final class Rationals {
 
-    private Reals() {
+    private Rationals() {
     }
 
-    public static interface Real extends Type<Real> {
+    public static interface Rational extends Type<Rational> {
     }
 
-    public static interface RealAtom extends Real, Atom<Real> {
+    public static interface RationalAtom extends Rational, Atom<Rational> {
     }
 
-    public static interface RealFunc extends Real, Func<Real> {
+    public static interface RationalFunc extends Rational, Func<Rational> {
     }
 
-    private static Functor<RealAtom> r = functor((SerializableBiFunction<BigInteger, BigInteger, RealAtom>) Reals::r, (EqualsLambda) (at, bt) -> {
+    private static Functor<RationalAtom> r = functor((SerializableBiFunction<BigInteger, BigInteger, RationalAtom>) Rationals::r, (EqualsLambda) (at, bt) -> {
         BigInteger ax = at.getVal(1);
         BigInteger ay = at.getVal(2);
         BigInteger bx = bt.getVal(1);
@@ -57,44 +57,44 @@ public final class Reals {
         return a.equals(b) ? at : null;
     });
 
-    public static RealAtom r(BigInteger x, BigInteger y) {
+    public static RationalAtom r(BigInteger x, BigInteger y) {
         return term(r, x, y);
     }
 
-    public static RealAtom r(String x, String y, int radix) {
+    public static RationalAtom r(String x, String y, int radix) {
         return r(new BigInteger(x, radix), new BigInteger(y, radix));
     }
 
-    public static RealAtom r(long x, long y) {
+    public static RationalAtom r(long x, long y) {
         return r(BigInteger.valueOf(x), BigInteger.valueOf(y));
     }
 
-    public static RealAtom r(BigInteger x) {
+    public static RationalAtom r(BigInteger x) {
         return term(r, x, BigInteger.ONE);
     }
 
-    public static RealAtom r(String x, int radix) {
+    public static RationalAtom r(String x, int radix) {
         return r(new BigInteger(x, radix));
     }
 
-    public static RealAtom r(long x) {
+    public static RationalAtom r(long x) {
         return r(BigInteger.valueOf(x));
     }
 
-    public static RealAtom rav(String name) {
-        return var(RealAtom.class, name);
+    public static RationalAtom rav(String name) {
+        return var(RationalAtom.class, name);
     }
 
-    public static Real rv(String name) {
-        return var(Real.class, name);
+    public static Rational rv(String name) {
+        return var(Rational.class, name);
     }
 
     // Operators
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> compare = functor((SerializableTriFunction<RealAtom, RealAtom, IntAtom, Pred>) Reals::compare, (LogicLambda) t -> {
-        TermImpl<RealAtom> at = t.getTerm(1);
-        TermImpl<RealAtom> bt = t.getTerm(2);
+    private static Functor<Pred> compare = functor((SerializableTriFunction<RationalAtom, RationalAtom, IntAtom, Pred>) Rationals::compare, (LogicLambda) t -> {
+        TermImpl<RationalAtom> at = t.getTerm(1);
+        TermImpl<RationalAtom> bt = t.getTerm(2);
         TermImpl<IntAtom> ct = t.getTerm(3);
         BigInteger ci = ct != null ? ct.getVal(1) : null;
         if (at != null && bt != null) {
@@ -120,12 +120,12 @@ public final class Reals {
         return t.incomplete();
     });
 
-    public static Pred compare(RealAtom a, RealAtom b, IntAtom c) {
+    public static Pred compare(RationalAtom a, RationalAtom b, IntAtom c) {
         return term(compare, a, b, c);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> plusPred = functor((SerializableTriFunction<RealAtom, RealAtom, RealAtom, Pred>) Reals::plus, (LogicLambda) t -> {
+    private static Functor<Pred> plusPred = functor((SerializableTriFunction<RationalAtom, RationalAtom, RationalAtom, Pred>) Rationals::plus, (LogicLambda) t -> {
         TermImpl<IntAtom> at = t.getTerm(1);
         TermImpl<IntAtom> bt = t.getTerm(2);
         TermImpl<IntAtom> ct = t.getTerm(3);
@@ -157,12 +157,12 @@ public final class Reals {
         }
     });
 
-    public static Pred plus(RealAtom a, RealAtom b, RealAtom r) {
+    public static Pred plus(RationalAtom a, RationalAtom b, RationalAtom r) {
         return term(plusPred, a, b, r);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> multiplyPred = functor((SerializableTriFunction<RealAtom, RealAtom, RealAtom, Pred>) Reals::multiply, (LogicLambda) t -> {
+    private static Functor<Pred> multiplyPred = functor((SerializableTriFunction<RationalAtom, RationalAtom, RationalAtom, Pred>) Rationals::multiply, (LogicLambda) t -> {
         TermImpl<IntAtom> at = t.getTerm(1);
         TermImpl<IntAtom> bt = t.getTerm(2);
         TermImpl<IntAtom> ct = t.getTerm(3);
@@ -188,12 +188,12 @@ public final class Reals {
         }
     });
 
-    public static Pred multiply(RealAtom a, RealAtom b, RealAtom r) {
+    public static Pred multiply(RationalAtom a, RationalAtom b, RationalAtom r) {
         return term(multiplyPred, a, b, r);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> powerPred = functor((SerializableBiFunction<RealAtom, RealAtom, Pred>) Reals::power, (LogicLambda) t -> {
+    private static Functor<Pred> powerPred = functor((SerializableBiFunction<RationalAtom, RationalAtom, Pred>) Rationals::power, (LogicLambda) t -> {
         TermImpl<IntAtom> at = t.getTerm(1);
         TermImpl<IntAtom> bt = t.getTerm(2);
         BigInteger ax = at != null ? at.getVal(1) : null;
@@ -215,85 +215,85 @@ public final class Reals {
         }
     });
 
-    public static Pred power(RealAtom a, RealAtom r) {
+    public static Pred power(RationalAtom a, RationalAtom r) {
         return term(powerPred, a, r);
     }
 
     // Functions
 
-    private static Functor<AtomPred> gt = functor(Reals::gt);
+    private static Functor<AtomPred> gt = functor(Rationals::gt);
 
-    public static AtomPred gt(Real a, Real b) {
+    public static AtomPred gt(Rational a, Rational b) {
         return term(gt, a, b);
     }
 
-    private static Functor<AtomPred> lt = functor(Reals::lt);
+    private static Functor<AtomPred> lt = functor(Rationals::lt);
 
-    public static AtomPred lt(Real a, Real b) {
+    public static AtomPred lt(Rational a, Rational b) {
         return term(lt, a, b);
     }
 
-    private static Functor<AtomPred> ge = functor(Reals::ge);
+    private static Functor<AtomPred> ge = functor(Rationals::ge);
 
-    public static AtomPred ge(Real a, Real b) {
+    public static AtomPred ge(Rational a, Rational b) {
         return term(ge, a, b);
     }
 
-    private static Functor<AtomPred> le = functor(Reals::le);
+    private static Functor<AtomPred> le = functor(Rationals::le);
 
-    public static AtomPred le(Real a, Real b) {
+    public static AtomPred le(Rational a, Rational b) {
         return term(le, a, b);
     }
 
-    private static Functor<RealFunc> plusFunc = functor((SerializableBiFunction<Real, Real, RealFunc>) Reals::plus);
+    private static Functor<RationalFunc> plusFunc = functor((SerializableBiFunction<Rational, Rational, RationalFunc>) Rationals::plus);
 
-    public static RealFunc plus(Real a, Real b) {
+    public static RationalFunc plus(Rational a, Rational b) {
         return term(plusFunc, a, b);
     }
 
-    private static Functor<RealFunc> minusFunc = functor((SerializableBiFunction<Real, Real, RealFunc>) Reals::minus);
+    private static Functor<RationalFunc> minusFunc = functor((SerializableBiFunction<Rational, Rational, RationalFunc>) Rationals::minus);
 
-    public static RealFunc minus(Real a, Real b) {
+    public static RationalFunc minus(Rational a, Rational b) {
         return term(minusFunc, a, b);
     }
 
-    private static Functor<RealFunc> multiplyFunc = functor((SerializableBiFunction<Real, Real, RealFunc>) Reals::multiply);
+    private static Functor<RationalFunc> multiplyFunc = functor((SerializableBiFunction<Rational, Rational, RationalFunc>) Rationals::multiply);
 
-    public static RealFunc multiply(Real a, Real b) {
+    public static RationalFunc multiply(Rational a, Rational b) {
         return term(multiplyFunc, a, b);
     }
 
-    private static Functor<RealFunc> divideFunc = functor((SerializableBiFunction<Real, Real, RealFunc>) Reals::divide);
+    private static Functor<RationalFunc> divideFunc = functor((SerializableBiFunction<Rational, Rational, RationalFunc>) Rationals::divide);
 
-    public static RealFunc divide(Real a, Real b) {
+    public static RationalFunc divide(Rational a, Rational b) {
         return term(divideFunc, a, b);
     }
 
-    private static Functor<RealFunc> powerFunc = functor((SerializableFunction<Real, RealFunc>) Reals::power);
+    private static Functor<RationalFunc> powerFunc = functor((SerializableFunction<Rational, RationalFunc>) Rationals::power);
 
-    public static RealFunc power(Real a) {
+    public static RationalFunc power(Rational a) {
         return term(powerFunc, a);
     }
 
-    private static Functor<RealFunc> sqrtFunc = functor((SerializableFunction<Real, RealFunc>) Reals::sqrt);
+    private static Functor<RationalFunc> sqrtFunc = functor((SerializableFunction<Rational, RationalFunc>) Rationals::sqrt);
 
-    public static RealFunc sqrt(Real a) {
+    public static RationalFunc sqrt(Rational a) {
         return term(sqrtFunc, a);
     }
 
     // Rules
 
-    public static void realRules() {
+    public static void rationalRules() {
         isRules();
 
-        RealAtom P = rav("PL");
-        RealAtom Q = rav("QL");
-        RealAtom R = rav("RL");
+        RationalAtom P = rav("PL");
+        RationalAtom Q = rav("QL");
+        RationalAtom R = rav("RL");
 
         IntAtom I = iav("IL");
 
-        Real X = rv("X");
-        Real Y = rv("Y");
+        Rational X = rv("X");
+        Rational Y = rv("Y");
 
         rule(is(plus(X, Y), R), and(is(X, P), is(Y, Q), plus(P, Q, R)));
         rule(is(minus(X, Y), R), and(is(X, P), is(Y, Q), plus(R, Q, P)));
