@@ -208,6 +208,7 @@ public final class Reals {
             return Set.of(t.set(2, at.set(1, ax.multiply(ax))));
         } else if (at == null && bt != null) {
             BigInteger sqrt = bx.multiply(by).sqrt();
+            bt = bt.set(2, by.abs());
             return Set.of(t.set(1, bt.set(1, sqrt)), t.set(1, bt.set(1, sqrt.negate())));
         } else {
             return t.incomplete();
