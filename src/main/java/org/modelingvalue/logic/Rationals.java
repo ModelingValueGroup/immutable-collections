@@ -38,13 +38,13 @@ public final class Rationals {
     private Rationals() {
     }
 
-    public static interface Rational extends Type<Rational> {
+    public interface Rational extends Typed<Rational> {
     }
 
-    public static interface RationalAtom extends Rational, Atom<Rational> {
+    public interface RationalAtom extends Rational, Atom<Rational> {
     }
 
-    public static interface RationalFunc extends Rational, Func<Rational> {
+    public interface RationalFunc extends Rational, Func<Rational> {
     }
 
     private static Functor<RationalAtom> r = functor((SerializableBiFunction<BigInteger, BigInteger, RationalAtom>) Rationals::r, (NormalizeLambda) t -> {

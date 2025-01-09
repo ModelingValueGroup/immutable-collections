@@ -88,7 +88,7 @@ public class LogicTest {
 
     // Root
 
-    interface Root extends Type<Root> {
+    interface Root extends Typed<Root> {
     }
 
     interface RootAtom extends Root, Atom<Root> {
@@ -125,7 +125,7 @@ public class LogicTest {
 
     // Family Tree
 
-    interface Person extends Type<Person> {
+    interface Person extends Typed<Person> {
     }
 
     interface PersonAtom extends Person, Atom<Person> {

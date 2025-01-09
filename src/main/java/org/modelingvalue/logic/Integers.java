@@ -35,13 +35,13 @@ public final class Integers {
     private Integers() {
     }
 
-    public static interface Int extends Type<Int> {
+    public interface Int extends Typed<Int> {
     }
 
-    public static interface IntAtom extends Int, Atom<Int> {
+    public interface IntAtom extends Int, Atom<Int> {
     }
 
-    public static interface IntFunc extends Int, Func<Int> {
+    public interface IntFunc extends Int, Func<Int> {
     }
 
     private static Functor<IntAtom> i = functor((SerializableFunction<BigInteger, IntAtom>) Integers::i);

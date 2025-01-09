@@ -660,7 +660,7 @@ public final class Logic {
 
     // Variables
 
-    public static interface Variable extends Term {
+    public interface Variable extends Term {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -706,19 +706,19 @@ public final class Logic {
 
     // Terms
 
-    public static interface Term {
+    public interface Term {
     }
 
-    public static interface Type<T extends Type<T>> extends Term {
+    public interface Typed<T extends Typed<T>> extends Term {
     }
 
-    public static interface Pred extends Term {
+    public interface Pred extends Term {
     }
 
-    public static interface AtomPred extends Pred {
+    public interface AtomPred extends Pred {
     }
 
-    public static interface CompPred extends Pred {
+    public interface CompPred extends Pred {
     }
 
     public static boolean isTrue(Pred pred) {
@@ -1755,7 +1755,7 @@ public final class Logic {
 
     // Rules
 
-    public static interface Rule extends Type<Rule> {
+    public interface Rule extends Typed<Rule> {
     }
 
     private static final FunctImpl<Rule> RULE_FUNCTOR       = functImpl((SerializableBiFunction<AtomPred, Pred, Rule>) Logic::rule);
@@ -1891,7 +1891,7 @@ public final class Logic {
     // Equals
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> eq = functor((SerializableBiFunction<Type, Type, Pred>) Logic::eq, (LogicLambda) t -> {
+    private static Functor<Pred> eq = functor((SerializableBiFunction<Typed, Typed, Pred>) Logic::eq, (LogicLambda) t -> {
         TermImpl at = t.getTerm(1);
         TermImpl bt = t.getTerm(2);
         if (at == null && bt == null) {
@@ -1907,24 +1907,24 @@ public final class Logic {
     });
 
     @SuppressWarnings("rawtypes")
-    public static <T extends Type<T>> Pred eq(Type<T> a, Type<T> b) {
+    public static <T extends Typed<T>> Pred eq(Typed<T> a, Typed<T> b) {
         return term(eq, a, b);
     }
 
     // Is
 
     @SuppressWarnings("rawtypes")
-    private static final Functor<AtomPred> is = functor((SerializableBiFunction<Type, Type, AtomPred>) Logic::is);
+    private static final Functor<AtomPred> is = functor((SerializableBiFunction<Typed, Typed, AtomPred>) Logic::is);
 
-    public static <T extends Type<T>> AtomPred is(Type<T> a, Type<T> b) {
+    public static <T extends Typed<T>> AtomPred is(Typed<T> a, Typed<T> b) {
         return term(is, a, b);
     }
 
-    public static interface Atom<T extends Type<T>> extends Type<T> {
+    public interface Atom<T extends Typed<T>> extends Typed<T> {
 
     }
 
-    public static interface Func<T extends Type<T>> extends Type<T> {
+    public interface Func<T extends Typed<T>> extends Typed<T> {
 
     }
 

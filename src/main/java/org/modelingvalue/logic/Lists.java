@@ -36,7 +36,7 @@ import org.modelingvalue.logic.Logic.LogicLambda;
 import org.modelingvalue.logic.Logic.Pred;
 import org.modelingvalue.logic.Logic.Term;
 import org.modelingvalue.logic.Logic.TermImpl;
-import org.modelingvalue.logic.Logic.Type;
+import org.modelingvalue.logic.Logic.Typed;
 
 public final class Lists {
 
@@ -45,7 +45,7 @@ public final class Lists {
 
     // Lists
 
-    public interface L<E extends Term> extends Type<L<E>> {
+    public interface L<E extends Term> extends Typed<L<E>> {
     }
 
     @SuppressWarnings("rawtypes")
