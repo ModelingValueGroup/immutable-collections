@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
+import java.lang.reflect.Type;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ForkJoinTask;
@@ -831,16 +832,32 @@ public final class Logic {
                 throw new IllegalArgumentException("No facts of a functor with rules allowed. " + this);
             }
             database.facts.updateAndGet(m -> {
+                List<Class> args = functor().args();
                 m = m.put(this, ADD_FACT.apply(m.get(this), this));
-                Object[] array = toArray();
-                for (int i = 1; i < array.length; i++) {
-                    array[i] = getType(i);
-                    TermImpl<F> term = term(array);
-                    m = m.put(term, ADD_FACT.apply(m.get(term), this));
-                    array = toArray();
+                for (int i = 1; i < length(); i++) {
+                    m = addFact(m, set(i, getType(i)), i, args.get(i - 1));
                 }
                 return m;
             });
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        private Map<TermImpl, Set<TermImpl>> addFact(Map<TermImpl, Set<TermImpl>> m, TermImpl<F> term, int i, Class a) {
+            Class t = term.getType(i);
+            if (a.isAssignableFrom(t)) {
+                m = m.put(term, ADD_FACT.apply(m.get(term), this));
+                if (!a.equals(t)) {
+                    for (Type g : t.getGenericInterfaces()) {
+                        while (g instanceof ParameterizedType) {
+                            g = ((ParameterizedType) g).getRawType();
+                        }
+                        if (g instanceof Class) {
+                            m = addFact(m, term.set(i, g), i, a);
+                        }
+                    }
+                }
+            }
+            return m;
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
