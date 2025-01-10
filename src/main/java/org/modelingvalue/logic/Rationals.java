@@ -27,9 +27,6 @@ import static org.modelingvalue.logic.Logic.*;
 import java.math.BigInteger;
 
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.util.SerializableBiFunction;
-import org.modelingvalue.collections.util.SerializableFunction;
-import org.modelingvalue.collections.util.SerializableTriFunction;
 import org.modelingvalue.logic.Integers.IntAtom;
 import org.modelingvalue.logic.Logic.*;
 
@@ -38,7 +35,7 @@ public final class Rationals {
     private Rationals() {
     }
 
-    public interface Rational extends Typed<Rational> {
+    public interface Rational extends Term {
     }
 
     public interface RationalAtom extends Rational, Atom<Rational> {
@@ -47,7 +44,7 @@ public final class Rationals {
     public interface RationalFunc extends Rational, Func<Rational> {
     }
 
-    private static Functor<RationalAtom> r = functor((SerializableBiFunction<BigInteger, BigInteger, RationalAtom>) Rationals::r, (NormalizeLambda) t -> {
+    private static Functor<RationalAtom> r = Logic.<RationalAtom, BigInteger, BigInteger> functor(Rationals::r, (NormalizeLambda) t -> {
         BigInteger ax = t.getVal(1);
         BigInteger ay = t.getVal(2);
         BigInteger gcd = ax.gcd(ay);
@@ -89,7 +86,7 @@ public final class Rationals {
     // Operators
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> compare = functor((SerializableTriFunction<RationalAtom, RationalAtom, IntAtom, Pred>) Rationals::compare, (LogicLambda) t -> {
+    private static Functor<Pred> compare = Logic.<Pred, RationalAtom, RationalAtom, IntAtom> functor(Rationals::compare, (LogicLambda) t -> {
         TermImpl<RationalAtom> at = t.getTerm(1);
         TermImpl<RationalAtom> bt = t.getTerm(2);
         TermImpl<IntAtom> ct = t.getTerm(3);
@@ -122,7 +119,7 @@ public final class Rationals {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> plusPred = functor((SerializableTriFunction<RationalAtom, RationalAtom, RationalAtom, Pred>) Rationals::plus, (LogicLambda) t -> {
+    private static Functor<Pred> plusPred = Logic.<Pred, RationalAtom, RationalAtom, RationalAtom> functor(Rationals::plus, (LogicLambda) t -> {
         TermImpl<RationalAtom> at = t.getTerm(1);
         TermImpl<RationalAtom> bt = t.getTerm(2);
         TermImpl<RationalAtom> ct = t.getTerm(3);
@@ -159,7 +156,7 @@ public final class Rationals {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> multiplyPred = functor((SerializableTriFunction<RationalAtom, RationalAtom, RationalAtom, Pred>) Rationals::multiply, (LogicLambda) t -> {
+    private static Functor<Pred> multiplyPred = Logic.<Pred, RationalAtom, RationalAtom, RationalAtom> functor(Rationals::multiply, (LogicLambda) t -> {
         TermImpl<RationalAtom> at = t.getTerm(1);
         TermImpl<RationalAtom> bt = t.getTerm(2);
         TermImpl<RationalAtom> ct = t.getTerm(3);
@@ -188,7 +185,7 @@ public final class Rationals {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> powerPred = functor((SerializableBiFunction<RationalAtom, RationalAtom, Pred>) Rationals::power, (LogicLambda) t -> {
+    private static Functor<Pred> powerPred = Logic.<Pred, RationalAtom, RationalAtom> functor(Rationals::power, (LogicLambda) t -> {
         TermImpl<RationalAtom> at = t.getTerm(1);
         TermImpl<RationalAtom> bt = t.getTerm(2);
         BigInteger ax = at != null ? at.getVal(1) : null;
@@ -239,37 +236,37 @@ public final class Rationals {
         return term(le, a, b);
     }
 
-    private static Functor<RationalFunc> plusFunc = functor((SerializableBiFunction<Rational, Rational, RationalFunc>) Rationals::plus);
+    private static Functor<RationalFunc> plusFunc = Logic.<RationalFunc, Rational, Rational> functor(Rationals::plus);
 
     public static RationalFunc plus(Rational a, Rational b) {
         return term(plusFunc, a, b);
     }
 
-    private static Functor<RationalFunc> minusFunc = functor((SerializableBiFunction<Rational, Rational, RationalFunc>) Rationals::minus);
+    private static Functor<RationalFunc> minusFunc = Logic.<RationalFunc, Rational, Rational> functor(Rationals::minus);
 
     public static RationalFunc minus(Rational a, Rational b) {
         return term(minusFunc, a, b);
     }
 
-    private static Functor<RationalFunc> multiplyFunc = functor((SerializableBiFunction<Rational, Rational, RationalFunc>) Rationals::multiply);
+    private static Functor<RationalFunc> multiplyFunc = Logic.<RationalFunc, Rational, Rational> functor(Rationals::multiply);
 
     public static RationalFunc multiply(Rational a, Rational b) {
         return term(multiplyFunc, a, b);
     }
 
-    private static Functor<RationalFunc> divideFunc = functor((SerializableBiFunction<Rational, Rational, RationalFunc>) Rationals::divide);
+    private static Functor<RationalFunc> divideFunc = Logic.<RationalFunc, Rational, Rational> functor(Rationals::divide);
 
     public static RationalFunc divide(Rational a, Rational b) {
         return term(divideFunc, a, b);
     }
 
-    private static Functor<RationalFunc> powerFunc = functor((SerializableFunction<Rational, RationalFunc>) Rationals::power);
+    private static Functor<RationalFunc> powerFunc = Logic.<RationalFunc, Rational> functor(Rationals::power);
 
     public static RationalFunc power(Rational a) {
         return term(powerFunc, a);
     }
 
-    private static Functor<RationalFunc> sqrtFunc = functor((SerializableFunction<Rational, RationalFunc>) Rationals::sqrt);
+    private static Functor<RationalFunc> sqrtFunc = Logic.<RationalFunc, Rational> functor(Rationals::sqrt);
 
     public static RationalFunc sqrt(Rational a) {
         return term(sqrtFunc, a);

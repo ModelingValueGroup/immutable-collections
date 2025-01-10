@@ -20,23 +20,18 @@
 
 package org.modelingvalue.logic;
 
-import static org.modelingvalue.logic.Logic.functImpl;
 import static org.modelingvalue.logic.Logic.term;
 
 import java.lang.reflect.Proxy;
 
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.util.SerializableBiFunction;
-import org.modelingvalue.collections.util.SerializableSupplier;
-import org.modelingvalue.collections.util.SerializableTriFunction;
 import org.modelingvalue.logic.Logic.FunctImpl;
 import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.LogicLambda;
 import org.modelingvalue.logic.Logic.Pred;
 import org.modelingvalue.logic.Logic.Term;
 import org.modelingvalue.logic.Logic.TermImpl;
-import org.modelingvalue.logic.Logic.Typed;
 
 public final class Lists {
 
@@ -45,11 +40,11 @@ public final class Lists {
 
     // Lists
 
-    public interface L<E extends Term> extends Typed<L<E>> {
+    public interface L<E extends Term> extends Term {
     }
 
     @SuppressWarnings("rawtypes")
-    private static final FunctImpl<L> LIST_FUNCTOR_0   = functImpl((SerializableSupplier<L>) Lists::l);
+    private static final FunctImpl<L> LIST_FUNCTOR_0   = Logic.<L> functImpl(Lists::l);
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static final ListImpl     EMPTY_LIST       = new ListImpl(LIST_FUNCTOR_0);
     @SuppressWarnings("rawtypes")
@@ -61,7 +56,7 @@ public final class Lists {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static final FunctImpl<L> LIST_FUNCTOR_2       = functImpl((SerializableBiFunction<Term, L, L>) Lists::l);
+    private static final FunctImpl<L> LIST_FUNCTOR_2       = Logic.<L, Term, L> functImpl(Lists::l);
     @SuppressWarnings("rawtypes")
     private static final Functor<L>   LIST_FUNCTOR_2_PROXY = LIST_FUNCTOR_2.proxy();
 
@@ -183,7 +178,7 @@ public final class Lists {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static final FunctImpl<Pred> ADD_FUNCTOR       = functImpl((SerializableTriFunction<Term, L, L, Pred>) Lists::add, (LogicLambda) t -> {
+    private static final FunctImpl<Pred> ADD_FUNCTOR       = Logic.<Pred, Term, L, L> functImpl(Lists::add, (LogicLambda) t -> {
                                                                TermImpl<Term> e = t.getTerm(1);
                                                                ListImpl<Term> i = t.getTerm(2);
                                                                ListImpl<Term> o = t.getTerm(3);

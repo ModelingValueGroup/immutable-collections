@@ -25,9 +25,6 @@ import static org.modelingvalue.logic.Logic.*;
 import java.math.BigInteger;
 
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.util.SerializableBiFunction;
-import org.modelingvalue.collections.util.SerializableFunction;
-import org.modelingvalue.collections.util.SerializableTriFunction;
 import org.modelingvalue.logic.Logic.*;
 
 public final class Integers {
@@ -35,7 +32,7 @@ public final class Integers {
     private Integers() {
     }
 
-    public interface Int extends Typed<Int> {
+    public interface Int extends Term {
     }
 
     public interface IntAtom extends Int, Atom<Int> {
@@ -44,7 +41,7 @@ public final class Integers {
     public interface IntFunc extends Int, Func<Int> {
     }
 
-    private static Functor<IntAtom> i = functor((SerializableFunction<BigInteger, IntAtom>) Integers::i);
+    private static Functor<IntAtom> i = Logic.<IntAtom, BigInteger> functor(Integers::i);
 
     public static IntAtom i(BigInteger x) {
         return term(i, x);
@@ -69,7 +66,7 @@ public final class Integers {
     // Operators
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> compare = functor((SerializableTriFunction<IntAtom, IntAtom, IntAtom, Pred>) Integers::compare, (LogicLambda) t -> {
+    private static Functor<Pred> compare = Logic.<Pred, IntAtom, IntAtom, IntAtom> functor(Integers::compare, (LogicLambda) t -> {
         TermImpl<IntAtom> at = t.getTerm(1);
         TermImpl<IntAtom> bt = t.getTerm(2);
         TermImpl<IntAtom> ct = t.getTerm(3);
@@ -98,7 +95,7 @@ public final class Integers {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> plusPred = functor((SerializableTriFunction<IntAtom, IntAtom, IntAtom, Pred>) Integers::plus, (LogicLambda) t -> {
+    private static Functor<Pred> plusPred = Logic.<Pred, IntAtom, IntAtom, IntAtom> functor(Integers::plus, (LogicLambda) t -> {
         TermImpl<IntAtom> at = t.getTerm(1);
         TermImpl<IntAtom> bt = t.getTerm(2);
         TermImpl<IntAtom> ct = t.getTerm(3);
@@ -123,7 +120,7 @@ public final class Integers {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> multiplyPred = functor((SerializableTriFunction<IntAtom, IntAtom, IntAtom, Pred>) Integers::multiply, (LogicLambda) t -> {
+    private static Functor<Pred> multiplyPred = Logic.<Pred, IntAtom, IntAtom, IntAtom> functor(Integers::multiply, (LogicLambda) t -> {
         TermImpl<IntAtom> at = t.getTerm(1);
         TermImpl<IntAtom> bt = t.getTerm(2);
         TermImpl<IntAtom> ct = t.getTerm(3);
@@ -148,7 +145,7 @@ public final class Integers {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> powerPred = functor((SerializableBiFunction<IntAtom, IntAtom, Pred>) Integers::power, (LogicLambda) t -> {
+    private static Functor<Pred> powerPred = Logic.<Pred, IntAtom, IntAtom> functor(Integers::power, (LogicLambda) t -> {
         TermImpl<IntAtom> at = t.getTerm(1);
         TermImpl<IntAtom> bt = t.getTerm(2);
         BigInteger ai = at != null ? at.getVal(1) : null;
@@ -195,37 +192,37 @@ public final class Integers {
         return term(le, a, b);
     }
 
-    private static Functor<IntFunc> plusFunc = functor((SerializableBiFunction<Int, Int, IntFunc>) Integers::plus);
+    private static Functor<IntFunc> plusFunc = Logic.<IntFunc, Int, Int> functor(Integers::plus);
 
     public static IntFunc plus(Int a, Int b) {
         return term(plusFunc, a, b);
     }
 
-    private static Functor<IntFunc> minusFunc = functor((SerializableBiFunction<Int, Int, IntFunc>) Integers::minus);
+    private static Functor<IntFunc> minusFunc = Logic.<IntFunc, Int, Int> functor(Integers::minus);
 
     public static IntFunc minus(Int a, Int b) {
         return term(minusFunc, a, b);
     }
 
-    private static Functor<IntFunc> multiplyFunc = functor((SerializableBiFunction<Int, Int, IntFunc>) Integers::multiply);
+    private static Functor<IntFunc> multiplyFunc = Logic.<IntFunc, Int, Int> functor(Integers::multiply);
 
     public static IntFunc multiply(Int a, Int b) {
         return term(multiplyFunc, a, b);
     }
 
-    private static Functor<IntFunc> divideFunc = functor((SerializableBiFunction<Int, Int, IntFunc>) Integers::divide);
+    private static Functor<IntFunc> divideFunc = Logic.<IntFunc, Int, Int> functor(Integers::divide);
 
     public static IntFunc divide(Int a, Int b) {
         return term(divideFunc, a, b);
     }
 
-    private static Functor<IntFunc> powerFunc = functor((SerializableFunction<Int, IntFunc>) Integers::power);
+    private static Functor<IntFunc> powerFunc = Logic.<IntFunc, Int> functor(Integers::power);
 
     public static IntFunc power(Int a) {
         return term(powerFunc, a);
     }
 
-    private static Functor<IntFunc> sqrtFunc = functor((SerializableFunction<Int, IntFunc>) Integers::sqrt);
+    private static Functor<IntFunc> sqrtFunc = Logic.<IntFunc, Int> functor(Integers::sqrt);
 
     public static IntFunc sqrt(Int a) {
         return term(sqrtFunc, a);

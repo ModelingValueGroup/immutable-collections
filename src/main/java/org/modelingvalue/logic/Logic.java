@@ -710,9 +710,6 @@ public final class Logic {
     public interface Term {
     }
 
-    public interface Typed<T extends Typed<T>> extends Term {
-    }
-
     public interface Pred extends Term {
     }
 
@@ -1233,7 +1230,7 @@ public final class Logic {
 
     // Collect
 
-    private static final FunctImpl<Pred> COLLECT_FUNCTOR       = functImpl((SerializableBiFunction<Pred, Pred, Pred>) Logic::collect);
+    private static final FunctImpl<Pred> COLLECT_FUNCTOR       = Logic.<Pred, Pred, Pred> functImpl(Logic::collect);
     private static final Functor<Pred>   COLLECT_FUNCTOR_PROXY = COLLECT_FUNCTOR.proxy();
 
     @SuppressWarnings("unchecked")
@@ -1388,7 +1385,7 @@ public final class Logic {
 
     // Yes
 
-    private static final FunctImpl<Pred> YES_FUNCTOR = functImpl((SerializableSupplier<Pred>) Logic::yes);
+    private static final FunctImpl<Pred> YES_FUNCTOR = Logic.<Pred> functImpl(Logic::yes);
     private static final YesImpl         YES         = new YesImpl();
     private static final Pred            YES_PROXY   = (Pred) Proxy.newProxyInstance(Pred.class.getClassLoader(), new Class[]{Pred.class}, YES);
 
@@ -1440,7 +1437,7 @@ public final class Logic {
 
     // No
 
-    private static final FunctImpl<Pred> NO_FUNCTOR = functImpl((SerializableSupplier<Pred>) Logic::no);
+    private static final FunctImpl<Pred> NO_FUNCTOR = Logic.<Pred> functImpl(Logic::no);
     private static final NoImpl          NO         = new NoImpl();
     private static final Pred            NO_PROXY   = (Pred) Proxy.newProxyInstance(Pred.class.getClassLoader(), new Class[]{Pred.class}, NO);
 
@@ -1492,7 +1489,7 @@ public final class Logic {
 
     // Not
 
-    private static final FunctImpl<Pred> NOT_FUNCTOR       = functImpl((SerializableFunction<Pred, Pred>) Logic::not);
+    private static final FunctImpl<Pred> NOT_FUNCTOR       = Logic.<Pred, Pred> functImpl(Logic::not);
     private static final Functor<Pred>   NOT_FUNCTOR_PROXY = NOT_FUNCTOR.proxy();
 
     @SuppressWarnings("unchecked")
@@ -1549,7 +1546,7 @@ public final class Logic {
 
     // Or
 
-    private static final FunctImpl<CompPred> OR_FUNCTOR = functImpl((SerializableBiFunction<Pred, Pred, CompPred>) Logic::or);
+    private static final FunctImpl<CompPred> OR_FUNCTOR = Logic.<CompPred, Pred, Pred> functImpl(Logic::or);
 
     private static CompPred or(Pred p1, Pred p2) {
         return new OrImpl(unproxy(p1), unproxy(p2)).proxy();
@@ -1650,7 +1647,7 @@ public final class Logic {
 
     // And
 
-    private static final FunctImpl<CompPred> AND_FUNCTOR = functImpl((SerializableBiFunction<Pred, Pred, CompPred>) Logic::and);
+    private static final FunctImpl<CompPred> AND_FUNCTOR = Logic.<CompPred, Pred, Pred> functImpl(Logic::and);
 
     private static CompPred and(Pred p1, Pred p2) {
         return new AndImpl(unproxy(p1), unproxy(p2)).proxy();
@@ -1772,10 +1769,11 @@ public final class Logic {
 
     // Rules
 
-    public interface Rule extends Typed<Rule> {
+    public interface Rule extends Term {
     }
 
-    private static final FunctImpl<Rule> RULE_FUNCTOR       = functImpl((SerializableBiFunction<AtomPred, Pred, Rule>) Logic::rule);
+    private static final FunctImpl<Rule> RULE_FUNCTOR       = Logic.<Rule, AtomPred, Pred> functImpl(Logic::rule);
+
     private static final Functor<Rule>   RULE_FUNCTOR_PROXY = RULE_FUNCTOR.proxy();
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -1864,7 +1862,7 @@ public final class Logic {
     }
 
     @SuppressWarnings("rawtypes")
-    private static final FunctImpl<Incomplete> INCOMPLETE_FUNCTOR       = functImpl((SerializableFunction<List<Term>, Incomplete>) Logic::incomplete);
+    private static final FunctImpl<Incomplete> INCOMPLETE_FUNCTOR       = Logic.<Incomplete, List<Term>> functImpl(Logic::incomplete);
     private static final Functor<Incomplete>   INCOMPLETE_FUNCTOR_PROXY = INCOMPLETE_FUNCTOR.proxy();
     private static final VarImpl<Incomplete>   INCOMPLETE_VAR           = new VarImpl<Incomplete>(Incomplete.class, "I");
     private static final Incomplete            INCOMPLETE_VAR_PROXY     = INCOMPLETE_VAR.proxy();
@@ -1907,8 +1905,11 @@ public final class Logic {
 
     // Equals
 
+    public interface Atom<T extends Term> extends Term {
+    }
+
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Pred> eq = functor((SerializableBiFunction<Typed, Typed, Pred>) Logic::eq, (LogicLambda) t -> {
+    private static Functor<Pred> eq = Logic.<Pred, Atom, Atom> functor(Logic::eq, (LogicLambda) t -> {
         TermImpl at = t.getTerm(1);
         TermImpl bt = t.getTerm(2);
         if (at == null && bt == null) {
@@ -1924,25 +1925,30 @@ public final class Logic {
     });
 
     @SuppressWarnings("rawtypes")
-    public static <T extends Typed<T>> Pred eq(Typed<T> a, Typed<T> b) {
+    public static <T extends Term> Pred eq(Atom<T> a, Atom<T> b) {
         return term(eq, a, b);
     }
 
     // Is
 
-    @SuppressWarnings("rawtypes")
-    private static final Functor<AtomPred> is = functor((SerializableBiFunction<Typed, Typed, AtomPred>) Logic::is);
+    public interface Func<T extends Term> extends Term {
+    }
 
-    public static <T extends Typed<T>> AtomPred is(Typed<T> a, Typed<T> b) {
+    @SuppressWarnings("rawtypes")
+    private static final Functor<AtomPred> is = Logic.<AtomPred, Term, Term> functor(Logic::is);
+
+    private static <T extends Term> AtomPred is(T a, T b) {
         return term(is, a, b);
     }
 
-    public interface Atom<T extends Typed<T>> extends Typed<T> {
-
+    // Use this one for function definitions
+    public static <T extends Term> AtomPred is(T a, Atom<T> b) {
+        return term(is, a, b);
     }
 
-    public interface Func<T extends Typed<T>> extends Typed<T> {
-
+    // Implied by the above using the generic rules here
+    public static <T extends Term> AtomPred is(Atom<T> a, T b) {
+        return term(is, a, b);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -1952,7 +1958,7 @@ public final class Logic {
         Func F1 = var(Func.class, "F1");
         Func F2 = var(Func.class, "F2");
 
-        rule(is(A1, A2), eq(A1, A2));
+        rule(is((Term) A1, (Term) A2), eq(A1, A2));
         rule(is(F1, F2), and(is(F2, A2), is(F1, A2)));
         rule(is(A1, F1), is(F1, A1));
     }
