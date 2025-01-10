@@ -20,7 +20,7 @@
 
 package org.modelingvalue.logic;
 
-import static org.modelingvalue.logic.Logic.term;
+import static org.modelingvalue.logic.Logic.pred;
 
 import java.lang.reflect.Proxy;
 
@@ -156,6 +156,12 @@ public final class Lists {
         public ListImpl<E> set(int i, Object... a) {
             return (ListImpl<E>) super.set(i, a);
         }
+
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        @Override
+        public Class<L<E>> type() {
+            return (Class) L.class;
+        }
     }
 
     // Add
@@ -203,7 +209,7 @@ public final class Lists {
     private static final Functor<Pred>   ADD_FUNCTOR_PROXY = ADD_FUNCTOR.proxy();
 
     public static <E extends Term> Pred add(E e, L<E> i, L<E> o) {
-        return term(ADD_FUNCTOR_PROXY, e, i, o);
+        return pred(ADD_FUNCTOR_PROXY, e, i, o);
     }
 
 }

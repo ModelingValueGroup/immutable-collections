@@ -62,7 +62,7 @@ public final class Logic {
 
     @SuppressWarnings("rawtypes")
     @FunctionalInterface
-    public interface LogicLambda extends Function<TermImpl<Term>, Set<TermImpl<Term>>>, LambdaReflection, FunctorModifier {
+    public interface LogicLambda extends Function<PredImpl, Set<? extends TermImpl>>, LambdaReflection, FunctorModifier {
 
         @Override
         default LogicLambdaImpl of() {
@@ -78,7 +78,7 @@ public final class Logic {
 
             @SuppressWarnings("unchecked")
             @Override
-            public final Set<TermImpl<Term>> apply(TermImpl t) {
+            public final Set<? extends TermImpl> apply(PredImpl t) {
                 return f.apply(t);
             }
 
@@ -139,7 +139,7 @@ public final class Logic {
     private static final Context<Database>                                    DATABASE            = Context.of();
 
     @SuppressWarnings("rawtypes")
-    private static final BiFunction<Set<TermImpl>, TermImpl, Set<TermImpl>>   ADD_FACT            = (s, e) -> s == null ? Set.of(e) : s.add(e);
+    private static final BiFunction<Set<PredImpl>, PredImpl, Set<PredImpl>>   ADD_FACT            = (s, e) -> s == null ? Set.of(e) : s.add(e);
     @SuppressWarnings("unchecked")
     private static final BiFunction<List<RuleImpl>, RuleImpl, List<RuleImpl>> ADD_RULE            = (l, e) -> {
                                                                                                       if (l == null) {
@@ -225,23 +225,23 @@ public final class Logic {
     }
 
     @SuppressWarnings("rawtypes")
-    private static final QualifiedSet<TermImpl, Memoiz> EMPTY_MEMOIZ = QualifiedSet.of(Memoiz::term);
+    private static final QualifiedSet<PredImpl, Memoiz> EMPTY_MEMOIZ = QualifiedSet.of(Memoiz::term);
 
     @SuppressWarnings("rawtypes")
-    private static class Memoiz extends Struct2Impl<TermImpl, Set<TermImpl>> {
+    private static class Memoiz extends Struct2Impl<PredImpl, Set<PredImpl>> {
         private static final long serialVersionUID = 1531759272582548244L;
 
         private int               count            = INITIAL_USAGE_COUNT;
 
-        private Memoiz(TermImpl t, Set<TermImpl> s) {
+        private Memoiz(PredImpl t, Set<PredImpl> s) {
             super(t, s);
         }
 
-        private TermImpl term() {
+        private PredImpl term() {
             return get0();
         }
 
-        private Set<TermImpl> set() {
+        private Set<PredImpl> set() {
             return get1();
         }
 
@@ -252,9 +252,9 @@ public final class Logic {
 
     @SuppressWarnings("rawtypes")
     public static final class Database {
-        private final AtomicReference<Map<TermImpl, Set<TermImpl>>>     facts;
-        private final AtomicReference<Map<TermImpl, List<RuleImpl>>>    rules;
-        private final AtomicReference<QualifiedSet<TermImpl, Memoiz>[]> memoiz;
+        private final AtomicReference<Map<PredImpl, Set<PredImpl>>>     facts;
+        private final AtomicReference<Map<PredImpl, List<RuleImpl>>>    rules;
+        private final AtomicReference<QualifiedSet<PredImpl, Memoiz>[]> memoiz;
 
         private boolean                                                 stopped;
 
@@ -282,7 +282,7 @@ public final class Logic {
         }
 
         protected void cleanup() {
-            QualifiedSet<TermImpl, Memoiz>[] mem = memoiz.get();
+            QualifiedSet<PredImpl, Memoiz>[] mem = memoiz.get();
             while (mem[2].size() > MAX_LOGIC_MEMOIZ) {
                 for (int i = 0; i < mem[2].size(); i++) {
                     if (stopped) {
@@ -302,9 +302,30 @@ public final class Logic {
         }
     }
 
-    // Clauses
+    // Terms
 
-    private static abstract class ClauseImpl<F extends Term> extends StructImpl implements InvocationHandler, Comparable<ClauseImpl<F>> {
+    public interface Term {
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static final Object proxy(Object object) {
+        if (object instanceof TermImpl) {
+            return ((TermImpl) object).proxy();
+        } else {
+            return object;
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <F extends Term> F term(Functor<F> functor, Object... args) {
+        return new TermImpl<F>(functor, args).normal().proxy();
+    }
+
+    private static <F extends Term> TermImpl<F> termImpl(FunctImpl<F> functor, Object... args) {
+        return new TermImpl<F>(functor, args).normal();
+    }
+
+    public static class TermImpl<F extends Term> extends StructImpl implements InvocationHandler, Comparable<TermImpl<F>> {
         private static final long   serialVersionUID = 7315776001191198132L;
 
         private static final Method EQUALS;
@@ -344,22 +365,22 @@ public final class Logic {
 
         private final int hashCode;
 
-        protected ClauseImpl(Functor<F> functor, Object... args) {
+        protected TermImpl(Functor<F> functor, Object... args) {
             super(unproxy(functor, args));
             this.hashCode = getHashCode();
         }
 
-        protected ClauseImpl(FunctImpl<F> functor, Object... args) {
+        protected TermImpl(FunctImpl<F> functor, Object... args) {
             super(array(functor, args));
             this.hashCode = getHashCode();
         }
 
-        protected ClauseImpl(Class<F> type, Object... args) {
+        protected TermImpl(Class<F> type, Object... args) {
             super(array(type, args));
             this.hashCode = getHashCode();
         }
 
-        protected ClauseImpl(Object[] args) {
+        protected TermImpl(Object[] args) {
             super(args);
             this.hashCode = getHashCode();
         }
@@ -376,6 +397,15 @@ public final class Logic {
         @Override
         public int hashCode() {
             return hashCode;
+        }
+
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        @Override
+        public String toString() {
+            String string = super.toString();
+            string = string.substring(1, string.length() - 1);
+            int i = string.indexOf(',');
+            return i >= 0 ? string.substring(0, i) + "(" + string.substring(i + 1) + ")" : string + "()";
         }
 
         private static final Object[] array(Object functor, Object[] args) {
@@ -399,15 +429,26 @@ public final class Logic {
             return result;
         }
 
-        protected abstract F proxy();
+        @SuppressWarnings("unchecked")
+        protected F proxy() {
+            return (F) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{type()}, this);
+        }
 
-        protected abstract Class<F> type();
+        @SuppressWarnings("unchecked")
+        protected Class<F> type() {
+            Object t = get(0);
+            return t instanceof FunctImpl ? ((FunctImpl<F>) t).functType() : (Class<F>) t;
+        }
 
-        protected abstract ClauseImpl<F> term(Object[] array);
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        public FunctImpl<F> functor() {
+            Object t = get(0);
+            return t instanceof FunctImpl ? (FunctImpl<F>) t : null;
+        }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         @Override
-        public int compareTo(ClauseImpl<F> o) {
+        public int compareTo(TermImpl<F> o) {
             int r = length() - o.length();
             if (r != 0) {
                 return r;
@@ -432,7 +473,7 @@ public final class Logic {
             return r;
         }
 
-        protected ClauseImpl<F> eq(ClauseImpl<F> other) {
+        protected TermImpl<F> eq(TermImpl<F> other) {
             if (equals(other)) {
                 return this;
             } else if (length() != other.length()) {
@@ -457,12 +498,12 @@ public final class Logic {
         @SuppressWarnings({"rawtypes", "unchecked"})
         private static Object eq(Object tv, Object ov) {
             if (tv != ov) {
-                if (tv instanceof ClauseImpl && ov instanceof ClauseImpl) {
-                    return ((ClauseImpl) tv).eq((ClauseImpl) ov);
-                } else if (tv instanceof ClauseImpl && ov instanceof Class) {
-                    return ((Class) ov).isAssignableFrom(((ClauseImpl) tv).type()) ? tv : null;
-                } else if (tv instanceof Class && ov instanceof ClauseImpl) {
-                    return ((Class) tv).isAssignableFrom(((ClauseImpl) ov).type()) ? ov : null;
+                if (tv instanceof TermImpl && ov instanceof TermImpl) {
+                    return ((TermImpl) tv).eq((TermImpl) ov);
+                } else if (tv instanceof TermImpl && ov instanceof Class) {
+                    return ((Class) ov).isAssignableFrom(((TermImpl) tv).type()) ? tv : null;
+                } else if (tv instanceof Class && ov instanceof TermImpl) {
+                    return ((Class) tv).isAssignableFrom(((TermImpl) ov).type()) ? ov : null;
                 } else if (!(tv instanceof Class) && ov instanceof Class) {
                     return ((Class) ov).isAssignableFrom(tv.getClass()) ? tv : null;
                 } else if (tv instanceof Class && !(ov instanceof Class)) {
@@ -472,6 +513,200 @@ public final class Logic {
                 }
             }
             return tv;
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        protected Map<VarImpl, Object> variables() {
+            Map<VarImpl, Object> vars = Map.of();
+            for (int i = 1; i < length(); i++) {
+                Object v = get(i);
+                if (v instanceof VarImpl) {
+                    vars = vars.put((VarImpl) v, ((VarImpl) v).type());
+                } else if (v instanceof TermImpl) {
+                    vars = vars.putAll(((TermImpl) v).variables());
+                }
+            }
+            return vars;
+        }
+
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        public <V extends Term, T extends TermImpl<V>> T getTerm(int i) {
+            Object v = get(i);
+            return v instanceof TermImpl ? (T) v : null;
+        }
+
+        @SuppressWarnings("unchecked")
+        public <V> V getVal(int i) {
+            Object v = get(i);
+            return v instanceof Class || v instanceof TermImpl ? null : (V) v;
+        }
+
+        public TermImpl<F> set(int f, Object... a) {
+            Object[] array = null;
+            for (int i = 0; i < a.length; i++) {
+                Object v = get(i + f);
+                if (!Objects.equals(a[i], v)) {
+                    if (array == null) {
+                        array = toArray();
+                    }
+                    array[i + f] = a[i];
+                }
+            }
+            return array != null ? term(array) : this;
+        }
+
+        @SuppressWarnings("unchecked")
+        protected final TermImpl<F> normal() {
+            FunctImpl<F> f = functor();
+            NormalizeLambda n = f != null ? f.functNormal() : null;
+            return n != null ? (TermImpl<F>) n.apply((TermImpl<Term>) this) : this;
+        }
+
+        @SuppressWarnings("unchecked")
+        protected TermImpl<F> term(Object[] array) {
+            return new TermImpl<F>(array).normal();
+        }
+
+        @SuppressWarnings("rawtypes")
+        protected boolean equalFunctor(TermImpl other) {
+            return get(0).equals(other.get(0));
+        }
+
+        @SuppressWarnings("rawtypes")
+        protected boolean isIncomplete(TermImpl other) {
+            return other.isIncomplete() && ((List) other.get(1)).last().equals(this);
+        }
+
+        @SuppressWarnings("rawtypes")
+        protected boolean isToDepthIcomplete() {
+            return isIncomplete() && ((List) get(1)).size() >= MAX_LOGIC_DEPTH;
+        }
+
+        protected boolean isIncomplete() {
+            return INCOMPLETE_FUNCTOR.equals(functor());
+        }
+
+        @SuppressWarnings("rawtypes")
+        protected Map<VarImpl, Object> getBinding(TermImpl<F> term, Map<VarImpl, Object> vars) {
+            if (get(0).equals(term.get(0))) {
+                for (int i = 1; i < length(); i++) {
+                    vars = getBinding(get(i), term.get(i), vars);
+                    if (vars == null) {
+                        return null;
+                    }
+                }
+                return vars;
+            } else {
+                return null;
+            }
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        private static Map<VarImpl, Object> getBinding(Object v, Object tv, Map<VarImpl, Object> vars) {
+            Class tt = typeOf(tv);
+            tv = tv instanceof Class ? null : tv;
+            if (v instanceof VarImpl) {
+                VarImpl var = (VarImpl) v;
+                Object vv = vars.get(var);
+                Class vt = typeOf(vv);
+                vv = vv instanceof Class ? null : vv;
+                if (vv != null) {
+                    if (tv != null && !tv.equals(vv)) {
+                        return null;
+                    }
+                } else if (tv != null) {
+                    if (var.type().isAssignableFrom(tt)) {
+                        vars = vars.put(var, tv);
+                    } else {
+                        return null;
+                    }
+                } else if (tt == null || !var.type().isAssignableFrom(tt)) {
+                    return null;
+                } else if (vt != null && !vt.equals(tt)) {
+                    return null;
+                } else {
+                    vars = vars.put(var, tt);
+                }
+            } else if (v instanceof TermImpl) {
+                TermImpl t = (TermImpl) v;
+                if (tv != null) {
+                    if (tv instanceof TermImpl) {
+                        vars = t.getBinding((TermImpl) tv, vars);
+                    } else {
+                        return null;
+                    }
+                } else if (tt == null || !t.type().isAssignableFrom(tt)) {
+                    return null;
+                }
+            } else if (tv != null && !tv.equals(v)) {
+                return null;
+            }
+            return vars;
+        }
+
+        @SuppressWarnings("rawtypes")
+        public static Class typeOf(Object v) {
+            return v instanceof TermImpl ? ((TermImpl) v).type() : v instanceof Class ? (Class) v : null;
+        }
+
+        @SuppressWarnings("rawtypes")
+        protected TermImpl setBinding(TermImpl<F> term, Map<VarImpl, Object> vars) {
+            Object[] array = null;
+            for (int i = 1; i < term.length(); i++) {
+                Object tv = term.get(i);
+                Object b = setBinding(get(i), tv, vars);
+                if (!Objects.equals(b, tv)) {
+                    if (array == null) {
+                        array = term.toArray();
+                    }
+                    array[i] = b;
+                }
+            }
+            return array != null ? term.term(array) : term;
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        private static Object setBinding(Object v, Object tv, Map<VarImpl, Object> vars) {
+            if (v instanceof VarImpl) {
+                Object vv = vars.get((VarImpl) v);
+                if (vv != null) {
+                    return vv;
+                }
+            } else if (v instanceof TermImpl) {
+                if (tv instanceof TermImpl) {
+                    return ((TermImpl) v).setBinding((TermImpl) tv, vars);
+                } else if (tv instanceof Class && ((Class) tv).isAssignableFrom((((TermImpl) v).type()))) {
+                    return ((TermImpl) v).setBinding((TermImpl) v, vars);
+                }
+            }
+            return tv;
+        }
+
+        @SuppressWarnings("rawtypes")
+        protected int nrOfNulls() {
+            int nr = 0;
+            for (int i = 1; i < length(); i++) {
+                Object v = get(i);
+                if (v == null || v instanceof Class) {
+                    nr++;
+                } else if (v instanceof TermImpl) {
+                    nr += ((TermImpl) v).nrOfNulls();
+                }
+            }
+            return nr;
+        }
+
+        @SuppressWarnings("rawtypes")
+        protected int totalLength() {
+            int nr = 0;
+            for (int i = 1; i < length(); i++) {
+                Object v = get(i);
+                if (v instanceof TermImpl) {
+                    nr += ((TermImpl) v).totalLength();
+                }
+                nr++;
+            }
+            return nr;
         }
     }
 
@@ -497,7 +732,7 @@ public final class Logic {
     }
 
     @SuppressWarnings("unchecked")
-    protected static final <T extends Term, R extends ClauseImpl<T>> R unproxy(T object) {
+    protected static final <T extends Term, R extends TermImpl<T>> R unproxy(T object) {
         return (R) Proxy.getInvocationHandler(object);
     }
 
@@ -561,7 +796,7 @@ public final class Logic {
         return functImpl(method, modifiers).proxy();
     }
 
-    public static final class FunctImpl<T extends Term> extends ClauseImpl<Functor<T>> {
+    public static final class FunctImpl<T extends Term> extends TermImpl<Functor<T>> {
         private static final long     serialVersionUID = 285147889847599160L;
 
         private final LogicLambda     logic;
@@ -634,10 +869,10 @@ public final class Logic {
             return new FunctImpl<T>(array);
         }
 
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"unchecked", "rawtypes"})
         @Override
         protected Class<Functor<T>> type() {
-            return (Class<Functor<T>>) get(0);
+            return (Class) Functor.class;
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
@@ -649,7 +884,7 @@ public final class Logic {
             return logic;
         }
 
-        protected NormalizeLambda normal() {
+        protected NormalizeLambda functNormal() {
             return normal;
         }
 
@@ -669,7 +904,7 @@ public final class Logic {
         return new VarImpl<F>(type, id).proxy();
     }
 
-    private static final class VarImpl<F extends Term> extends ClauseImpl<F> {
+    private static final class VarImpl<F extends Term> extends TermImpl<F> {
         private static final long serialVersionUID = -8998368070388908726L;
 
         private VarImpl(Class<F> type, String name) {
@@ -705,10 +940,7 @@ public final class Logic {
         }
     }
 
-    // Terms
-
-    public interface Term {
-    }
+    // Predicates
 
     public interface Pred extends Term {
     }
@@ -730,94 +962,49 @@ public final class Logic {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static Set<Map<Variable, Object>> getBindings(Pred pred) {
-        TermImpl<Pred> impl = Logic.<Pred, TermImpl<Pred>> unproxy(pred);
-        Set<TermImpl> match = match(impl);
+        PredImpl impl = Logic.<Pred, PredImpl> unproxy(pred);
+        Set<? extends TermImpl> match = match(impl);
         Set<Map<VarImpl, Object>> bindings = match.replaceAll(m -> m.isIncomplete() ? Map.of(Entry.of(INCOMPLETE_VAR, m)) : impl.getBinding(m, Map.of()));
         return bindings.replaceAll(m -> m.replaceAll(e -> Entry.of((Variable) e.getKey().proxy(), proxy(e.getValue()))));
     }
 
-    @SuppressWarnings("rawtypes")
-    private static final Object proxy(Object object) {
-        if (object instanceof ClauseImpl) {
-            return ((ClauseImpl) object).proxy();
-        } else {
-            return object;
-        }
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static Set<? extends TermImpl> match(Pred pred) {
+        return match(Logic.<Pred, PredImpl> unproxy(pred));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Set<TermImpl> match(Pred pred) {
-        return match(Logic.<Pred, TermImpl<Pred>> unproxy(pred));
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Set<TermImpl> match(TermImpl<Pred> impl) {
+    private static Set<? extends TermImpl> match(PredImpl impl) {
         return impl.setBinding(impl, impl.variables()).match(impl, List.of(), Map.of(), DATABASE.get());
     }
 
     @SuppressWarnings("unchecked")
-    public static <F extends Term> F term(Functor<F> functor, Object... args) {
-        return new TermImpl<F>(functor, args).normal().proxy();
+    public static <P extends Pred> P pred(Functor<P> functor, Object... args) {
+        return (P) new PredImpl((Functor<Pred>) functor, args).proxy();
     }
 
-    private static <F extends Term> TermImpl<F> termImpl(FunctImpl<F> functor, Object... args) {
-        return new TermImpl<F>(functor, args).normal();
-    }
-
-    public static class TermImpl<F extends Term> extends ClauseImpl<F> {
+    public static class PredImpl extends TermImpl<Pred> {
         private static final long serialVersionUID = -1605559565948158856L;
 
-        protected TermImpl(Functor<F> functor, Object... args) {
+        protected PredImpl(Functor<Pred> functor, Object... args) {
             super(functor, args);
         }
 
-        protected TermImpl(FunctImpl<F> functor, Object... args) {
+        protected PredImpl(FunctImpl<Pred> functor, Object... args) {
             super(functor, args);
         }
 
-        protected TermImpl(Object[] args) {
+        protected PredImpl(Object[] args) {
             super(args);
         }
 
         @Override
         @SuppressWarnings("unchecked")
-        protected F proxy() {
-            return (F) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{type()}, this);
+        protected PredImpl term(Object[] array) {
+            return new PredImpl(array);
         }
 
-        @SuppressWarnings("unchecked")
-        protected final TermImpl<F> normal() {
-            NormalizeLambda n = functor().normal();
-            return n != null ? (TermImpl<F>) n.apply((TermImpl<Term>) this) : this;
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        protected TermImpl<F> term(Object[] array) {
-            return new TermImpl<F>(array).normal();
-        }
-
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        @Override
-        public String toString() {
-            String string = super.toString();
-            string = string.substring(1, string.length() - 1);
-            int i = string.indexOf(',');
-            return i >= 0 ? string.substring(0, i) + "(" + string.substring(i + 1) + ")" : string + "()";
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public Class<F> type() {
-            return functor().functType();
-        }
-
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        public FunctImpl<F> functor() {
-            return (FunctImpl<F>) get(0);
-        }
-
-        @SuppressWarnings("rawtypes")
+        @SuppressWarnings({"rawtypes", "unchecked"})
         protected final void makeFact(Database database) {
             if (functor().logic() != null) {
                 throw new IllegalArgumentException("No facts of a functor with a logic lambda allowed. " + this);
@@ -836,7 +1023,7 @@ public final class Logic {
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
-        private Map<TermImpl, Set<TermImpl>> addFact(Map<TermImpl, Set<TermImpl>> m, TermImpl<F> term, int i, Class a) {
+        private Map<PredImpl, Set<PredImpl>> addFact(Map<PredImpl, Set<PredImpl>> m, PredImpl term, int i, Class a) {
             Class t = term.getType(i);
             if (a.isAssignableFrom(t)) {
                 m = m.put(term, ADD_FACT.apply(m.get(term), this));
@@ -854,85 +1041,28 @@ public final class Logic {
             return m;
         }
 
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        protected Map<VarImpl, Object> variables() {
-            Map<VarImpl, Object> vars = Map.of();
-            for (int i = 1; i < length(); i++) {
-                Object v = get(i);
-                if (v instanceof VarImpl) {
-                    vars = vars.put((VarImpl) v, ((VarImpl) v).type());
-                } else if (v instanceof TermImpl) {
-                    vars = vars.putAll(((TermImpl) v).variables());
-                }
-            }
-            return vars;
-        }
-
         @SuppressWarnings("rawtypes")
-        protected Map<VarImpl, Object> getBinding(TermImpl<F> term, Map<VarImpl, Object> vars) {
-            if (get(0).equals(term.get(0))) {
-                for (int i = 1; i < length(); i++) {
-                    vars = getBinding(get(i), term.get(i), vars);
-                    if (vars == null) {
-                        return null;
-                    }
-                }
-                return vars;
-            } else {
-                return null;
+        protected PredImpl getPred(int[] ii) {
+            PredImpl r = this;
+            for (int i = 0; i < ii.length; i++) {
+                r = (PredImpl) r.get(ii[i]);
             }
+            return r;
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
-        private static Map<VarImpl, Object> getBinding(Object v, Object tv, Map<VarImpl, Object> vars) {
-            Class tt = typeOf(tv);
-            tv = tv instanceof Class ? null : tv;
-            if (v instanceof VarImpl) {
-                VarImpl var = (VarImpl) v;
-                Object vv = vars.get(var);
-                Class vt = typeOf(vv);
-                vv = vv instanceof Class ? null : vv;
-                if (vv != null) {
-                    if (tv != null && !tv.equals(vv)) {
-                        return null;
-                    }
-                } else if (tv != null) {
-                    if (var.type().isAssignableFrom(tt)) {
-                        vars = vars.put(var, tv);
-                    } else {
-                        return null;
-                    }
-                } else if (tt == null || !var.type().isAssignableFrom(tt)) {
-                    return null;
-                } else if (vt != null && !vt.equals(tt)) {
-                    return null;
-                } else {
-                    vars = vars.put(var, tt);
-                }
-            } else if (v instanceof TermImpl) {
-                TermImpl t = (TermImpl) v;
-                if (tv != null) {
-                    if (tv instanceof TermImpl) {
-                        vars = t.getBinding((TermImpl) tv, vars);
-                    } else {
-                        return null;
-                    }
-                } else if (tt == null || !t.type().isAssignableFrom(tt)) {
-                    return null;
-                }
-            } else if (tv != null && !tv.equals(v)) {
-                return null;
-            }
-            return vars;
+        public Set<TermImpl<Term>> incomplete() {
+            return Set.of(Logic.incompleteImpl(List.of(this)));
         }
 
         @SuppressWarnings("rawtypes")
-        private static Class typeOf(Object v) {
-            return v instanceof ClauseImpl ? ((ClauseImpl) v).type() : v instanceof Class ? (Class) v : null;
+        @Override
+        protected PredImpl setBinding(TermImpl<Pred> pred, Map<VarImpl, Object> vars) {
+            return (PredImpl) super.setBinding(pred, vars);
         }
 
         @SuppressWarnings("rawtypes")
-        private final TermImpl signature() {
+        private final PredImpl signature() {
             Object[] array = null;
             for (int i = 1; i < length(); i++) {
                 Object v = get(i);
@@ -948,57 +1078,18 @@ public final class Logic {
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
-        private Map<TermImpl, List<RuleImpl>> addRule(RuleImpl ruleImpl, Map<TermImpl, List<RuleImpl>> rules, Map<Class, Set<Class>> specs) {
+        private Map<PredImpl, List<RuleImpl>> addRule(RuleImpl ruleImpl, Map<PredImpl, List<RuleImpl>> rules, Map<Class, Set<Class>> specs) {
             rules = rules.put(this, ADD_RULE.apply(rules.get(this), ruleImpl));
             for (int i = 1; i < length(); i++) {
                 Object v = get(i);
                 if (v instanceof Class) {
                     for (Class g : specs.get((Class) v)) {
-                        TermImpl gt = set(i, g);
-                        rules = gt.addRule(ruleImpl, rules, specs);
+                        PredImpl p = set(i, g);
+                        rules = p.addRule(ruleImpl, rules, specs);
                     }
                 }
             }
             return rules;
-        }
-
-        @SuppressWarnings("rawtypes")
-        protected TermImpl setBinding(TermImpl<F> term, Map<VarImpl, Object> vars) {
-            Object[] array = null;
-            for (int i = 1; i < term.length(); i++) {
-                Object tv = term.get(i);
-                Object b = setBinding(get(i), tv, vars);
-                if (!Objects.equals(b, tv)) {
-                    if (array == null) {
-                        array = term.toArray();
-                    }
-                    array[i] = b;
-                }
-            }
-            return array != null ? term.term(array) : term;
-        }
-
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        private static Object setBinding(Object v, Object tv, Map<VarImpl, Object> vars) {
-            if (v instanceof VarImpl) {
-                Object vv = vars.get((VarImpl) v);
-                if (vv != null) {
-                    return vv;
-                }
-            } else if (v instanceof TermImpl) {
-                if (tv instanceof TermImpl) {
-                    return ((TermImpl) v).setBinding((TermImpl) tv, vars);
-                } else if (tv instanceof Class && ((Class) tv).isAssignableFrom((((TermImpl) v).type()))) {
-                    return ((TermImpl) v).setBinding((TermImpl) v, vars);
-                }
-            }
-            return tv;
-        }
-
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        public <V extends Term, T extends TermImpl<V>> T getTerm(int i) {
-            Object v = get(i);
-            return v instanceof TermImpl ? (T) v : null;
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
@@ -1007,63 +1098,29 @@ public final class Logic {
             return v instanceof Class ? (Class) v : v instanceof TermImpl ? ((TermImpl) v).type() : null;
         }
 
-        @SuppressWarnings("unchecked")
-        public <V> V getVal(int i) {
-            Object v = get(i);
-            return v instanceof Class || v instanceof TermImpl ? null : (V) v;
-        }
-
-        public TermImpl<F> set(int f, Object... a) {
-            Object[] array = null;
-            for (int i = 0; i < a.length; i++) {
-                Object v = get(i + f);
-                if (!Objects.equals(a[i], v)) {
-                    if (array == null) {
-                        array = toArray();
-                    }
-                    array[i + f] = a[i];
-                }
-            }
-            return array != null ? term(array) : this;
-        }
-
-        @SuppressWarnings("rawtypes")
-        protected TermImpl get(int[] ii) {
-            TermImpl r = this;
-            for (int i = 0; i < ii.length; i++) {
-                r = (TermImpl) r.get(ii[i]);
-            }
-            return r;
-        }
-
         @SuppressWarnings({"rawtypes", "unchecked"})
-        public Set<TermImpl<Term>> incomplete() {
-            return Set.of(Logic.incompleteImpl(List.of(this)));
-        }
-
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        protected Set<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
-            FunctImpl<F> functor = functor();
+        protected Set<? extends TermImpl> match(PredImpl goal, List<PredImpl> der, Map<PredImpl, Set<PredImpl>> rec, Database database) {
+            FunctImpl<Pred> functor = functor();
             LogicLambda logic = functor.logic();
             if (logic != null) {
-                return logic.apply((TermImpl) this);
+                return logic.apply((PredImpl) this);
             }
             int non = nrOfNulls();
             if (non > 1 || non >= totalLength()) {
                 return Set.of(Logic.incompleteImpl(der.append(this)));
             }
-            Set<TermImpl> facts = database.facts.get().get(this);
+            Set<PredImpl> facts = database.facts.get().get(this);
             if (facts != null) {
                 return facts;
             }
-            TermImpl signature = signature();
+            PredImpl signature = signature();
             List<RuleImpl> rules = database.rules.get().get(signature);
             if (rules != null) {
-                Set<TermImpl> r = rec.get(this);
+                Set<PredImpl> r = rec.get(this);
                 if (r != null) {
                     return r;
                 }
-                for (QualifiedSet<TermImpl, Memoiz> m : database.memoiz.get()) {
+                for (QualifiedSet<PredImpl, Memoiz> m : database.memoiz.get()) {
                     Memoiz memoiz = m.get(this);
                     if (memoiz != null) {
                         memoiz.count++;
@@ -1077,23 +1134,23 @@ public final class Logic {
                 if (der.size() >= MAX_LOGIC_DEPTH) {
                     return Set.of(Logic.incompleteImpl(der.append(this)));
                 }
-                Set<TermImpl> set = fixpoint(rules, non, der.append(this), rec, database);
+                Set<? extends TermImpl> set = fixpoint(rules, non, der.append(this), rec, database);
                 if (der.size() >= MAX_LOGIC_DEPTH_D2) {
-                    Optional<TermImpl> ic = set.findAny(TermImpl::isToDepthIcomplete);
+                    Optional<? extends TermImpl> ic = set.findAny(TermImpl::isToDepthIcomplete);
                     if (ic.isPresent()) {
                         if (der.size() == MAX_LOGIC_DEPTH_D2) {
-                            List<TermImpl> list = (List) ic.get().get(1);
-                            List<TermImpl> todo = list.sublist(der.size(), list.size());
+                            List<PredImpl> list = (List) ic.get().get(1);
+                            List<PredImpl> todo = list.sublist(der.size(), list.size());
                             while (todo.size() > 0) {
-                                TermImpl t = todo.last();
-                                FunctImpl tf = t.functor();
-                                set = t.fixpoint(database.rules.get().get(t.signature()), t.nrOfNulls(), der.append(t), rec, database);
+                                PredImpl p = todo.last();
+                                FunctImpl<Pred> pf = p.functor();
+                                set = p.fixpoint(database.rules.get().get(p.signature()), p.nrOfNulls(), der.append(p), rec, database);
                                 ic = set.findAny(TermImpl::isToDepthIcomplete);
                                 if (ic.isPresent()) {
                                     list = (List) ic.get().get(1);
                                     todo = todo.appendList(list.sublist(der.size(), list.size()));
                                 } else {
-                                    t.memoization(tf, set, database);
+                                    p.memoization(pf, set, database);
                                     todo = todo.removeLast();
                                 }
                             }
@@ -1107,54 +1164,59 @@ public final class Logic {
             return Set.of();
         }
 
-        @SuppressWarnings("rawtypes")
-        private Set<TermImpl> fixpoint(List<RuleImpl> rules, int non, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
-            Set<TermImpl> set = Set.of(), add = Set.of();
-            boolean found = false, incomplete = false;
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        private Set<TermImpl> fixpoint(List<RuleImpl> rules, int non, List<PredImpl> der, Map<PredImpl, Set<PredImpl>> rec, Database database) {
+            Set<TermImpl> result = Set.of(), added = Set.of();
+            Set<PredImpl> found = Set.of();
+            boolean incomplete = false;
             do {
-                add = evalRules(rules, non, der, add.isEmpty() ? rec : rec.put(this, add), database).removeAll(set);
-                found = add.anyMatch(this::equalFunctor);
-                incomplete |= add.anyMatch(this::isIncomplete);
-                if (incomplete && found && set.isEmpty()) {
-                    add = add.retainAll(this::equalFunctor);
+                added = evalRules(rules, non, der, found.isEmpty() ? rec : rec.put(this, found), database).removeAll(result);
+                found = (Set) added.retainAll(this::equalFunctor);
+                incomplete |= added.anyMatch(this::isIncomplete);
+                if (incomplete && result.isEmpty() && !found.isEmpty()) {
+                    result = result.addAll(found);
+                } else {
+                    result = result.addAll(added);
                 }
-                set = set.addAll(add);
-            } while (found && incomplete);
-            return set;
+            } while (incomplete && !found.isEmpty());
+            return result;
         }
 
-        @SuppressWarnings("rawtypes")
-        private void memoization(FunctImpl<F> functor, Set<TermImpl> set, Database database) {
-            if (functor.factual) {
-                database.facts.updateAndGet(m -> {
-                    m = m.put(this, set);
-                    for (TermImpl e : set) {
-                        m = m.put(e, Set.of(e));
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        private void memoization(FunctImpl<Pred> functor, Set<? extends TermImpl> all, Database database) {
+            if (all.noneMatch(TermImpl::isIncomplete)) {
+                Set<PredImpl> set = (Set) all;
+                if (functor.factual) {
+                    database.facts.updateAndGet(m -> {
+                        m = m.put(this, set);
+                        for (PredImpl e : set) {
+                            m = m.put(e, Set.of(e));
+                        }
+                        return m;
+                    });
+                } else if (!functor.derived) {
+                    QualifiedSet<PredImpl, Memoiz>[] mem = database.memoiz.updateAndGet(a -> {
+                        a = a.clone();
+                        if (a[0].size() >= MAX_LOGIC_MEMOIZ_D4) {
+                            a[2] = a[2].putAll(a[1]);
+                            a[1] = a[0];
+                            a[0] = EMPTY_MEMOIZ;
+                        }
+                        a[0] = a[0].put(new Memoiz(this, set));
+                        for (PredImpl e : set) {
+                            a[0] = a[0].put(new Memoiz(e, Set.of(e)));
+                        }
+                        return a;
+                    });
+                    if (mem[2].size() > MAX_LOGIC_MEMOIZ && mem[0].size() == set.size() + 1) {
+                        LOGIC_POOL.execute(database::cleanup);
                     }
-                    return m;
-                });
-            } else if (!functor.derived) {
-                QualifiedSet<TermImpl, Memoiz>[] mem = database.memoiz.updateAndGet(a -> {
-                    a = a.clone();
-                    if (a[0].size() >= MAX_LOGIC_MEMOIZ_D4) {
-                        a[2] = a[2].putAll(a[1]);
-                        a[1] = a[0];
-                        a[0] = EMPTY_MEMOIZ;
-                    }
-                    a[0] = a[0].put(new Memoiz(this, set));
-                    for (TermImpl e : set) {
-                        a[0] = a[0].put(new Memoiz(e, Set.of(e)));
-                    }
-                    return a;
-                });
-                if (mem[2].size() > MAX_LOGIC_MEMOIZ && mem[0].size() == set.size() + 1) {
-                    LOGIC_POOL.execute(database::cleanup);
                 }
             }
         }
 
         @SuppressWarnings("rawtypes")
-        private Set<TermImpl> evalRules(List<RuleImpl> rules, int non, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
+        private Set<TermImpl> evalRules(List<RuleImpl> rules, int non, List<PredImpl> der, Map<PredImpl, Set<PredImpl>> rec, Database database) {
             Set<TermImpl> r = Set.of();
             for (RuleImpl rule : rules) {
                 Set<TermImpl> eval = rule.eval(this, der, rec, database);
@@ -1167,61 +1229,21 @@ public final class Logic {
             return r;
         }
 
-        @SuppressWarnings("rawtypes")
-        protected int nrOfNulls() {
-            int nr = 0;
-            for (int i = 1; i < length(); i++) {
-                Object v = get(i);
-                if (v == null || v instanceof Class) {
-                    nr++;
-                } else if (v instanceof TermImpl) {
-                    nr += ((TermImpl) v).nrOfNulls();
-                }
-            }
-            return nr;
-        }
-
-        @SuppressWarnings("rawtypes")
-        protected int totalLength() {
-            int nr = 0;
-            for (int i = 1; i < length(); i++) {
-                Object v = get(i);
-                if (v instanceof TermImpl) {
-                    nr += ((TermImpl) v).totalLength();
-                }
-                nr++;
-            }
-            return nr;
-        }
-
-        @SuppressWarnings("rawtypes")
-        protected boolean equalFunctor(TermImpl other) {
-            return functor().equals(other.functor());
-        }
-
-        @SuppressWarnings("rawtypes")
-        protected boolean isIncomplete(TermImpl other) {
-            return other.isIncomplete() && ((List) other.get(1)).last().equals(this);
-        }
-
-        @SuppressWarnings("rawtypes")
-        protected boolean isToDepthIcomplete() {
-            return isIncomplete() && ((List) get(1)).size() >= MAX_LOGIC_DEPTH;
-        }
-
-        protected boolean isIncomplete() {
-            return INCOMPLETE_FUNCTOR.equals(functor());
-        }
-
         @Override
         @SuppressWarnings({"rawtypes", "unchecked"})
-        protected TermImpl<F> eq(ClauseImpl<F> other) {
-            return (TermImpl<F>) super.eq(other);
+        protected PredImpl eq(TermImpl<Pred> other) {
+            return (PredImpl) super.eq(other);
         }
 
         @SuppressWarnings("rawtypes")
-        protected boolean contains(TermImpl cond) {
+        protected boolean contains(PredImpl cond) {
             return equals(cond);
+        }
+
+        @SuppressWarnings({"rawtypes", "unchecked"})
+        @Override
+        public PredImpl set(int i, Object... a) {
+            return (PredImpl) super.set(i, a);
         }
     };
 
@@ -1235,7 +1257,7 @@ public final class Logic {
         return new CollectImpl(pred, accum).proxy();
     }
 
-    private static final class CollectImpl extends TermImpl<Pred> {
+    private static final class CollectImpl extends PredImpl {
         private static final long serialVersionUID = -2799691054715131197L;
 
         private CollectImpl(Pred pred, Pred accum) {
@@ -1259,13 +1281,13 @@ public final class Logic {
         }
 
         @SuppressWarnings("rawtypes")
-        protected final TermImpl<?> pred() {
-            return ((TermImpl) get(1));
+        protected final PredImpl pred() {
+            return (PredImpl) get(1);
         }
 
         @SuppressWarnings("rawtypes")
-        protected final TermImpl<?> accum() {
-            return ((TermImpl) get(2));
+        protected final PredImpl accum() {
+            return (PredImpl) get(2);
         }
 
         @SuppressWarnings("rawtypes")
@@ -1300,11 +1322,12 @@ public final class Logic {
         @SuppressWarnings("rawtypes")
         private int identityIndex() {
             if (identityIndex < 0) {
-                TermImpl accum = accum();
+                PredImpl accum = accum();
                 for (int i = 1; i < accum.length(); i++) {
-                    if (accum.get(i) instanceof TermImpl) {
+                    Object v = accum.get(i);
+                    if (!(v instanceof VarImpl) && v instanceof TermImpl) {
                         Class<?> rt = ((VarImpl) accum.get(resultIndex())).type();
-                        Class<?> at = ((TermImpl) accum.get(i)).type();
+                        Class<?> at = ((TermImpl) v).type();
                         if (rt.isAssignableFrom(at)) {
                             identityIndex = i;
                             break;
@@ -1320,9 +1343,10 @@ public final class Logic {
         @SuppressWarnings("rawtypes")
         private int resultIndex() {
             if (resultIndex < 0) {
-                TermImpl accum = accum();
+                PredImpl accum = accum();
                 for (int i = 1; i < accum.length(); i++) {
-                    if (accum.get(i) instanceof VarImpl && !localVariables().containsKey((VarImpl) accum.get(i))) {
+                    Object v = accum.get(i);
+                    if (v instanceof VarImpl && !localVariables().containsKey((VarImpl) v)) {
                         resultIndex = i;
                         break;
                     }
@@ -1333,24 +1357,25 @@ public final class Logic {
 
         @SuppressWarnings({"rawtypes", "unchecked"})
         @Override
-        protected Set<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
+        protected Set<? extends TermImpl> match(PredImpl goal, List<PredImpl> der, Map<PredImpl, Set<PredImpl>> rec, Database database) {
             Map<VarImpl, Object> localVars = ((CollectImpl) goal).localVariables();
             int ii = ((CollectImpl) goal).identityIndex();
             int ri = ((CollectImpl) goal).resultIndex();
-            TermImpl goalPred = ((CollectImpl) goal).pred();
-            TermImpl goalAccum = ((CollectImpl) goal).accum();
-            TermImpl accum = accum();
-            Set<TermImpl> rs = Set.of(accum.getTerm(ii));
+            PredImpl goalPred = ((CollectImpl) goal).pred();
+            PredImpl goalAccum = ((CollectImpl) goal).accum();
+            PredImpl accum = accum();
+            TermImpl id = accum.getTerm(ii);
+            Set<TermImpl> rs = Set.of(id);
             Set<TermImpl> inc = Set.of();
-            for (TermImpl pm : ((TermImpl<?>) goalPred.setBinding(pred(), localVars)).match(goalPred, der, rec, database)) {
+            for (TermImpl pm : goalPred.setBinding(pred(), localVars).match(goalPred, der, rec, database)) {
                 if (pm.isIncomplete()) {
                     inc = inc.add(pm);
                 } else {
                     Map<VarImpl, Object> b = goalPred.getBinding(pm, Map.of());
                     Set<TermImpl> irs = Set.of();
                     for (TermImpl r : rs) {
-                        TermImpl s = goalAccum.setBinding(accum, b).set(ii, r);
-                        for (TermImpl am : ((TermImpl<?>) s).match(goalAccum, der, rec, database)) {
+                        PredImpl s = goalAccum.setBinding(accum, b).set(ii, r);
+                        for (TermImpl am : s.match(goalAccum, der, rec, database)) {
                             if (am.isIncomplete()) {
                                 inc = inc.add(am);
                             } else {
@@ -1391,7 +1416,7 @@ public final class Logic {
         return YES_PROXY;
     }
 
-    private static final class YesImpl extends TermImpl<Pred> {
+    private static final class YesImpl extends PredImpl {
         private static final long serialVersionUID = -8515171118744898263L;
 
         private YesImpl() {
@@ -1416,7 +1441,7 @@ public final class Logic {
 
         @SuppressWarnings({"rawtypes", "unchecked"})
         @Override
-        protected Set<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
+        protected Set<? extends TermImpl> match(PredImpl goal, List<PredImpl> der, Map<PredImpl, Set<PredImpl>> rec, Database database) {
             return Set.of(this);
         }
 
@@ -1443,7 +1468,7 @@ public final class Logic {
         return NO_PROXY;
     }
 
-    private static final class NoImpl extends TermImpl<Pred> {
+    private static final class NoImpl extends PredImpl {
         private static final long serialVersionUID = -8515171118744898263L;
 
         private NoImpl() {
@@ -1468,7 +1493,7 @@ public final class Logic {
 
         @SuppressWarnings({"rawtypes", "unchecked"})
         @Override
-        protected Set<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
+        protected Set<? extends TermImpl> match(PredImpl goal, List<PredImpl> der, Map<PredImpl, Set<PredImpl>> rec, Database database) {
             return Set.of();
         }
 
@@ -1494,7 +1519,7 @@ public final class Logic {
         return new NotImpl(pred).proxy();
     }
 
-    private static final class NotImpl extends TermImpl<Pred> {
+    private static final class NotImpl extends PredImpl {
         private static final long serialVersionUID = -4543178470298951866L;
 
         private NotImpl(Pred pred) {
@@ -1518,14 +1543,14 @@ public final class Logic {
         }
 
         @SuppressWarnings("rawtypes")
-        protected final TermImpl<?> pred() {
-            return ((TermImpl) get(1));
+        protected final PredImpl pred() {
+            return (PredImpl) get(1);
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
         @Override
-        protected Set<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
-            Set<TermImpl> r = pred().match(((NotImpl) goal).pred(), der, rec, database);
+        protected Set<? extends TermImpl> match(PredImpl goal, List<PredImpl> der, Map<PredImpl, Set<PredImpl>> rec, Database database) {
+            Set<? extends TermImpl> r = pred().match(((NotImpl) goal).pred(), der, rec, database);
             return r.isEmpty() ? Set.of(this) : r.retainAll(TermImpl::isIncomplete);
         }
 
@@ -1551,17 +1576,17 @@ public final class Logic {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static Pred or(Pred... ps) {
-        TermImpl<Pred> impl = NO;
+        PredImpl impl = NO;
         for (int i = ps.length - 1; i >= 0; i--) {
-            impl = impl == NO ? unproxy(ps[i]) : (TermImpl) new OrImpl(unproxy(ps[i]), impl);
+            impl = impl == NO ? unproxy(ps[i]) : new OrImpl(unproxy(ps[i]), impl);
         }
         return impl.proxy();
     }
 
-    private static final class OrImpl extends TermImpl<Pred> {
+    private static final class OrImpl extends PredImpl {
         private static final long serialVersionUID = -1732549494864415986L;
 
-        private OrImpl(TermImpl<Pred> pred1, TermImpl<Pred> pred2) {
+        private OrImpl(PredImpl pred1, PredImpl pred2) {
             super(OR_FUNCTOR, pred1, pred2);
         }
 
@@ -1587,13 +1612,13 @@ public final class Logic {
         private List<int[]> idxList() {
             if (idxList == null) {
                 List<int[]> l = List.of();
-                TermImpl p1 = pred1();
+                PredImpl p1 = pred1();
                 if (p1 instanceof OrImpl) {
                     l = l.prependList(((OrImpl) p1).idxList().replaceAll(ADD_ONE));
                 } else {
                     l = l.append(ONE_ARRAY);
                 }
-                TermImpl p2 = pred2();
+                PredImpl p2 = pred2();
                 if (p2 instanceof OrImpl) {
                     l = l.appendList(((OrImpl) p2).idxList().replaceAll(ADD_TWO));
                 } else {
@@ -1605,22 +1630,22 @@ public final class Logic {
         }
 
         @SuppressWarnings("rawtypes")
-        protected final TermImpl<?> pred1() {
-            return ((TermImpl) get(1));
+        protected final PredImpl pred1() {
+            return (PredImpl) get(1);
         }
 
         @SuppressWarnings("rawtypes")
-        protected final TermImpl<?> pred2() {
-            return ((TermImpl) get(2));
+        protected final PredImpl pred2() {
+            return (PredImpl) get(2);
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
         @Override
-        protected Set<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
+        protected Set<? extends TermImpl> match(PredImpl goal, List<PredImpl> der, Map<PredImpl, Set<PredImpl>> rec, Database database) {
             Set<TermImpl> r = Set.of();
             for (int[] i : ((OrImpl) goal).idxList()) {
-                TermImpl g = goal.get(i);
-                Set<TermImpl> m = get(i).match(g, der, rec, database);
+                PredImpl g = goal.getPred(i);
+                Set<? extends TermImpl> m = getPred(i).match(g, der, rec, database);
                 if (m.anyMatch(TermImpl::isToDepthIcomplete)) {
                     return m;
                 } else {
@@ -1637,7 +1662,7 @@ public final class Logic {
 
         @Override
         @SuppressWarnings("rawtypes")
-        protected boolean contains(TermImpl cond) {
+        protected boolean contains(PredImpl cond) {
             return super.contains(cond) || pred1().contains(cond) || pred2().contains(cond);
         }
     }
@@ -1652,17 +1677,17 @@ public final class Logic {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static Pred and(Pred... ps) {
-        TermImpl<Pred> impl = YES;
+        PredImpl impl = YES;
         for (int i = ps.length - 1; i >= 0; i--) {
-            impl = impl == YES ? unproxy(ps[i]) : (TermImpl) new AndImpl(unproxy(ps[i]), impl);
+            impl = impl == YES ? unproxy(ps[i]) : new AndImpl(unproxy(ps[i]), impl);
         }
         return impl.proxy();
     }
 
-    private static final class AndImpl extends TermImpl<Pred> {
+    private static final class AndImpl extends PredImpl {
         private static final long serialVersionUID = -7248491569810098948L;
 
-        private AndImpl(TermImpl<Pred> pred1, TermImpl<Pred> pred2) {
+        private AndImpl(PredImpl pred1, PredImpl pred2) {
             super(AND_FUNCTOR, pred1, pred2);
         }
 
@@ -1688,13 +1713,13 @@ public final class Logic {
         private List<int[]> idxList() {
             if (idxList == null) {
                 List<int[]> l = List.of();
-                TermImpl p1 = pred1();
+                PredImpl p1 = pred1();
                 if (p1 instanceof AndImpl) {
                     l = l.prependList(((AndImpl) p1).idxList().replaceAll(ADD_ONE));
                 } else {
                     l = l.append(ONE_ARRAY);
                 }
-                TermImpl p2 = pred2();
+                PredImpl p2 = pred2();
                 if (p2 instanceof AndImpl) {
                     l = l.appendList(((AndImpl) p2).idxList().replaceAll(ADD_TWO));
                 } else {
@@ -1706,18 +1731,18 @@ public final class Logic {
         }
 
         @SuppressWarnings("rawtypes")
-        protected final TermImpl<?> pred1() {
-            return ((TermImpl) get(1));
+        protected final PredImpl pred1() {
+            return (PredImpl) get(1);
         }
 
         @SuppressWarnings("rawtypes")
-        protected final TermImpl<?> pred2() {
-            return ((TermImpl) get(2));
+        protected final PredImpl pred2() {
+            return (PredImpl) get(2);
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
         @Override
-        protected Set<TermImpl> match(TermImpl goal, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
+        protected Set<? extends TermImpl> match(PredImpl goal, List<PredImpl> der, Map<PredImpl, Set<PredImpl>> rec, Database database) {
             Set<TermImpl> out = Set.of();
             Set<AndImpl> ands = Set.of(this);
             idxList = ((AndImpl) goal).idxList();
@@ -1733,9 +1758,9 @@ public final class Logic {
                         Set<TermImpl> ic = Set.of();
                         for (int ii = 0; ii < idxl.size(); ii++) {
                             int[] i = idxl.get(ii);
-                            TermImpl g = goal.get(i);
-                            Set<TermImpl> ts = and.get(i).match(g, der, rec, database);
-                            Set<TermImpl> in = ts.retainAll(TermImpl::isIncomplete);
+                            PredImpl g = goal.getPred(i);
+                            Set<? extends TermImpl> ts = and.getPred(i).match(g, der, rec, database);
+                            Set<? extends TermImpl> in = ts.retainAll(TermImpl::isIncomplete);
                             if (in.isEmpty()) {
                                 List<int[]> iil = idxl.removeIndex(ii);
                                 ands = ands.addAll(ts.replaceAll(m -> {
@@ -1776,8 +1801,8 @@ public final class Logic {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static Rule rule(AtomPred consequence, Pred condition) {
         RuleImpl ruleImpl = new RuleImpl(consequence, condition);
-        TermImpl termImpl = Logic.<Pred, TermImpl> unproxy(consequence);
-        TermImpl signature = termImpl.signature();
+        PredImpl consImpl = Logic.<Pred, PredImpl> unproxy(consequence);
+        PredImpl signature = consImpl.signature();
         Map<Class, Set<Class>> specs = SPECS.get();
         Database database = DATABASE.get();
         database.rules.updateAndGet(m -> signature.addRule(ruleImpl, m, specs));
@@ -1819,18 +1844,18 @@ public final class Logic {
         }
 
         @SuppressWarnings("rawtypes")
-        protected final TermImpl cons() {
-            return ((TermImpl) get(1));
+        protected final PredImpl cons() {
+            return (PredImpl) get(1);
         }
 
         @SuppressWarnings("rawtypes")
-        protected final TermImpl cond() {
-            return ((TermImpl) get(2));
+        protected final PredImpl cond() {
+            return (PredImpl) get(2);
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
-        protected Set<TermImpl> eval(TermImpl term, List<TermImpl> der, Map<TermImpl, Set<TermImpl>> rec, Database database) {
-            TermImpl cons = cons();
+        protected Set<TermImpl> eval(PredImpl term, List<PredImpl> der, Map<PredImpl, Set<PredImpl>> rec, Database database) {
+            PredImpl cons = cons();
             Map<VarImpl, Object> binding = cons.getBinding(term, Map.of());
             if (binding == null) {
                 return Set.of();
@@ -1838,8 +1863,8 @@ public final class Logic {
             if (TRACE_LOGIC) {
                 System.err.println("LOGIC " + "  ".repeat(der.size()) + this + " " + binding.toString().substring(3));
             }
-            TermImpl cond = cond();
-            Set<TermImpl> match = cond.setBinding(cond, cond.variables().putAll(binding)).match(cond, der, rec, database);
+            PredImpl cond = cond();
+            Set<? extends TermImpl> match = cond.setBinding(cond, cond.variables().putAll(binding)).match(cond, der, rec, database);
             return match.replaceAll(t -> t.isIncomplete() ? t : cons.setBinding(term, cond.getBinding(t, Map.of())));
         }
 
@@ -1851,6 +1876,12 @@ public final class Logic {
         public RuleImpl set(int i, Object... a) {
             return (RuleImpl) super.set(i, a);
         }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public Class<Rule> type() {
+            return Rule.class;
+        }
     }
 
     // Incomplete
@@ -1859,7 +1890,7 @@ public final class Logic {
     }
 
     @SuppressWarnings("rawtypes")
-    private static final FunctImpl<Incomplete> INCOMPLETE_FUNCTOR       = Logic.<Incomplete, List<Term>> functImpl(Logic::incomplete);
+    private static final FunctImpl<Incomplete> INCOMPLETE_FUNCTOR       = Logic.<Incomplete, List<Pred>> functImpl(Logic::incomplete);
     private static final Functor<Incomplete>   INCOMPLETE_FUNCTOR_PROXY = INCOMPLETE_FUNCTOR.proxy();
     private static final VarImpl<Incomplete>   INCOMPLETE_VAR           = new VarImpl<Incomplete>(Incomplete.class, "I");
     private static final Incomplete            INCOMPLETE_VAR_PROXY     = INCOMPLETE_VAR.proxy();
@@ -1870,12 +1901,12 @@ public final class Logic {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static Incomplete incomplete(List<Term> der) {
+    public static Incomplete incomplete(List<Pred> der) {
         return term(INCOMPLETE_FUNCTOR_PROXY, der);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    protected static TermImpl incompleteImpl(List<TermImpl> der) {
+    protected static TermImpl incompleteImpl(List<PredImpl> der) {
         return termImpl(INCOMPLETE_FUNCTOR, der);
     }
 
@@ -1883,12 +1914,12 @@ public final class Logic {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static void fact(AtomPred pred) {
-        Logic.<Pred, TermImpl> unproxy(pred).makeFact(DATABASE.get());
+        Logic.<Pred, PredImpl> unproxy(pred).makeFact(DATABASE.get());
     }
 
     // Bindings
 
-    public static Map<Variable, Object> incomplete(Term... der) {
+    public static Map<Variable, Object> incomplete(Pred... der) {
         return Map.of(Entry.of((Variable) incompleteVar(), incomplete(List.of(der))));
     }
 
@@ -1923,7 +1954,7 @@ public final class Logic {
 
     @SuppressWarnings("rawtypes")
     public static <T extends Term> Pred eq(Atom<T> a, Atom<T> b) {
-        return term(eq, a, b);
+        return pred(eq, a, b);
     }
 
     // Is
@@ -1935,17 +1966,17 @@ public final class Logic {
     private static final Functor<AtomPred> is = Logic.<AtomPred, Term, Term> functor(Logic::is);
 
     private static <T extends Term> AtomPred is(T a, T b) {
-        return term(is, a, b);
+        return pred(is, a, b);
     }
 
     // Use this one for function definitions
     public static <T extends Term> AtomPred is(T a, Atom<T> b) {
-        return term(is, a, b);
+        return pred(is, a, b);
     }
 
     // Implied by the above using the generic rules here
     public static <T extends Term> AtomPred is(Atom<T> a, T b) {
-        return term(is, a, b);
+        return pred(is, a, b);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

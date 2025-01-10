@@ -115,7 +115,7 @@ public final class Rationals {
     });
 
     public static Pred compare(RationalAtom a, RationalAtom b, IntAtom c) {
-        return term(compare, a, b, c);
+        return pred(compare, a, b, c);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -152,7 +152,7 @@ public final class Rationals {
     });
 
     public static Pred plus(RationalAtom a, RationalAtom b, RationalAtom r) {
-        return term(plusPred, a, b, r);
+        return pred(plusPred, a, b, r);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -181,7 +181,7 @@ public final class Rationals {
     });
 
     public static Pred multiply(RationalAtom a, RationalAtom b, RationalAtom r) {
-        return term(multiplyPred, a, b, r);
+        return pred(multiplyPred, a, b, r);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -207,7 +207,7 @@ public final class Rationals {
     });
 
     public static Pred power(RationalAtom a, RationalAtom r) {
-        return term(powerPred, a, r);
+        return pred(powerPred, a, r);
     }
 
     // Functions
@@ -215,25 +215,25 @@ public final class Rationals {
     private static Functor<AtomPred> gt = functor(Rationals::gt);
 
     public static AtomPred gt(Rational a, Rational b) {
-        return term(gt, a, b);
+        return pred(gt, a, b);
     }
 
     private static Functor<AtomPred> lt = functor(Rationals::lt);
 
     public static AtomPred lt(Rational a, Rational b) {
-        return term(lt, a, b);
+        return pred(lt, a, b);
     }
 
     private static Functor<AtomPred> ge = functor(Rationals::ge);
 
     public static AtomPred ge(Rational a, Rational b) {
-        return term(ge, a, b);
+        return pred(ge, a, b);
     }
 
     private static Functor<AtomPred> le = functor(Rationals::le);
 
     public static AtomPred le(Rational a, Rational b) {
-        return term(le, a, b);
+        return pred(le, a, b);
     }
 
     private static Functor<RationalFunc> plusFunc = Logic.<RationalFunc, Rational, Rational> functor(Rationals::plus);

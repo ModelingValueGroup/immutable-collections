@@ -91,7 +91,7 @@ public final class Integers {
     });
 
     public static Pred compare(IntAtom a, IntAtom b, IntAtom c) {
-        return term(compare, a, b, c);
+        return pred(compare, a, b, c);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -116,7 +116,7 @@ public final class Integers {
     });
 
     public static Pred plus(IntAtom a, IntAtom b, IntAtom r) {
-        return term(plusPred, a, b, r);
+        return pred(plusPred, a, b, r);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -141,7 +141,7 @@ public final class Integers {
     });
 
     public static Pred multiply(IntAtom a, IntAtom b, IntAtom r) {
-        return term(multiplyPred, a, b, r);
+        return pred(multiplyPred, a, b, r);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -163,7 +163,7 @@ public final class Integers {
     });
 
     public static Pred power(IntAtom a, IntAtom r) {
-        return term(powerPred, a, r);
+        return pred(powerPred, a, r);
     }
 
     // Functions
@@ -171,25 +171,25 @@ public final class Integers {
     private static Functor<AtomPred> gt = functor(Integers::gt);
 
     public static AtomPred gt(Int a, Int b) {
-        return term(gt, a, b);
+        return pred(gt, a, b);
     }
 
     private static Functor<AtomPred> lt = functor(Integers::lt);
 
     public static AtomPred lt(Int a, Int b) {
-        return term(lt, a, b);
+        return pred(lt, a, b);
     }
 
     private static Functor<AtomPred> ge = functor(Integers::ge);
 
     public static AtomPred ge(Int a, Int b) {
-        return term(ge, a, b);
+        return pred(ge, a, b);
     }
 
     private static Functor<AtomPred> le = functor(Integers::le);
 
     public static AtomPred le(Int a, Int b) {
-        return term(le, a, b);
+        return pred(le, a, b);
     }
 
     private static Functor<IntFunc> plusFunc = Logic.<IntFunc, Int, Int> functor(Integers::plus);

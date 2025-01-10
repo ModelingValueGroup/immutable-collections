@@ -114,7 +114,7 @@ public class LogicTest {
     static Functor<AtomPred> rootPerson = functor(LogicTest::rootPerson);
 
     static AtomPred rootPerson(RootAtom root, PersonAtom person) {
-        return term(rootPerson, root, person);
+        return pred(rootPerson, root, person);
     }
 
     static Functor<RootFunc> rootFunc = functor((SerializableFunction<Person, RootFunc>) LogicTest::root);
@@ -161,7 +161,7 @@ public class LogicTest {
     static Functor<AtomPred> parentChild = functor(LogicTest::parentChild);
 
     static AtomPred parentChild(PersonAtom parent, PersonAtom child) {
-        return term(parentChild, parent, child);
+        return pred(parentChild, parent, child);
     }
 
     static Functor<PersonFunc> parent = functor(LogicTest::parent);
@@ -179,7 +179,7 @@ public class LogicTest {
     static Functor<AtomPred> ancestorDescendent = functor(LogicTest::ancestorDescendent);
 
     static AtomPred ancestorDescendent(PersonAtom ancestor, PersonAtom descendent) {
-        return term(ancestorDescendent, ancestor, descendent);
+        return pred(ancestorDescendent, ancestor, descendent);
     }
 
     static Functor<PersonFunc> ancestor = functor(LogicTest::ancestor);
@@ -236,7 +236,7 @@ public class LogicTest {
     static Functor<AtomPred> fib2   = functor((SerializableBiFunction<IntAtom, IntAtom, AtomPred>) LogicTest::fib);
 
     static AtomPred fib(IntAtom i, IntAtom f) {
-        return term(fib2, i, f);
+        return pred(fib2, i, f);
     }
 
     static Functor<IntFunc> fib1 = functor((SerializableFunction<Int, IntFunc>) LogicTest::fib);
