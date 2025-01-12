@@ -24,14 +24,13 @@ import static org.modelingvalue.logic.Logic.pred;
 
 import java.lang.reflect.Proxy;
 
-import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.logic.Logic.FunctImpl;
 import org.modelingvalue.logic.Logic.Functor;
+import org.modelingvalue.logic.Logic.FunctorImpl;
 import org.modelingvalue.logic.Logic.LogicLambda;
-import org.modelingvalue.logic.Logic.Pred;
-import org.modelingvalue.logic.Logic.Term;
-import org.modelingvalue.logic.Logic.TermImpl;
+import org.modelingvalue.logic.Logic.Predicate;
+import org.modelingvalue.logic.Logic.Structure;
+import org.modelingvalue.logic.Logic.StructureImpl;
 
 public final class Lists {
 
@@ -40,77 +39,77 @@ public final class Lists {
 
     // Lists
 
-    public interface L<E extends Term> extends Term {
+    public interface List<E extends Structure> extends Structure {
     }
 
     @SuppressWarnings("rawtypes")
-    private static final FunctImpl<L> LIST_FUNCTOR_0   = Logic.<L> functImpl(Lists::l);
+    private static final FunctorImpl<List> LIST_FUNCTOR_0   = Logic.<List> functImpl(Lists::l);
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static final ListImpl     EMPTY_LIST       = new ListImpl(LIST_FUNCTOR_0);
+    private static final ListImpl          EMPTY_LIST       = new ListImpl(LIST_FUNCTOR_0);
     @SuppressWarnings("rawtypes")
-    private static final L            EMPTY_LIST_PROXY = EMPTY_LIST.proxy();
+    private static final List              EMPTY_LIST_PROXY = EMPTY_LIST.proxy();
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <E extends Term> L<E> l() {
+    public static <E extends Structure> List<E> l() {
         return EMPTY_LIST_PROXY;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static final FunctImpl<L> LIST_FUNCTOR_2       = Logic.<L, Term, L> functImpl(Lists::l);
+    private static final FunctorImpl<List> LIST_FUNCTOR_2       = Logic.<List, Structure, List> functImpl(Lists::l);
     @SuppressWarnings("rawtypes")
-    private static final Functor<L>   LIST_FUNCTOR_2_PROXY = LIST_FUNCTOR_2.proxy();
+    private static final Functor<List>     LIST_FUNCTOR_2_PROXY = LIST_FUNCTOR_2.proxy();
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <E extends Term> L<E> l(E head, L<E> tail) {
+    public static <E extends Structure> List<E> l(E head, List<E> tail) {
         return new ListImpl(LIST_FUNCTOR_2_PROXY, head, tail).proxy();
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    protected static <E extends Term> ListImpl<E> lImpl(TermImpl<E> head, ListImpl<E> tail) {
+    protected static <E extends Structure> ListImpl<E> lImpl(StructureImpl<E> head, ListImpl<E> tail) {
         return new ListImpl(LIST_FUNCTOR_2, head, tail);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <E extends Term> L<E> l(E... es) {
-        return l(List.of(es));
+    public static <E extends Structure> List<E> l(E... es) {
+        return l(org.modelingvalue.collections.List.of(es));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static <E extends Term> L<E> l(List<E> es) {
+    private static <E extends Structure> List<E> l(org.modelingvalue.collections.List<E> es) {
         ListImpl<E> l = EMPTY_LIST;
         for (E e : es.reverse()) {
-            l = lImpl(Logic.<E, TermImpl<E>> unproxy(e), l);
+            l = lImpl(Logic.<E, StructureImpl<E>> unproxy(e), l);
         }
         return l.proxy();
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static <E extends Term> ListImpl<E> lImpl(List<TermImpl<E>> es) {
+    private static <E extends Structure> ListImpl<E> lImpl(org.modelingvalue.collections.List<StructureImpl<E>> es) {
         ListImpl<E> l = EMPTY_LIST;
-        for (TermImpl<E> e : es.reverse()) {
+        for (StructureImpl<E> e : es.reverse()) {
             l = lImpl(e, l);
         }
         l.list = es;
         return l;
     }
 
-    private static final class ListImpl<E extends Term> extends TermImpl<L<E>> {
-        private static final long serialVersionUID = -916406585584150604L;
+    private static final class ListImpl<E extends Structure> extends StructureImpl<List<E>> {
+        private static final long                                    serialVersionUID = -916406585584150604L;
 
-        private List<TermImpl<E>> list;
+        private org.modelingvalue.collections.List<StructureImpl<E>> list;
 
         @SuppressWarnings({"rawtypes", "unchecked"})
-        private ListImpl(FunctImpl functor) {
+        private ListImpl(FunctorImpl functor) {
             super(functor);
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
-        private ListImpl(Functor functor, E head, L<E> tail) {
+        private ListImpl(Functor functor, E head, List<E> tail) {
             super(functor, head, tail);
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
-        private ListImpl(FunctImpl functor, TermImpl<E> head, ListImpl<E> tail) {
+        private ListImpl(FunctorImpl functor, StructureImpl<E> head, ListImpl<E> tail) {
             super(functor, head, tail);
         }
 
@@ -120,19 +119,19 @@ public final class Lists {
 
         @Override
         @SuppressWarnings("unchecked")
-        protected final L<E> proxy() {
-            return (L<E>) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{L.class}, this);
+        protected final List<E> proxy() {
+            return (List<E>) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{List.class}, this);
         }
 
         @Override
         @SuppressWarnings({"unchecked", "rawtypes"})
-        protected ListImpl<E> term(Object[] array) {
+        protected ListImpl<E> struct(Object[] array) {
             return new ListImpl(array);
         }
 
         @SuppressWarnings("unchecked")
-        protected TermImpl<E> head() {
-            return (TermImpl<E>) get(1);
+        protected StructureImpl<E> head() {
+            return (StructureImpl<E>) get(1);
         }
 
         @SuppressWarnings("unchecked")
@@ -145,9 +144,9 @@ public final class Lists {
             return list().toString().substring(4);
         }
 
-        protected List<TermImpl<E>> list() {
+        protected org.modelingvalue.collections.List<StructureImpl<E>> list() {
             if (list == null) {
-                list = length() == 3 ? tail().list().prepend(head()) : List.of();
+                list = length() == 3 ? tail().list().prepend(head()) : org.modelingvalue.collections.List.of();
             }
             return list;
         }
@@ -159,14 +158,14 @@ public final class Lists {
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         @Override
-        public Class<L<E>> type() {
-            return (Class) L.class;
+        public Class<List<E>> type() {
+            return (Class) List.class;
         }
     }
 
     // Add
 
-    private static <E extends Term> List<TermImpl<E>> addOrdered(List<TermImpl<E>> l, TermImpl<E> e) {
+    private static <E extends Structure> org.modelingvalue.collections.List<StructureImpl<E>> addOrdered(org.modelingvalue.collections.List<StructureImpl<E>> l, StructureImpl<E> e) {
         for (int i = 0; i < l.size(); i++) {
             if (l.get(i).compareTo(e) > 0) {
                 return l.insert(i, e);
@@ -175,8 +174,8 @@ public final class Lists {
         return l.append(e);
     }
 
-    private static <E extends Term> Set<List<TermImpl<E>>> permRemove(List<TermImpl<E>> l, TermImpl<E> e) {
-        Set<List<TermImpl<E>>> ls = Set.of();
+    private static <E extends Structure> Set<org.modelingvalue.collections.List<StructureImpl<E>>> permRemove(org.modelingvalue.collections.List<StructureImpl<E>> l, StructureImpl<E> e) {
+        Set<org.modelingvalue.collections.List<StructureImpl<E>>> ls = Set.of();
         for (int i = l.firstIndexOf(e); i >= 0; i = l.firstIndexOf(i, l.size(), e)) {
             ls = ls.add(l.removeIndex(i));
         }
@@ -184,31 +183,31 @@ public final class Lists {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static final FunctImpl<Pred> ADD_FUNCTOR       = Logic.<Pred, Term, L, L> functImpl(Lists::add, (LogicLambda) t -> {
-                                                               TermImpl<Term> e = t.getTerm(1);
-                                                               ListImpl<Term> i = t.getTerm(2);
-                                                               ListImpl<Term> o = t.getTerm(3);
-                                                               List<TermImpl<Term>> il = i != null ? i.list() : null;
-                                                               List<TermImpl<Term>> ol = o != null ? o.list() : null;
-                                                               if (e != null && il != null && ol != null) {
-                                                                   return addOrdered(il, e).equals(ol) ? Set.of(t) : Set.of();
-                                                               } else if (e != null && il != null && ol == null) {
-                                                                   return Set.of(t.set(3, lImpl(addOrdered(il, e))));
-                                                               } else if (e != null && il == null && ol != null) {
-                                                                   return permRemove(ol, e).replaceAll(l -> (TermImpl) t.set(2, lImpl(l)));
-                                                               } else if (e == null && il != null && ol != null) {
-                                                                   if (il.anyMatch(ol::notContains)) {
-                                                                       return Set.of();
-                                                                   }
-                                                                   return ol.asSet().removeAll(il).replaceAll(r -> (TermImpl) t.set(1, r));
-                                                               } else {
-                                                                   return t.incomplete();
-                                                               }
-                                                           });
+    private static final FunctorImpl<Predicate> ADD_FUNCTOR       = Logic.<Predicate, Structure, List, List> functImpl(Lists::add, (LogicLambda) t -> {
+                                                                      StructureImpl<Structure> e = t.getStruct(1);
+                                                                      ListImpl<Structure> i = t.getStruct(2);
+                                                                      ListImpl<Structure> o = t.getStruct(3);
+                                                                      org.modelingvalue.collections.List<StructureImpl<Structure>> il = i != null ? i.list() : null;
+                                                                      org.modelingvalue.collections.List<StructureImpl<Structure>> ol = o != null ? o.list() : null;
+                                                                      if (e != null && il != null && ol != null) {
+                                                                          return addOrdered(il, e).equals(ol) ? Set.of(t) : Set.of();
+                                                                      } else if (e != null && il != null && ol == null) {
+                                                                          return Set.of(t.set(3, lImpl(addOrdered(il, e))));
+                                                                      } else if (e != null && il == null && ol != null) {
+                                                                          return Set.of(t.set(2, permRemove(ol, e).replaceAll(l -> (StructureImpl) t.set(2, lImpl(l)))));
+                                                                      } else if (e == null && il != null && ol != null) {
+                                                                          if (il.anyMatch(ol::notContains)) {
+                                                                              return Set.of();
+                                                                          }
+                                                                          return Set.of(t.set(1, ol.asSet().removeAll(il).replaceAll(r -> (StructureImpl) t.set(1, r))));
+                                                                      } else {
+                                                                          return t.incomplete();
+                                                                      }
+                                                                  });
     @SuppressWarnings("rawtypes")
-    private static final Functor<Pred>   ADD_FUNCTOR_PROXY = ADD_FUNCTOR.proxy();
+    private static final Functor<Predicate>     ADD_FUNCTOR_PROXY = ADD_FUNCTOR.proxy();
 
-    public static <E extends Term> Pred add(E e, L<E> i, L<E> o) {
+    public static <E extends Structure> Predicate add(E e, List<E> i, List<E> o) {
         return pred(ADD_FUNCTOR_PROXY, e, i, o);
     }
 

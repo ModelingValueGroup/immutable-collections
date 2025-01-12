@@ -44,15 +44,14 @@ import static org.modelingvalue.logic.Rationals.sqrt;
 
 import org.junit.jupiter.api.RepeatedTest;
 import org.modelingvalue.collections.Entry;
-import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.SerializableBiFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
-import org.modelingvalue.logic.Integers.Int;
 import org.modelingvalue.logic.Integers.IntAtom;
 import org.modelingvalue.logic.Integers.IntFunc;
-import org.modelingvalue.logic.Lists.L;
+import org.modelingvalue.logic.Integers.Integer;
+import org.modelingvalue.logic.Lists.List;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.*;
 import org.modelingvalue.logic.Rationals.RationalAtom;
@@ -69,38 +68,38 @@ public class LogicTest {
         return Logic.run(test, init);
     }
 
-    static void isTrue(Pred goal) {
+    static void isTrue(Predicate goal) {
         assertTrue(Logic.isTrue(goal));
     }
 
-    static void isFalse(Pred goal) {
+    static void isFalse(Predicate goal) {
         assertTrue(Logic.isFalse(goal));
     }
 
-    static void isIncomplete(Pred goal) {
+    static void isIncomplete(Predicate goal) {
         assertTrue(Logic.isIncomplete(goal));
     }
 
     @SafeVarargs
-    static void hasBindings(Pred goal, Map<Variable, Object>... bindings) {
+    static void hasBindings(Predicate goal, Map<Variable, Object>... bindings) {
         assertEquals(Set.of(bindings), getBindings(goal));
     }
 
     // Root
 
-    interface Root extends Term {
+    interface Root extends Structure {
     }
 
-    interface RootAtom extends Root, Atom<Root> {
+    interface RootAtom extends Root, Atomic<Root> {
     }
 
-    interface RootFunc extends Root, Func<Root> {
+    interface RootFunc extends Root, Function<Root> {
     }
 
     static Functor<RootAtom> rootAtom = functor((SerializableFunction<String, RootAtom>) LogicTest::root);
 
     static RootAtom root(String name) {
-        return term(rootAtom, name);
+        return struct(rootAtom, name);
     }
 
     static RootAtom rootAtomVar(String name) {
@@ -111,39 +110,39 @@ public class LogicTest {
         return var(Root.class, name);
     }
 
-    static Functor<AtomPred> rootPerson = functor(LogicTest::rootPerson);
+    static Functor<Relation> rootPerson = functor(LogicTest::rootPerson);
 
-    static AtomPred rootPerson(RootAtom root, PersonAtom person) {
+    static Relation rootPerson(RootAtom root, PersonAtom person) {
         return pred(rootPerson, root, person);
     }
 
     static Functor<RootFunc> rootFunc = functor((SerializableFunction<Person, RootFunc>) LogicTest::root);
 
     static RootFunc root(Person person) {
-        return term(rootFunc, person);
+        return struct(rootFunc, person);
     }
 
     // Family Tree
 
-    interface Person extends Term {
+    interface Person extends Structure {
     }
 
-    interface PersonAtom extends Person, Atom<Person> {
+    interface PersonAtom extends Person, Atomic<Person> {
     }
 
-    interface PersonFunc extends Person, Func<Person> {
+    interface PersonFunc extends Person, Function<Person> {
     }
 
     static Functor<PersonAtom> strPerson = functor((SerializableFunction<String, PersonAtom>) LogicTest::person);
 
     static PersonAtom person(String name) {
-        return term(strPerson, name);
+        return struct(strPerson, name);
     }
 
     static Functor<PersonAtom> intPerson = functor((SerializableFunction<IntAtom, PersonAtom>) LogicTest::person);
 
     static PersonAtom person(IntAtom i) {
-        return term(intPerson, i);
+        return struct(intPerson, i);
     }
 
     static PersonAtom person(int i) {
@@ -158,40 +157,40 @@ public class LogicTest {
         return var(Person.class, name);
     }
 
-    static Functor<AtomPred> parentChild = functor(LogicTest::parentChild);
+    static Functor<Relation> parentChild = functor(LogicTest::parentChild);
 
-    static AtomPred parentChild(PersonAtom parent, PersonAtom child) {
+    static Relation parentChild(PersonAtom parent, PersonAtom child) {
         return pred(parentChild, parent, child);
     }
 
     static Functor<PersonFunc> parent = functor(LogicTest::parent);
 
     static PersonFunc parent(Person child) {
-        return term(parent, child);
+        return struct(parent, child);
     }
 
     static Functor<PersonFunc> child = functor(LogicTest::child);
 
     static PersonFunc child(Person parent) {
-        return term(child, parent);
+        return struct(child, parent);
     }
 
-    static Functor<AtomPred> ancestorDescendent = functor(LogicTest::ancestorDescendent);
+    static Functor<Relation> ancestorDescendent = functor(LogicTest::ancestorDescendent);
 
-    static AtomPred ancestorDescendent(PersonAtom ancestor, PersonAtom descendent) {
+    static Relation ancestorDescendent(PersonAtom ancestor, PersonAtom descendent) {
         return pred(ancestorDescendent, ancestor, descendent);
     }
 
     static Functor<PersonFunc> ancestor = functor(LogicTest::ancestor);
 
     static PersonFunc ancestor(Person descendent) {
-        return term(ancestor, descendent);
+        return struct(ancestor, descendent);
     }
 
     static Functor<PersonFunc> descendent = functor(LogicTest::descendent);
 
     static PersonFunc descendent(Person ancestor) {
-        return term(descendent, ancestor);
+        return struct(descendent, ancestor);
     }
 
     // Variables
@@ -199,8 +198,8 @@ public class LogicTest {
     IntAtom                  P      = iav("P");
     IntAtom                  Q      = iav("Q");
 
-    Int                      R      = iv("R");
-    Int                      S      = iv("S");
+    Integer                  R      = iv("R");
+    Integer                  S      = iv("S");
 
     RationalAtom             T      = rav("T");
     RationalAtom             U      = rav("U");
@@ -217,7 +216,7 @@ public class LogicTest {
     Root                     W      = rootVar("W");
 
     @SuppressWarnings("unchecked")
-    L<Person>                PL     = var(L.class, "PL");
+    List<Person>             PL     = var(List.class, "PL");
 
     // Terms
 
@@ -233,16 +232,16 @@ public class LogicTest {
 
     // Fibonacci
 
-    static Functor<AtomPred> fib2   = functor((SerializableBiFunction<IntAtom, IntAtom, AtomPred>) LogicTest::fib);
+    static Functor<Relation> fib2   = functor((SerializableBiFunction<IntAtom, IntAtom, Relation>) LogicTest::fib);
 
-    static AtomPred fib(IntAtom i, IntAtom f) {
+    static Relation fib(IntAtom i, IntAtom f) {
         return pred(fib2, i, f);
     }
 
-    static Functor<IntFunc> fib1 = functor((SerializableFunction<Int, IntFunc>) LogicTest::fib);
+    static Functor<IntFunc> fib1 = functor((SerializableFunction<Integer, IntFunc>) LogicTest::fib);
 
-    static IntFunc fib(Int i) {
-        return term(fib1, i);
+    static IntFunc fib(Integer i) {
+        return struct(fib1, i);
     }
 
     private void fibonacciRules() {
@@ -291,7 +290,7 @@ public class LogicTest {
             familyRules();
             fibonacciRules();
         });
-        for (Entry<Term, List<Rule>> e : db.rules()) {
+        for (Entry<Structure, org.modelingvalue.collections.List<Rule>> e : db.rules()) {
             System.err.println(e.getKey() + " " + e.getValue());
         }
     }
