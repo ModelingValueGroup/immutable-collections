@@ -25,12 +25,7 @@ import static org.modelingvalue.logic.Logic.pred;
 import java.lang.reflect.Proxy;
 
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.logic.Logic.Functor;
-import org.modelingvalue.logic.Logic.FunctorImpl;
-import org.modelingvalue.logic.Logic.LogicLambda;
-import org.modelingvalue.logic.Logic.Predicate;
-import org.modelingvalue.logic.Logic.Structure;
-import org.modelingvalue.logic.Logic.StructureImpl;
+import org.modelingvalue.logic.Logic.*;
 
 public final class Lists {
 
@@ -39,28 +34,34 @@ public final class Lists {
 
     // Lists
 
-    public interface List<E extends Structure> extends Structure {
+    public interface List<E extends Structure> extends Constant<List<E>> {
+    }
+
+    public interface ListCons<E extends Structure> extends List<E>, Constant<List<E>> {
+    }
+
+    public interface ListFunc<E extends Structure> extends List<E>, Function<List<E>> {
     }
 
     @SuppressWarnings("rawtypes")
-    private static final FunctorImpl<List> LIST_FUNCTOR_0   = Logic.<List> functImpl(Lists::l);
+    private static final FunctorImpl<ListCons> LIST_FUNCTOR_0   = Logic.<ListCons> functImpl(Lists::l);
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static final ListImpl          EMPTY_LIST       = new ListImpl(LIST_FUNCTOR_0);
+    private static final ListImpl              EMPTY_LIST       = new ListImpl(LIST_FUNCTOR_0);
     @SuppressWarnings("rawtypes")
-    private static final List              EMPTY_LIST_PROXY = EMPTY_LIST.proxy();
+    private static final ListCons              EMPTY_LIST_PROXY = EMPTY_LIST.proxy();
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <E extends Structure> List<E> l() {
+    public static <E extends Structure> ListCons<E> l() {
         return EMPTY_LIST_PROXY;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static final FunctorImpl<List> LIST_FUNCTOR_2       = Logic.<List, Structure, List> functImpl(Lists::l);
+    private static final FunctorImpl<ListCons> LIST_FUNCTOR_2       = Logic.<ListCons, Structure, ListCons> functImpl(Lists::l);
     @SuppressWarnings("rawtypes")
-    private static final Functor<List>     LIST_FUNCTOR_2_PROXY = LIST_FUNCTOR_2.proxy();
+    private static final Functor<ListCons>     LIST_FUNCTOR_2_PROXY = LIST_FUNCTOR_2.proxy();
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <E extends Structure> List<E> l(E head, List<E> tail) {
+    public static <E extends Structure> ListCons<E> l(E head, ListCons<E> tail) {
         return new ListImpl(LIST_FUNCTOR_2_PROXY, head, tail).proxy();
     }
 
@@ -70,12 +71,12 @@ public final class Lists {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <E extends Structure> List<E> l(E... es) {
+    public static <E extends Structure> ListCons<E> l(E... es) {
         return l(org.modelingvalue.collections.List.of(es));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static <E extends Structure> List<E> l(org.modelingvalue.collections.List<E> es) {
+    private static <E extends Structure> ListCons<E> l(org.modelingvalue.collections.List<E> es) {
         ListImpl<E> l = EMPTY_LIST;
         for (E e : es.reverse()) {
             l = lImpl(Logic.<E, StructureImpl<E>> unproxy(e), l);
@@ -93,7 +94,7 @@ public final class Lists {
         return l;
     }
 
-    private static final class ListImpl<E extends Structure> extends StructureImpl<List<E>> {
+    private static final class ListImpl<E extends Structure> extends StructureImpl<ListCons<E>> {
         private static final long                                    serialVersionUID = -916406585584150604L;
 
         private org.modelingvalue.collections.List<StructureImpl<E>> list;
@@ -104,7 +105,7 @@ public final class Lists {
         }
 
         @SuppressWarnings({"rawtypes", "unchecked"})
-        private ListImpl(Functor functor, E head, List<E> tail) {
+        private ListImpl(Functor functor, E head, ListCons<E> tail) {
             super(functor, head, tail);
         }
 
@@ -119,8 +120,8 @@ public final class Lists {
 
         @Override
         @SuppressWarnings("unchecked")
-        protected final List<E> proxy() {
-            return (List<E>) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{List.class}, this);
+        protected final ListCons<E> proxy() {
+            return (ListCons<E>) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{ListCons.class}, this);
         }
 
         @Override
@@ -158,8 +159,8 @@ public final class Lists {
 
         @SuppressWarnings({"unchecked", "rawtypes"})
         @Override
-        public Class<List<E>> type() {
-            return (Class) List.class;
+        public Class<ListCons<E>> type() {
+            return (Class) ListCons.class;
         }
     }
 
@@ -183,7 +184,7 @@ public final class Lists {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static final FunctorImpl<Predicate> ADD_FUNCTOR       = Logic.<Predicate, Structure, List, List> functImpl(Lists::add, (LogicLambda) t -> {
+    private static final FunctorImpl<Predicate> ADD_FUNCTOR       = Logic.<Predicate, Structure, ListCons, ListCons> functImpl(Lists::add, (LogicLambda) t -> {
                                                                       StructureImpl<Structure> e = t.getStruct(1);
                                                                       ListImpl<Structure> i = t.getStruct(2);
                                                                       ListImpl<Structure> o = t.getStruct(3);
@@ -207,7 +208,7 @@ public final class Lists {
     @SuppressWarnings("rawtypes")
     private static final Functor<Predicate>     ADD_FUNCTOR_PROXY = ADD_FUNCTOR.proxy();
 
-    public static <E extends Structure> Predicate add(E e, List<E> i, List<E> o) {
+    public static <E extends Structure> Predicate add(E e, ListCons<E> i, ListCons<E> o) {
         return pred(ADD_FUNCTOR_PROXY, e, i, o);
     }
 

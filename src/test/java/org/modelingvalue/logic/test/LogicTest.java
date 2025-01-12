@@ -48,13 +48,13 @@ import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.SerializableBiFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
-import org.modelingvalue.logic.Integers.IntAtom;
+import org.modelingvalue.logic.Integers.IntCons;
 import org.modelingvalue.logic.Integers.IntFunc;
 import org.modelingvalue.logic.Integers.Integer;
-import org.modelingvalue.logic.Lists.List;
+import org.modelingvalue.logic.Lists.ListCons;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.*;
-import org.modelingvalue.logic.Rationals.RationalAtom;
+import org.modelingvalue.logic.Rationals.RationalCons;
 
 public class LogicTest {
 
@@ -90,20 +90,20 @@ public class LogicTest {
     interface Root extends Structure {
     }
 
-    interface RootAtom extends Root, Atomic<Root> {
+    interface RootCons extends Root, Constant<Root> {
     }
 
     interface RootFunc extends Root, Function<Root> {
     }
 
-    static Functor<RootAtom> rootAtom = functor((SerializableFunction<String, RootAtom>) LogicTest::root);
+    static Functor<RootCons> rootAtom = functor((SerializableFunction<String, RootCons>) LogicTest::root);
 
-    static RootAtom root(String name) {
-        return struct(rootAtom, name);
+    static RootCons root(String name) {
+        return constant(rootAtom, name);
     }
 
-    static RootAtom rootAtomVar(String name) {
-        return var(RootAtom.class, name);
+    static RootCons rootAtomVar(String name) {
+        return var(RootCons.class, name);
     }
 
     static Root rootVar(String name) {
@@ -112,14 +112,14 @@ public class LogicTest {
 
     static Functor<Relation> rootPerson = functor(LogicTest::rootPerson);
 
-    static Relation rootPerson(RootAtom root, PersonAtom person) {
+    static Relation rootPerson(RootCons root, PersonCons person) {
         return pred(rootPerson, root, person);
     }
 
     static Functor<RootFunc> rootFunc = functor((SerializableFunction<Person, RootFunc>) LogicTest::root);
 
     static RootFunc root(Person person) {
-        return struct(rootFunc, person);
+        return function(rootFunc, person);
     }
 
     // Family Tree
@@ -127,30 +127,30 @@ public class LogicTest {
     interface Person extends Structure {
     }
 
-    interface PersonAtom extends Person, Atomic<Person> {
+    interface PersonCons extends Person, Constant<Person> {
     }
 
     interface PersonFunc extends Person, Function<Person> {
     }
 
-    static Functor<PersonAtom> strPerson = functor((SerializableFunction<String, PersonAtom>) LogicTest::person);
+    static Functor<PersonCons> strPerson = functor((SerializableFunction<String, PersonCons>) LogicTest::person);
 
-    static PersonAtom person(String name) {
-        return struct(strPerson, name);
+    static PersonCons person(String name) {
+        return constant(strPerson, name);
     }
 
-    static Functor<PersonAtom> intPerson = functor((SerializableFunction<IntAtom, PersonAtom>) LogicTest::person);
+    static Functor<PersonCons> intPerson = functor((SerializableFunction<IntCons, PersonCons>) LogicTest::person);
 
-    static PersonAtom person(IntAtom i) {
-        return struct(intPerson, i);
+    static PersonCons person(IntCons i) {
+        return constant(intPerson, i);
     }
 
-    static PersonAtom person(int i) {
+    static PersonCons person(int i) {
         return person(i(i));
     }
 
-    static PersonAtom personAtomVar(String name) {
-        return var(PersonAtom.class, name);
+    static PersonCons personAtomVar(String name) {
+        return var(PersonCons.class, name);
     }
 
     static Person personVar(String name) {
@@ -159,89 +159,89 @@ public class LogicTest {
 
     static Functor<Relation> parentChild = functor(LogicTest::parentChild);
 
-    static Relation parentChild(PersonAtom parent, PersonAtom child) {
+    static Relation parentChild(PersonCons parent, PersonCons child) {
         return pred(parentChild, parent, child);
     }
 
     static Functor<PersonFunc> parent = functor(LogicTest::parent);
 
     static PersonFunc parent(Person child) {
-        return struct(parent, child);
+        return function(parent, child);
     }
 
     static Functor<PersonFunc> child = functor(LogicTest::child);
 
     static PersonFunc child(Person parent) {
-        return struct(child, parent);
+        return function(child, parent);
     }
 
     static Functor<Relation> ancestorDescendent = functor(LogicTest::ancestorDescendent);
 
-    static Relation ancestorDescendent(PersonAtom ancestor, PersonAtom descendent) {
+    static Relation ancestorDescendent(PersonCons ancestor, PersonCons descendent) {
         return pred(ancestorDescendent, ancestor, descendent);
     }
 
     static Functor<PersonFunc> ancestor = functor(LogicTest::ancestor);
 
     static PersonFunc ancestor(Person descendent) {
-        return struct(ancestor, descendent);
+        return function(ancestor, descendent);
     }
 
     static Functor<PersonFunc> descendent = functor(LogicTest::descendent);
 
     static PersonFunc descendent(Person ancestor) {
-        return struct(descendent, ancestor);
+        return function(descendent, ancestor);
     }
 
     // Variables
 
-    IntAtom                  P      = iav("P");
-    IntAtom                  Q      = iav("Q");
+    IntCons                  P      = iav("P");
+    IntCons                  Q      = iav("Q");
 
     Integer                  R      = iv("R");
     Integer                  S      = iv("S");
 
-    RationalAtom             T      = rav("T");
-    RationalAtom             U      = rav("U");
+    RationalCons             T      = rav("T");
+    RationalCons             U      = rav("U");
 
-    PersonAtom               A      = personAtomVar("A");
-    PersonAtom               B      = personAtomVar("B");
-    PersonAtom               C      = personAtomVar("C");
+    PersonCons               A      = personAtomVar("A");
+    PersonCons               B      = personAtomVar("B");
+    PersonCons               C      = personAtomVar("C");
 
     Person                   X      = personVar("X");
     Person                   Y      = personVar("Y");
     Person                   Z      = personVar("Z");
 
-    RootAtom                 V      = rootAtomVar("V");
+    RootCons                 V      = rootAtomVar("V");
     Root                     W      = rootVar("W");
 
     @SuppressWarnings("unchecked")
-    List<Person>             PL     = var(List.class, "PL");
+    ListCons<Person>         PL     = var(ListCons.class, "PL");
 
     // Terms
 
-    PersonAtom               Carel  = person("Carel");
-    PersonAtom               Jan    = person("Jan");
-    PersonAtom               Elske  = person("Elske");
-    PersonAtom               Wim    = person("Wim");
-    PersonAtom               Joppe  = person("Joppe");
-    PersonAtom               Heleen = person("Heleen");
-    PersonAtom               Marijn = person("Marijn");
+    PersonCons               Carel  = person("Carel");
+    PersonCons               Jan    = person("Jan");
+    PersonCons               Elske  = person("Elske");
+    PersonCons               Wim    = person("Wim");
+    PersonCons               Joppe  = person("Joppe");
+    PersonCons               Heleen = person("Heleen");
+    PersonCons               Marijn = person("Marijn");
 
-    RootAtom                 Root   = root("Root");
+    RootCons                 Root   = root("Root");
 
     // Fibonacci
 
-    static Functor<Relation> fib2   = functor((SerializableBiFunction<IntAtom, IntAtom, Relation>) LogicTest::fib);
+    static Functor<Relation> fib2   = functor((SerializableBiFunction<IntCons, IntCons, Relation>) LogicTest::fib);
 
-    static Relation fib(IntAtom i, IntAtom f) {
+    static Relation fib(IntCons i, IntCons f) {
         return pred(fib2, i, f);
     }
 
     static Functor<IntFunc> fib1 = functor((SerializableFunction<Integer, IntFunc>) LogicTest::fib);
 
     static IntFunc fib(Integer i) {
-        return struct(fib1, i);
+        return function(fib1, i);
     }
 
     private void fibonacciRules() {

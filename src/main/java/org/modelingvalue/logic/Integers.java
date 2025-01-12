@@ -35,28 +35,28 @@ public final class Integers {
     public interface Integer extends Structure {
     }
 
-    public interface IntAtom extends Integer, Atomic<Integer> {
+    public interface IntCons extends Integer, Constant<Integer> {
     }
 
     public interface IntFunc extends Integer, Function<Integer> {
     }
 
-    private static Functor<IntAtom> i = Logic.<IntAtom, BigInteger> functor(Integers::i);
+    private static Functor<IntCons> i = Logic.<IntCons, BigInteger> functor(Integers::i);
 
-    public static IntAtom i(BigInteger x) {
-        return struct(i, x);
+    public static IntCons i(BigInteger x) {
+        return constant(i, x);
     }
 
-    public static IntAtom i(String val, int radix) {
+    public static IntCons i(String val, int radix) {
         return i(new BigInteger(val, radix));
     }
 
-    public static IntAtom i(long x) {
+    public static IntCons i(long x) {
         return i(BigInteger.valueOf(x));
     }
 
-    public static IntAtom iav(String name) {
-        return var(IntAtom.class, name);
+    public static IntCons iav(String name) {
+        return var(IntCons.class, name);
     }
 
     public static Integer iv(String name) {
@@ -66,10 +66,10 @@ public final class Integers {
     // Operators
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> compare = Logic.<Predicate, IntAtom, IntAtom, IntAtom> functor(Integers::compare, (LogicLambda) t -> {
-        StructureImpl<IntAtom> at = t.getStruct(1);
-        StructureImpl<IntAtom> bt = t.getStruct(2);
-        StructureImpl<IntAtom> ct = t.getStruct(3);
+    private static Functor<Predicate> compare = Logic.<Predicate, IntCons, IntCons, IntCons> functor(Integers::compare, (LogicLambda) t -> {
+        StructureImpl<IntCons> at = t.getStruct(1);
+        StructureImpl<IntCons> bt = t.getStruct(2);
+        StructureImpl<IntCons> ct = t.getStruct(3);
         BigInteger ai = at != null ? at.getVal(1) : null;
         BigInteger bi = bt != null ? bt.getVal(1) : null;
         BigInteger ci = ct != null ? ct.getVal(1) : null;
@@ -90,15 +90,15 @@ public final class Integers {
         return t.incomplete();
     });
 
-    public static Predicate compare(IntAtom a, IntAtom b, IntAtom c) {
+    public static Predicate compare(IntCons a, IntCons b, IntCons c) {
         return pred(compare, a, b, c);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> plusPred = Logic.<Predicate, IntAtom, IntAtom, IntAtom> functor(Integers::plus, (LogicLambda) t -> {
-        StructureImpl<IntAtom> at = t.getStruct(1);
-        StructureImpl<IntAtom> bt = t.getStruct(2);
-        StructureImpl<IntAtom> ct = t.getStruct(3);
+    private static Functor<Predicate> plusPred = Logic.<Predicate, IntCons, IntCons, IntCons> functor(Integers::plus, (LogicLambda) t -> {
+        StructureImpl<IntCons> at = t.getStruct(1);
+        StructureImpl<IntCons> bt = t.getStruct(2);
+        StructureImpl<IntCons> ct = t.getStruct(3);
         BigInteger ai = at != null ? at.getVal(1) : null;
         BigInteger bi = bt != null ? bt.getVal(1) : null;
         BigInteger ci = ct != null ? ct.getVal(1) : null;
@@ -115,15 +115,15 @@ public final class Integers {
         }
     });
 
-    public static Predicate plus(IntAtom a, IntAtom b, IntAtom r) {
+    public static Predicate plus(IntCons a, IntCons b, IntCons r) {
         return pred(plusPred, a, b, r);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> multiplyPred = Logic.<Predicate, IntAtom, IntAtom, IntAtom> functor(Integers::multiply, (LogicLambda) t -> {
-        StructureImpl<IntAtom> at = t.getStruct(1);
-        StructureImpl<IntAtom> bt = t.getStruct(2);
-        StructureImpl<IntAtom> ct = t.getStruct(3);
+    private static Functor<Predicate> multiplyPred = Logic.<Predicate, IntCons, IntCons, IntCons> functor(Integers::multiply, (LogicLambda) t -> {
+        StructureImpl<IntCons> at = t.getStruct(1);
+        StructureImpl<IntCons> bt = t.getStruct(2);
+        StructureImpl<IntCons> ct = t.getStruct(3);
         BigInteger ai = at != null ? at.getVal(1) : null;
         BigInteger bi = bt != null ? bt.getVal(1) : null;
         BigInteger ci = ct != null ? ct.getVal(1) : null;
@@ -140,14 +140,14 @@ public final class Integers {
         }
     });
 
-    public static Predicate multiply(IntAtom a, IntAtom b, IntAtom r) {
+    public static Predicate multiply(IntCons a, IntCons b, IntCons r) {
         return pred(multiplyPred, a, b, r);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> powerPred = Logic.<Predicate, IntAtom, IntAtom> functor(Integers::power, (LogicLambda) t -> {
-        StructureImpl<IntAtom> at = t.getStruct(1);
-        StructureImpl<IntAtom> bt = t.getStruct(2);
+    private static Functor<Predicate> powerPred = Logic.<Predicate, IntCons, IntCons> functor(Integers::power, (LogicLambda) t -> {
+        StructureImpl<IntCons> at = t.getStruct(1);
+        StructureImpl<IntCons> bt = t.getStruct(2);
         BigInteger ai = at != null ? at.getVal(1) : null;
         BigInteger bi = bt != null ? bt.getVal(1) : null;
         if (ai != null && bi != null) {
@@ -162,7 +162,7 @@ public final class Integers {
         }
     });
 
-    public static Predicate power(IntAtom a, IntAtom r) {
+    public static Predicate power(IntCons a, IntCons r) {
         return pred(powerPred, a, r);
     }
 
@@ -195,37 +195,37 @@ public final class Integers {
     private static Functor<IntFunc> plusFunc = Logic.<IntFunc, Integer, Integer> functor(Integers::plus);
 
     public static IntFunc plus(Integer a, Integer b) {
-        return struct(plusFunc, a, b);
+        return function(plusFunc, a, b);
     }
 
     private static Functor<IntFunc> minusFunc = Logic.<IntFunc, Integer, Integer> functor(Integers::minus);
 
     public static IntFunc minus(Integer a, Integer b) {
-        return struct(minusFunc, a, b);
+        return function(minusFunc, a, b);
     }
 
     private static Functor<IntFunc> multiplyFunc = Logic.<IntFunc, Integer, Integer> functor(Integers::multiply);
 
     public static IntFunc multiply(Integer a, Integer b) {
-        return struct(multiplyFunc, a, b);
+        return function(multiplyFunc, a, b);
     }
 
     private static Functor<IntFunc> divideFunc = Logic.<IntFunc, Integer, Integer> functor(Integers::divide);
 
     public static IntFunc divide(Integer a, Integer b) {
-        return struct(divideFunc, a, b);
+        return function(divideFunc, a, b);
     }
 
     private static Functor<IntFunc> powerFunc = Logic.<IntFunc, Integer> functor(Integers::power);
 
     public static IntFunc power(Integer a) {
-        return struct(powerFunc, a);
+        return function(powerFunc, a);
     }
 
     private static Functor<IntFunc> sqrtFunc = Logic.<IntFunc, Integer> functor(Integers::sqrt);
 
     public static IntFunc sqrt(Integer a) {
-        return struct(sqrtFunc, a);
+        return function(sqrtFunc, a);
     }
 
     // Rules
@@ -233,9 +233,9 @@ public final class Integers {
     public static void integerRules() {
         isRules();
 
-        IntAtom P = iav("PL");
-        IntAtom Q = iav("QL");
-        IntAtom R = iav("RL");
+        IntCons P = iav("PL");
+        IntCons Q = iav("QL");
+        IntCons R = iav("RL");
 
         Integer X = iv("X");
         Integer Y = iv("Y");

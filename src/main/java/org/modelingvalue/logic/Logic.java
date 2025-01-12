@@ -315,7 +315,12 @@ public final class Logic {
     }
 
     @SuppressWarnings("unchecked")
-    public static <F extends Structure> F struct(Functor<F> functor, Object... args) {
+    public static <C extends Constant<T>, T extends Structure> C constant(Functor<C> functor, Object... args) {
+        return new StructureImpl<C>(functor, args).normal().proxy();
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <F extends Function<T>, T extends Structure> F function(Functor<F> functor, Object... args) {
         return new StructureImpl<F>(functor, args).normal().proxy();
     }
 
@@ -1937,11 +1942,11 @@ public final class Logic {
 
     // Equals
 
-    public interface Atomic<T extends Structure> extends Structure {
+    public interface Constant<T extends Structure> extends Structure {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> eq = Logic.<Predicate, Atomic, Atomic> functor(Logic::eq, (LogicLambda) t -> {
+    private static Functor<Predicate> eq = Logic.<Predicate, Constant, Constant> functor(Logic::eq, (LogicLambda) t -> {
         StructureImpl at = t.getStruct(1);
         StructureImpl bt = t.getStruct(2);
         if (at == null && bt == null) {
@@ -1957,7 +1962,7 @@ public final class Logic {
     });
 
     @SuppressWarnings("rawtypes")
-    public static <T extends Structure> Predicate eq(Atomic<T> a, Atomic<T> b) {
+    public static <T extends Structure> Predicate eq(Constant<T> a, Constant<T> b) {
         return pred(eq, a, b);
     }
 
@@ -1974,19 +1979,19 @@ public final class Logic {
     }
 
     // Use this one for function definitions
-    public static <T extends Structure> Relation is(T a, Atomic<T> b) {
+    public static <T extends Structure> Relation is(T a, Constant<T> b) {
         return pred(is, a, b);
     }
 
     // Implied by the above using the generic rules here
-    public static <T extends Structure> Relation is(Atomic<T> a, T b) {
+    public static <T extends Structure> Relation is(Constant<T> a, T b) {
         return pred(is, a, b);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static void isRules() {
-        Atomic A1 = var(Atomic.class, "A1");
-        Atomic A2 = var(Atomic.class, "A2");
+        Constant A1 = var(Constant.class, "A1");
+        Constant A2 = var(Constant.class, "A2");
         Function F1 = var(Function.class, "F1");
         Function F2 = var(Function.class, "F2");
 

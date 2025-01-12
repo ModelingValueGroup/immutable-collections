@@ -27,7 +27,7 @@ import static org.modelingvalue.logic.Logic.*;
 import java.math.BigInteger;
 
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.logic.Integers.IntAtom;
+import org.modelingvalue.logic.Integers.IntCons;
 import org.modelingvalue.logic.Logic.*;
 
 public final class Rationals {
@@ -38,45 +38,45 @@ public final class Rationals {
     public interface Rational extends Structure {
     }
 
-    public interface RationalAtom extends Rational, Atomic<Rational> {
+    public interface RationalCons extends Rational, Constant<Rational> {
     }
 
     public interface RationalFunc extends Rational, Function<Rational> {
     }
 
-    private static Functor<RationalAtom> r = Logic.<RationalAtom, BigInteger, BigInteger> functor(Rationals::r, (NormalizeLambda) t -> {
+    private static Functor<RationalCons> r = Logic.<RationalCons, BigInteger, BigInteger> functor(Rationals::r, (NormalizeLambda) t -> {
         BigInteger ax = t.getVal(1);
         BigInteger ay = t.getVal(2);
         BigInteger gcd = ax.gcd(ay);
         return t.set(1, ax.divide(gcd), ay.divide(gcd));
     });
 
-    public static RationalAtom r(BigInteger x, BigInteger y) {
-        return struct(r, x, y);
+    public static RationalCons r(BigInteger x, BigInteger y) {
+        return constant(r, x, y);
     }
 
-    public static RationalAtom r(String x, String y, int radix) {
+    public static RationalCons r(String x, String y, int radix) {
         return r(new BigInteger(x, radix), new BigInteger(y, radix));
     }
 
-    public static RationalAtom r(long x, long y) {
+    public static RationalCons r(long x, long y) {
         return r(BigInteger.valueOf(x), BigInteger.valueOf(y));
     }
 
-    public static RationalAtom r(BigInteger x) {
-        return struct(r, x, BigInteger.ONE);
+    public static RationalCons r(BigInteger x) {
+        return r(x, BigInteger.ONE);
     }
 
-    public static RationalAtom r(String x, int radix) {
+    public static RationalCons r(String x, int radix) {
         return r(new BigInteger(x, radix));
     }
 
-    public static RationalAtom r(long x) {
+    public static RationalCons r(long x) {
         return r(BigInteger.valueOf(x));
     }
 
-    public static RationalAtom rav(String name) {
-        return var(RationalAtom.class, name);
+    public static RationalCons rav(String name) {
+        return var(RationalCons.class, name);
     }
 
     public static Rational rv(String name) {
@@ -86,10 +86,10 @@ public final class Rationals {
     // Operators
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> compare = Logic.<Predicate, RationalAtom, RationalAtom, IntAtom> functor(Rationals::compare, (LogicLambda) t -> {
-        StructureImpl<RationalAtom> at = t.getStruct(1);
-        StructureImpl<RationalAtom> bt = t.getStruct(2);
-        StructureImpl<IntAtom> ct = t.getStruct(3);
+    private static Functor<Predicate> compare = Logic.<Predicate, RationalCons, RationalCons, IntCons> functor(Rationals::compare, (LogicLambda) t -> {
+        StructureImpl<RationalCons> at = t.getStruct(1);
+        StructureImpl<RationalCons> bt = t.getStruct(2);
+        StructureImpl<IntCons> ct = t.getStruct(3);
         BigInteger ci = ct != null ? ct.getVal(1) : null;
         if (at != null && bt != null) {
             BigInteger ax = at.getVal(1);
@@ -114,15 +114,15 @@ public final class Rationals {
         return t.incomplete();
     });
 
-    public static Predicate compare(RationalAtom a, RationalAtom b, IntAtom c) {
+    public static Predicate compare(RationalCons a, RationalCons b, IntCons c) {
         return pred(compare, a, b, c);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> plusPred = Logic.<Predicate, RationalAtom, RationalAtom, RationalAtom> functor(Rationals::plus, (LogicLambda) t -> {
-        StructureImpl<RationalAtom> at = t.getStruct(1);
-        StructureImpl<RationalAtom> bt = t.getStruct(2);
-        StructureImpl<RationalAtom> ct = t.getStruct(3);
+    private static Functor<Predicate> plusPred = Logic.<Predicate, RationalCons, RationalCons, RationalCons> functor(Rationals::plus, (LogicLambda) t -> {
+        StructureImpl<RationalCons> at = t.getStruct(1);
+        StructureImpl<RationalCons> bt = t.getStruct(2);
+        StructureImpl<RationalCons> ct = t.getStruct(3);
         BigInteger ax = at != null ? at.getVal(1) : null;
         BigInteger bx = bt != null ? bt.getVal(1) : null;
         BigInteger cx = ct != null ? ct.getVal(1) : null;
@@ -132,7 +132,7 @@ public final class Rationals {
         if (at != null && bt != null && ct != null) {
             BigInteger a = ax.multiply(by);
             BigInteger b = bx.multiply(ay);
-            StructureImpl<RationalAtom> pt = at.set(1, a.add(b), by.multiply(ay));
+            StructureImpl<RationalCons> pt = at.set(1, a.add(b), by.multiply(ay));
             return pt.equals(ct) ? Set.of(t) : Set.of();
         } else if (at != null && bt != null && ct == null) {
             BigInteger a = ax.multiply(by);
@@ -151,15 +151,15 @@ public final class Rationals {
         }
     });
 
-    public static Predicate plus(RationalAtom a, RationalAtom b, RationalAtom r) {
+    public static Predicate plus(RationalCons a, RationalCons b, RationalCons r) {
         return pred(plusPred, a, b, r);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> multiplyPred = Logic.<Predicate, RationalAtom, RationalAtom, RationalAtom> functor(Rationals::multiply, (LogicLambda) t -> {
-        StructureImpl<RationalAtom> at = t.getStruct(1);
-        StructureImpl<RationalAtom> bt = t.getStruct(2);
-        StructureImpl<RationalAtom> ct = t.getStruct(3);
+    private static Functor<Predicate> multiplyPred = Logic.<Predicate, RationalCons, RationalCons, RationalCons> functor(Rationals::multiply, (LogicLambda) t -> {
+        StructureImpl<RationalCons> at = t.getStruct(1);
+        StructureImpl<RationalCons> bt = t.getStruct(2);
+        StructureImpl<RationalCons> ct = t.getStruct(3);
         BigInteger ax = at != null ? at.getVal(1) : null;
         BigInteger bx = bt != null ? bt.getVal(1) : null;
         BigInteger cx = ct != null ? ct.getVal(1) : null;
@@ -167,7 +167,7 @@ public final class Rationals {
         BigInteger by = bt != null ? bt.getVal(2) : null;
         BigInteger cy = ct != null ? ct.getVal(2) : null;
         if (at != null && bt != null && ct != null) {
-            StructureImpl<RationalAtom> mt = at.set(1, ax.multiply(bx), ay.multiply(by));
+            StructureImpl<RationalCons> mt = at.set(1, ax.multiply(bx), ay.multiply(by));
             return mt.equals(ct) ? Set.of(t) : Set.of();
         } else if (at != null && bt != null && ct == null) {
             return Set.of(t.set(3, at.set(1, ax.multiply(bx), ay.multiply(by))));
@@ -180,18 +180,18 @@ public final class Rationals {
         }
     });
 
-    public static Predicate multiply(RationalAtom a, RationalAtom b, RationalAtom r) {
+    public static Predicate multiply(RationalCons a, RationalCons b, RationalCons r) {
         return pred(multiplyPred, a, b, r);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> powerPred = Logic.<Predicate, RationalAtom, RationalAtom> functor(Rationals::power, (LogicLambda) t -> {
-        StructureImpl<RationalAtom> at = t.getStruct(1);
-        StructureImpl<RationalAtom> bt = t.getStruct(2);
+    private static Functor<Predicate> powerPred = Logic.<Predicate, RationalCons, RationalCons> functor(Rationals::power, (LogicLambda) t -> {
+        StructureImpl<RationalCons> at = t.getStruct(1);
+        StructureImpl<RationalCons> bt = t.getStruct(2);
         BigInteger ax = at != null ? at.getVal(1) : null;
         BigInteger ay = at != null ? at.getVal(2) : null;
         if (at != null && bt != null) {
-            StructureImpl<RationalAtom> mt = at.set(1, ax.multiply(ax), ay.multiply(ay));
+            StructureImpl<RationalCons> mt = at.set(1, ax.multiply(ax), ay.multiply(ay));
             return mt.equals(bt) ? Set.of(t) : Set.of();
         } else if (at != null && bt == null) {
             return Set.of(t.set(2, at.set(1, ax.multiply(ax), ay.multiply(ay))));
@@ -206,7 +206,7 @@ public final class Rationals {
         }
     });
 
-    public static Predicate power(RationalAtom a, RationalAtom r) {
+    public static Predicate power(RationalCons a, RationalCons r) {
         return pred(powerPred, a, r);
     }
 
@@ -239,37 +239,37 @@ public final class Rationals {
     private static Functor<RationalFunc> plusFunc = Logic.<RationalFunc, Rational, Rational> functor(Rationals::plus);
 
     public static RationalFunc plus(Rational a, Rational b) {
-        return struct(plusFunc, a, b);
+        return function(plusFunc, a, b);
     }
 
     private static Functor<RationalFunc> minusFunc = Logic.<RationalFunc, Rational, Rational> functor(Rationals::minus);
 
     public static RationalFunc minus(Rational a, Rational b) {
-        return struct(minusFunc, a, b);
+        return function(minusFunc, a, b);
     }
 
     private static Functor<RationalFunc> multiplyFunc = Logic.<RationalFunc, Rational, Rational> functor(Rationals::multiply);
 
     public static RationalFunc multiply(Rational a, Rational b) {
-        return struct(multiplyFunc, a, b);
+        return function(multiplyFunc, a, b);
     }
 
     private static Functor<RationalFunc> divideFunc = Logic.<RationalFunc, Rational, Rational> functor(Rationals::divide);
 
     public static RationalFunc divide(Rational a, Rational b) {
-        return struct(divideFunc, a, b);
+        return function(divideFunc, a, b);
     }
 
     private static Functor<RationalFunc> powerFunc = Logic.<RationalFunc, Rational> functor(Rationals::power);
 
     public static RationalFunc power(Rational a) {
-        return struct(powerFunc, a);
+        return function(powerFunc, a);
     }
 
     private static Functor<RationalFunc> sqrtFunc = Logic.<RationalFunc, Rational> functor(Rationals::sqrt);
 
     public static RationalFunc sqrt(Rational a) {
-        return struct(sqrtFunc, a);
+        return function(sqrtFunc, a);
     }
 
     // Rules
@@ -277,11 +277,11 @@ public final class Rationals {
     public static void rationalRules() {
         isRules();
 
-        RationalAtom P = rav("PL");
-        RationalAtom Q = rav("QL");
-        RationalAtom R = rav("RL");
+        RationalCons P = rav("PL");
+        RationalCons Q = rav("QL");
+        RationalCons R = rav("RL");
 
-        IntAtom I = iav("IL");
+        IntCons I = iav("IL");
 
         Rational X = rv("X");
         Rational Y = rv("Y");
