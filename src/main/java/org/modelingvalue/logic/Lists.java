@@ -34,7 +34,7 @@ public final class Lists {
 
     // Lists
 
-    public interface List<E extends Structure> extends Constant<List<E>> {
+    public interface List<E extends Structure> extends Structure {
     }
 
     public interface ListCons<E extends Structure> extends List<E>, Constant<List<E>> {
