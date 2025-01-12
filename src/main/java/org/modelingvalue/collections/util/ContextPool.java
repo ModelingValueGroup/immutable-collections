@@ -26,12 +26,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
 public final class ContextPool extends ForkJoinPool {
-    private static final AtomicInteger      POOL_COUNTER  = new AtomicInteger();
-    private final        AtomicIntegerArray workerCreated = new AtomicIntegerArray(ContextThread.POOL_SIZE);
-    private final        int                poolNr;
-    private final        AtomicInteger      numInOverflow = new AtomicInteger();
-    private final        int[]              activity      = new int[ContextThread.POOL_SIZE];
-    private              int                running       = -1;
+    private static final AtomicInteger POOL_COUNTER  = new AtomicInteger();
+    private final AtomicIntegerArray   workerCreated = new AtomicIntegerArray(ContextThread.POOL_SIZE);
+    private final int                  poolNr;
+    private final AtomicInteger        numInOverflow = new AtomicInteger();
+    private final int[]                activity      = new int[ContextThread.POOL_SIZE];
+    private int                        running       = -1;
 
     static {
         ContextPoolMonitor.init();
@@ -96,4 +96,5 @@ public final class ContextPool extends ForkJoinPool {
     public String toString() {
         return String.format("pool%02d-%s", poolNr, super.toString().replaceFirst(".*\\[", "").replaceFirst("].*", ""));
     }
+
 }

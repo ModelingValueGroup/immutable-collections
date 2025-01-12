@@ -1,0 +1,158 @@
+package org.modelingvalue.logic.impl;
+
+import java.lang.reflect.Proxy;
+
+import org.modelingvalue.collections.List;
+import org.modelingvalue.collections.Map;
+import org.modelingvalue.collections.Set;
+import org.modelingvalue.logic.Database;
+import org.modelingvalue.logic.Logic;
+import org.modelingvalue.logic.Logic.Predicate;
+
+public final class CollectImpl extends PredicateImpl {
+    private static final long serialVersionUID = -2799691054715131197L;
+
+    public CollectImpl(Predicate pred, Predicate accum) {
+        super(Logic.COLLECT_FUNCTOR_PROXY, pred, accum);
+    }
+
+    private CollectImpl(Object[] args) {
+        super(args);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public Predicate proxy() {
+        return (Predicate) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{Predicate.class}, this);
+    }
+
+    @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    protected CollectImpl struct(Object[] array) {
+        return new CollectImpl(array);
+    }
+
+    @SuppressWarnings("rawtypes")
+    protected final PredicateImpl pred() {
+        return (PredicateImpl) get(1);
+    }
+
+    @SuppressWarnings("rawtypes")
+    protected final PredicateImpl accum() {
+        return (PredicateImpl) get(2);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private Map<VariableImpl, Object> localVariables;
+
+    @SuppressWarnings("rawtypes")
+    protected Map<VariableImpl, Object> localVariables() {
+        if (localVariables == null) {
+            Map<VariableImpl, Object> predVars = pred().variables();
+            Map<VariableImpl, Object> accumVars = accum().variables();
+            localVariables = predVars.retainAll(accumVars::contains);
+        }
+        return localVariables;
+    }
+
+    @SuppressWarnings("rawtypes")
+    private Map<VariableImpl, Object> variables;
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public Map<VariableImpl, Object> variables() {
+        if (variables == null) {
+            Map<VariableImpl, Object> predVars = pred().variables();
+            Map<VariableImpl, Object> accumVars = accum().variables();
+            variables = predVars.removeAll(accumVars::contains).addAll(accumVars.removeAll(predVars::contains));
+        }
+        return variables;
+    }
+
+    private int identityIndex = -1;
+
+    @SuppressWarnings("rawtypes")
+    private int identityIndex() {
+        if (identityIndex < 0) {
+            PredicateImpl accum = accum();
+            for (int i = 1; i < accum.length(); i++) {
+                Object v = accum.get(i);
+                if (!(v instanceof VariableImpl) && v instanceof StructureImpl) {
+                    Class<?> rt = ((VariableImpl) accum.get(resultIndex())).type();
+                    Class<?> at = ((StructureImpl) v).type();
+                    if (rt.isAssignableFrom(at)) {
+                        identityIndex = i;
+                        break;
+                    }
+                }
+            }
+        }
+        return identityIndex;
+    }
+
+    private int resultIndex = -1;
+
+    @SuppressWarnings("rawtypes")
+    private int resultIndex() {
+        if (resultIndex < 0) {
+            PredicateImpl accum = accum();
+            for (int i = 1; i < accum.length(); i++) {
+                Object v = accum.get(i);
+                if (v instanceof VariableImpl && !localVariables().containsKey((VariableImpl) v)) {
+                    resultIndex = i;
+                    break;
+                }
+            }
+        }
+        return resultIndex;
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    @Override
+    public Set<PredicateImpl> match(PredicateImpl goal, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
+        Map<VariableImpl, Object> localVars = ((CollectImpl) goal).localVariables();
+        int ii = ((CollectImpl) goal).identityIndex();
+        int ri = ((CollectImpl) goal).resultIndex();
+        PredicateImpl goalPred = ((CollectImpl) goal).pred();
+        PredicateImpl goalAccum = ((CollectImpl) goal).accum();
+        PredicateImpl accum = accum();
+        StructureImpl id = accum.getStruct(ii);
+        Set<StructureImpl> rs = Set.of(id);
+        Set<PredicateImpl> inc = Set.of();
+        for (PredicateImpl pm : goalPred.setBinding(pred(), localVars).match(goalPred, der, rec, database)) {
+            if (pm.isIncomplete()) {
+                inc = inc.add(pm);
+            } else {
+                Map<VariableImpl, Object> b = goalPred.getBinding(pm, Map.of());
+                Set<StructureImpl> irs = Set.of();
+                for (StructureImpl r : rs) {
+                    PredicateImpl s = goalAccum.setBinding(accum, b).set(ii, r);
+                    for (PredicateImpl am : s.match(goalAccum, der, rec, database)) {
+                        if (am.isIncomplete()) {
+                            inc = inc.add(am);
+                        } else {
+                            irs = irs.add(am.getStruct(ri));
+                        }
+                    }
+                }
+                rs = irs;
+            }
+        }
+        for (StructureImpl t : rs) {
+            inc = inc.add(set(2, accum.set(ri, t)));
+        }
+        return inc;
+    }
+
+    @SuppressWarnings("rawtypes")
+    @Override
+    public Map<VariableImpl, Object> getBinding(StructureImpl<Predicate> pred, Map<VariableImpl, Object> vars) {
+        Map<VariableImpl, Object> localVars = localVariables();
+        return super.getBinding(pred, vars).removeAll(e -> localVars.containsKey(e.getKey()));
+    }
+
+    @Override
+    public CollectImpl set(int i, Object... a) {
+        return (CollectImpl) super.set(i, a);
+    }
+}

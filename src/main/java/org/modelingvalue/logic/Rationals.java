@@ -29,6 +29,7 @@ import java.math.BigInteger;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Integers.IntCons;
 import org.modelingvalue.logic.Logic.*;
+import org.modelingvalue.logic.impl.StructureImpl;
 
 public final class Rationals {
 

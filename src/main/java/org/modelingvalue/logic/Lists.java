@@ -22,10 +22,16 @@ package org.modelingvalue.logic;
 
 import static org.modelingvalue.logic.Logic.pred;
 
-import java.lang.reflect.Proxy;
-
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.logic.Logic.*;
+import org.modelingvalue.logic.Logic.Constant;
+import org.modelingvalue.logic.Logic.Function;
+import org.modelingvalue.logic.Logic.Functor;
+import org.modelingvalue.logic.Logic.LogicLambda;
+import org.modelingvalue.logic.Logic.Predicate;
+import org.modelingvalue.logic.Logic.Structure;
+import org.modelingvalue.logic.impl.FunctorImpl;
+import org.modelingvalue.logic.impl.ListImpl;
+import org.modelingvalue.logic.impl.StructureImpl;
 
 public final class Lists {
 
@@ -92,76 +98,6 @@ public final class Lists {
         }
         l.list = es;
         return l;
-    }
-
-    private static final class ListImpl<E extends Structure> extends StructureImpl<ListCons<E>> {
-        private static final long                                    serialVersionUID = -916406585584150604L;
-
-        private org.modelingvalue.collections.List<StructureImpl<E>> list;
-
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        private ListImpl(FunctorImpl functor) {
-            super(functor);
-        }
-
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        private ListImpl(Functor functor, E head, ListCons<E> tail) {
-            super(functor, head, tail);
-        }
-
-        @SuppressWarnings({"rawtypes", "unchecked"})
-        private ListImpl(FunctorImpl functor, StructureImpl<E> head, ListImpl<E> tail) {
-            super(functor, head, tail);
-        }
-
-        private ListImpl(Object[] args) {
-            super(args);
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        protected final ListCons<E> proxy() {
-            return (ListCons<E>) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{ListCons.class}, this);
-        }
-
-        @Override
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        protected ListImpl<E> struct(Object[] array) {
-            return new ListImpl(array);
-        }
-
-        @SuppressWarnings("unchecked")
-        protected StructureImpl<E> head() {
-            return (StructureImpl<E>) get(1);
-        }
-
-        @SuppressWarnings("unchecked")
-        protected ListImpl<E> tail() {
-            return (ListImpl<E>) get(2);
-        }
-
-        @Override
-        public String toString() {
-            return list().toString().substring(4);
-        }
-
-        protected org.modelingvalue.collections.List<StructureImpl<E>> list() {
-            if (list == null) {
-                list = length() == 3 ? tail().list().prepend(head()) : org.modelingvalue.collections.List.of();
-            }
-            return list;
-        }
-
-        @Override
-        public ListImpl<E> set(int i, Object... a) {
-            return (ListImpl<E>) super.set(i, a);
-        }
-
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        @Override
-        public Class<ListCons<E>> type() {
-            return (Class) ListCons.class;
-        }
     }
 
     // Add

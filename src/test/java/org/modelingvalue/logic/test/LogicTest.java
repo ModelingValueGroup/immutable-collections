@@ -48,6 +48,7 @@ import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.SerializableBiFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
+import org.modelingvalue.logic.Database;
 import org.modelingvalue.logic.Integers.IntCons;
 import org.modelingvalue.logic.Integers.IntFunc;
 import org.modelingvalue.logic.Integers.Integer;
