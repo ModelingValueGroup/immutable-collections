@@ -75,7 +75,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
                                                                                                                                if (r.cond().contains(e.cond())) {
                                                                                                                                    return l;
                                                                                                                                } else {
-                                                                                                                                   return l.replace(i, r.set(2, new OrImpl(Logic.OR_FUNCTOR, r.cond(), e.cond())));
+                                                                                                                                   return l.replace(i, r.set(2, new OrImpl(r.cond(), e.cond())));
                                                                                                                                }
                                                                                                                            } else if (r.rulePrio() > p) {
                                                                                                                                return l.insert(i, e);

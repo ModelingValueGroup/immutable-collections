@@ -244,76 +244,56 @@ public final class Logic {
 
     // Collect
 
-    private static final FunctorImpl<Predicate> COLLECT_FUNCTOR       = FunctorImpl.<Predicate, Predicate, Predicate> of(Logic::collect);
-    private static final Functor<Predicate>     COLLECT_FUNCTOR_PROXY = COLLECT_FUNCTOR.proxy();
-
     @SuppressWarnings("unchecked")
     public static Predicate collect(Predicate pred, Predicate accum) {
-        return new CollectImpl(COLLECT_FUNCTOR_PROXY, pred, accum).proxy();
+        return new CollectImpl(pred, accum).proxy();
     }
 
     // Yes
 
-    private static final FunctorImpl<Predicate> YES_FUNCTOR = FunctorImpl.<Predicate> of(Logic::yes);
-    private static final TrueImpl               YES         = new TrueImpl(YES_FUNCTOR);
-    private static final Predicate              YES_PROXY   = (Predicate) Proxy.newProxyInstance(Predicate.class.getClassLoader(), new Class[]{Predicate.class}, YES);
+    private static final TrueImpl  TRUE       = new TrueImpl();
+    private static final Predicate TRUE_PROXY = (Predicate) Proxy.newProxyInstance(Predicate.class.getClassLoader(), new Class[]{Predicate.class}, TRUE);
 
     @SuppressWarnings("unchecked")
-    public static Predicate yes() {
-        return YES_PROXY;
+    public static Predicate T() {
+        return TRUE_PROXY;
     }
 
     // No
 
-    private static final FunctorImpl<Predicate> NO_FUNCTOR = FunctorImpl.<Predicate> of(Logic::no);
-    private static final FalseImpl              NO         = new FalseImpl(NO_FUNCTOR);
-    private static final Predicate              NO_PROXY   = (Predicate) Proxy.newProxyInstance(Predicate.class.getClassLoader(), new Class[]{Predicate.class}, NO);
+    private static final FalseImpl FALSE       = new FalseImpl();
+    private static final Predicate FALSE_PROXY = (Predicate) Proxy.newProxyInstance(Predicate.class.getClassLoader(), new Class[]{Predicate.class}, FALSE);
 
     @SuppressWarnings("unchecked")
-    public static Predicate no() {
-        return NO_PROXY;
+    public static Predicate F() {
+        return FALSE_PROXY;
     }
 
     // Not
 
-    private static final FunctorImpl<Predicate> NOT_FUNCTOR       = FunctorImpl.<Predicate, Predicate> of(Logic::not);
-    private static final Functor<Predicate>     NOT_FUNCTOR_PROXY = NOT_FUNCTOR.proxy();
-
     @SuppressWarnings("unchecked")
     public static Predicate not(Predicate pred) {
-        return new NotImpl(NOT_FUNCTOR_PROXY, pred).proxy();
+        return new NotImpl(pred).proxy();
     }
 
     // Or
 
-    public static final FunctorImpl<Predicate> OR_FUNCTOR = FunctorImpl.<Predicate, Predicate, Predicate> of(Logic::or);
-
-    private static Predicate or(Predicate p1, Predicate p2) {
-        return new OrImpl(OR_FUNCTOR, StructureImpl.unproxy(p1), StructureImpl.unproxy(p2)).proxy();
-    }
-
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static Predicate or(Predicate... ps) {
-        PredicateImpl impl = NO;
+        PredicateImpl impl = FALSE;
         for (int i = ps.length - 1; i >= 0; i--) {
-            impl = impl == NO ? StructureImpl.unproxy(ps[i]) : new OrImpl(OR_FUNCTOR, StructureImpl.unproxy(ps[i]), impl);
+            impl = impl == FALSE ? StructureImpl.unproxy(ps[i]) : new OrImpl(StructureImpl.unproxy(ps[i]), impl);
         }
         return impl.proxy();
     }
 
     // And
 
-    private static final FunctorImpl<Predicate> AND_FUNCTOR = FunctorImpl.<Predicate, Predicate, Predicate> of(Logic::and);
-
-    private static Predicate and(Predicate p1, Predicate p2) {
-        return new AndImpl(AND_FUNCTOR, StructureImpl.unproxy(p1), StructureImpl.unproxy(p2)).proxy();
-    }
-
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static Predicate and(Predicate... ps) {
-        PredicateImpl impl = YES;
+        PredicateImpl impl = TRUE;
         for (int i = ps.length - 1; i >= 0; i--) {
-            impl = impl == YES ? StructureImpl.unproxy(ps[i]) : new AndImpl(AND_FUNCTOR, StructureImpl.unproxy(ps[i]), impl);
+            impl = impl == TRUE ? StructureImpl.unproxy(ps[i]) : new AndImpl(StructureImpl.unproxy(ps[i]), impl);
         }
         return impl.proxy();
     }
@@ -323,12 +303,9 @@ public final class Logic {
     public interface Rule extends Structure {
     }
 
-    private static final FunctorImpl<Rule> RULE_FUNCTOR       = FunctorImpl.<Rule, Relation, Predicate> of(Logic::rule);
-    private static final Functor<Rule>     RULE_FUNCTOR_PROXY = RULE_FUNCTOR.proxy();
-
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static Rule rule(Relation consequence, Predicate condition) {
-        RuleImpl ruleImpl = new RuleImpl(RULE_FUNCTOR_PROXY, consequence, condition);
+        RuleImpl ruleImpl = new RuleImpl(consequence, condition);
         PredicateImpl consImpl = StructureImpl.<Predicate, PredicateImpl> unproxy(consequence);
         PredicateImpl signature = consImpl.signature();
         Map<Class, Set<Class>> specs = SPECIALIZATIONS.get();

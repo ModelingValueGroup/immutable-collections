@@ -265,7 +265,7 @@ public class LogicTest {
         rule(is(root(X), V), and(is(X, B), rootPerson(V, B)));
 
         rule(parentChild(person(Q), person(P)), and(lt(Q, i(4)), is(plus(Q, i(1)), P)));
-        rule(rootPerson(V, person(0)), yes());
+        rule(rootPerson(V, person(0)), T());
         rule(rootPerson(V, C), and(rootPerson(V, A), parentChild(A, C)));
     }
 

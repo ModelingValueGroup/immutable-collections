@@ -28,10 +28,12 @@ import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.Predicate;
 
 public final class TrueImpl extends PredicateImpl {
-    private static final long serialVersionUID = -8515171118744898263L;
+    private static final long                         serialVersionUID = -8515171118744898263L;
 
-    public TrueImpl(FunctorImpl<Predicate> functor) {
-        super(functor);
+    private static final FunctorImpl<Logic.Predicate> TRUE_FUNCTOR     = FunctorImpl.<Logic.Predicate> of(Logic::T);
+
+    public TrueImpl() {
+        super(TRUE_FUNCTOR);
     }
 
     private TrueImpl(Object[] args) {
@@ -41,7 +43,7 @@ public final class TrueImpl extends PredicateImpl {
     @Override
     @SuppressWarnings("unchecked")
     public Predicate proxy() {
-        return Logic.yes();
+        return Logic.T();
     }
 
     @Override

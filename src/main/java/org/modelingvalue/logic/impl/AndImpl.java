@@ -26,13 +26,22 @@ import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Database;
+import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.Predicate;
 
 public final class AndImpl extends PredicateImpl {
-    private static final long serialVersionUID = -7248491569810098948L;
+    private static final long                         serialVersionUID = -7248491569810098948L;
 
-    public AndImpl(FunctorImpl<Predicate> functor, PredicateImpl pred1, PredicateImpl pred2) {
-        super(functor, pred1, pred2);
+    private static final FunctorImpl<Logic.Predicate> AND_FUNCTOR      = FunctorImpl.<Logic.Predicate, Logic.Predicate, Logic.Predicate> of(AndImpl::and);
+
+    private List<int[]>                               idxList;
+
+    private static Predicate and(Predicate p1, Predicate p2) {
+        return new AndImpl(StructureImpl.unproxy(p1), StructureImpl.unproxy(p2)).proxy();
+    }
+
+    public AndImpl(PredicateImpl pred1, PredicateImpl pred2) {
+        super(AND_FUNCTOR, pred1, pred2);
     }
 
     private AndImpl(Object[] args) {
@@ -50,8 +59,6 @@ public final class AndImpl extends PredicateImpl {
     protected AndImpl struct(Object[] array) {
         return new AndImpl(array);
     }
-
-    private List<int[]> idxList;
 
     @SuppressWarnings("rawtypes")
     private List<int[]> idxList() {
