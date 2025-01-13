@@ -49,9 +49,9 @@ import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.SerializableBiFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
 import org.modelingvalue.logic.Database;
+import org.modelingvalue.logic.Integers.Integer;
 import org.modelingvalue.logic.Integers.IntegerCons;
 import org.modelingvalue.logic.Integers.IntegerFunc;
-import org.modelingvalue.logic.Integers.Integer;
 import org.modelingvalue.logic.Lists.ListCons;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.*;
@@ -196,8 +196,8 @@ public class LogicTest {
 
     // Variables
 
-    IntegerCons                  P      = iav("P");
-    IntegerCons                  Q      = iav("Q");
+    IntegerCons              P      = iav("P");
+    IntegerCons              Q      = iav("Q");
 
     Integer                  R      = iv("R");
     Integer                  S      = iv("S");
