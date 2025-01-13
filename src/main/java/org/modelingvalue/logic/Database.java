@@ -84,23 +84,6 @@ public final class Database {
                                                                                                                };
 
     @SuppressWarnings("rawtypes")
-    private static Map<Class, Set<Class>> addToSpecializations(Map<Class, Set<Class>> specs, Class type) {
-        if (!specs.containsKey(type)) {
-            specs = specs.put(type, Set.of());
-            for (java.lang.reflect.Type g : type.getGenericInterfaces()) {
-                while (g instanceof ParameterizedType) {
-                    g = ((ParameterizedType) g).getRawType();
-                }
-                if (g instanceof Class && !g.equals(Structure.class)) {
-                    specs = addToSpecializations(specs, (Class) g);
-                    specs = specs.put((Class) g, specs.get((Class) g).add(type));
-                }
-            }
-        }
-        return specs;
-    }
-
-    @SuppressWarnings("rawtypes")
     private static class Memoization extends Struct2Impl<PredicateImpl, Set<PredicateImpl>> {
         private static final long serialVersionUID = 1531759272582548244L;
 
@@ -160,6 +143,23 @@ public final class Database {
         if (!SPECIALIZATIONS.get().containsKey(type)) {
             SPECIALIZATIONS.updateAndGet(m -> addToSpecializations(m, type));
         }
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static Map<Class, Set<Class>> addToSpecializations(Map<Class, Set<Class>> specs, Class type) {
+        if (!specs.containsKey(type)) {
+            specs = specs.put(type, Set.of());
+            for (java.lang.reflect.Type g : type.getGenericInterfaces()) {
+                while (g instanceof ParameterizedType) {
+                    g = ((ParameterizedType) g).getRawType();
+                }
+                if (g instanceof Class && !g.equals(Structure.class)) {
+                    specs = addToSpecializations(specs, (Class) g);
+                    specs = specs.put((Class) g, specs.get((Class) g).add(type));
+                }
+            }
+        }
+        return specs;
     }
 
     private final AtomicReference<Map<PredicateImpl, Set<PredicateImpl>>>     facts;
