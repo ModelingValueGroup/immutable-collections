@@ -20,16 +20,19 @@
 
 package org.modelingvalue.logic;
 
-import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.UnaryOperator;
 
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.collections.util.*;
+import org.modelingvalue.collections.util.LambdaReflection;
+import org.modelingvalue.collections.util.SerializableBiFunction;
+import org.modelingvalue.collections.util.SerializableFunction;
+import org.modelingvalue.collections.util.SerializableQuadFunction;
+import org.modelingvalue.collections.util.SerializableSupplier;
+import org.modelingvalue.collections.util.SerializableTriFunction;
 import org.modelingvalue.logic.impl.*;
 
 public final class Logic {
@@ -37,49 +40,14 @@ public final class Logic {
     private Logic() {
     }
 
-    @SuppressWarnings("rawtypes")
-    private static final AtomicReference<Map<Class, Set<Class>>> SPECIALIZATIONS     = new AtomicReference<>(Map.of());
-
-    public static final int                                      MAX_LOGIC_MEMOIZ    = Integer.getInteger("MAX_LOGIC_MEMOIZ", 512);
-    public static final int                                      INITIAL_USAGE_COUNT = Integer.getInteger("INITIAL_USAGE_COUNT", 4);
-    public static final int                                      MAX_LOGIC_DEPTH     = Integer.getInteger("MAX_LOGIC_DEPTH", 32);
-    public static final boolean                                  TRACE_LOGIC         = Boolean.getBoolean("TRACE_LOGIC");
-
-    public static final ContextPool                              LOGIC_POOL          = ContextThread.createPool();
-    public static final Context<Database>                        DATABASE            = Context.of();
-
-    @SuppressWarnings("rawtypes")
-    public static <F extends Structure> void updateSpecializations(Class type) {
-        if (!SPECIALIZATIONS.get().containsKey(type)) {
-            SPECIALIZATIONS.updateAndGet(m -> addToSpecializations(m, type));
-        }
-    }
-
-    @SuppressWarnings("rawtypes")
-    private static Map<Class, Set<Class>> addToSpecializations(Map<Class, Set<Class>> specs, Class type) {
-        if (!specs.containsKey(type)) {
-            specs = specs.put(type, Set.of());
-            for (java.lang.reflect.Type g : type.getGenericInterfaces()) {
-                while (g instanceof ParameterizedType) {
-                    g = ((ParameterizedType) g).getRawType();
-                }
-                if (g instanceof Class && !g.equals(Structure.class)) {
-                    specs = addToSpecializations(specs, (Class) g);
-                    specs = specs.put((Class) g, specs.get((Class) g).add(type));
-                }
-            }
-        }
-        return specs;
-    }
-
     // Run
 
     public static final Database run(Runnable runnable) {
-        return run(runnable, null);
+        return Database.run(runnable, null);
     }
 
     public static final Database run(Runnable runnable, Database init) {
-        return LOGIC_POOL.invoke(new Database.LogicTask(runnable, init));
+        return Database.run(runnable, init);
     }
 
     // Structures
@@ -229,7 +197,7 @@ public final class Logic {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Set<PredicateImpl> match(PredicateImpl impl) {
-        return impl.setBinding(impl, impl.variables()).match(impl, List.of(), Map.of(), DATABASE.get());
+        return impl.setBinding(impl, impl.variables()).match(impl, List.of(), Map.of(), Database.CURRENT.get());
     }
 
     @SuppressWarnings("rawtypes")
@@ -249,7 +217,7 @@ public final class Logic {
         return new CollectImpl(pred, accum).proxy();
     }
 
-    // Yes
+    // True
 
     private static final TrueImpl  TRUE       = new TrueImpl();
     private static final Predicate TRUE_PROXY = (Predicate) Proxy.newProxyInstance(Predicate.class.getClassLoader(), new Class[]{Predicate.class}, TRUE);
@@ -259,7 +227,7 @@ public final class Logic {
         return TRUE_PROXY;
     }
 
-    // No
+    // False
 
     private static final FalseImpl FALSE       = new FalseImpl();
     private static final Predicate FALSE_PROXY = (Predicate) Proxy.newProxyInstance(Predicate.class.getClassLoader(), new Class[]{Predicate.class}, FALSE);
@@ -306,11 +274,7 @@ public final class Logic {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static Rule rule(Relation consequence, Predicate condition) {
         RuleImpl ruleImpl = new RuleImpl(consequence, condition);
-        PredicateImpl consImpl = StructureImpl.<Predicate, PredicateImpl> unproxy(consequence);
-        PredicateImpl signature = consImpl.signature();
-        Map<Class, Set<Class>> specs = SPECIALIZATIONS.get();
-        Database database = DATABASE.get();
-        database.rules.updateAndGet(m -> signature.addRule(ruleImpl, m, specs));
+        Database.CURRENT.get().addRule(ruleImpl);
         return ruleImpl.proxy();
     }
 
@@ -338,7 +302,7 @@ public final class Logic {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static void fact(Relation pred) {
-        StructureImpl.<Predicate, PredicateImpl> unproxy(pred).makeFact(DATABASE.get());
+        Database.CURRENT.get().addFact(StructureImpl.<Predicate, PredicateImpl> unproxy(pred));
     }
 
     // Bindings

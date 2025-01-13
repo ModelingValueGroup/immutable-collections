@@ -84,7 +84,7 @@ public final class Rationals {
         return var(Rational.class, name);
     }
 
-    // Operators
+    // Predicates
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Functor<Predicate> compare = Logic.<Predicate, RationalCons, RationalCons, IntegerCons> functor(Rationals::compare, (LogicLambda) t -> {

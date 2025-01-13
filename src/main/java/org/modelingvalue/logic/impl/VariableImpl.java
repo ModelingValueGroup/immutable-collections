@@ -22,7 +22,7 @@ package org.modelingvalue.logic.impl;
 
 import java.lang.reflect.Proxy;
 
-import org.modelingvalue.logic.Logic;
+import org.modelingvalue.logic.Database;
 import org.modelingvalue.logic.Logic.Structure;
 import org.modelingvalue.logic.Logic.Variable;
 
@@ -31,7 +31,7 @@ public final class VariableImpl<F extends Structure> extends StructureImpl<F> {
 
     public VariableImpl(Class<F> type, String name) {
         super(type, name);
-        Logic.updateSpecializations(type);
+        Database.updateSpecializations(type);
     }
 
     private VariableImpl(Object[] args) {

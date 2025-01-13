@@ -38,8 +38,6 @@ public final class Lists {
     private Lists() {
     }
 
-    // Lists
-
     public interface List<E extends Structure> extends Structure {
     }
 

@@ -31,6 +31,7 @@ import org.modelingvalue.collections.util.SerializableSupplier;
 import org.modelingvalue.collections.util.SerializableSupplier.SerializableSupplierImpl;
 import org.modelingvalue.collections.util.SerializableTriFunction;
 import org.modelingvalue.collections.util.SerializableTriFunction.SerializableTriFunctionImpl;
+import org.modelingvalue.logic.Database;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.FunctorModifier;
@@ -44,15 +45,15 @@ public final class FunctorImpl<T extends Structure> extends StructureImpl<Functo
 
     private final LogicLambda     logic;
     private final NormalizeLambda normal;
-    final boolean                 factual;
-    final boolean                 derived;
+    private final boolean         factual;
+    private final boolean         derived;
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public FunctorImpl(Class<T> type, String name, List<Class<?>> args, FunctorModifier... modifiers) {
         super((Class) Functor.class, type, name, args);
-        Logic.updateSpecializations(type);
+        Database.updateSpecializations(type);
         for (Class arg : args) {
-            Logic.updateSpecializations(arg);
+            Database.updateSpecializations(arg);
         }
         this.logic = logic(modifiers);
         this.normal = normal(modifiers);
@@ -108,21 +109,29 @@ public final class FunctorImpl<T extends Structure> extends StructureImpl<Functo
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
-    protected Class<Functor<T>> type() {
+    public Class<Functor<T>> type() {
         return (Class) Functor.class;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    protected List<Class> args() {
+    public List<Class> args() {
         return (List<Class>) get(3);
     }
 
-    protected LogicLambda logic() {
+    public LogicLambda logic() {
         return logic;
     }
 
-    protected NormalizeLambda functNormal() {
+    public NormalizeLambda functNormal() {
         return normal;
+    }
+
+    public boolean factual() {
+        return factual;
+    }
+
+    public boolean derived() {
+        return derived;
     }
 
     @SuppressWarnings("unchecked")
@@ -159,4 +168,5 @@ public final class FunctorImpl<T extends Structure> extends StructureImpl<Functo
         SerializableSupplierImpl<T> l = method.of();
         return new FunctorImpl<T>((Class<T>) l.out(), l.getImplMethodName(), l.in(), modifiers);
     }
+
 }

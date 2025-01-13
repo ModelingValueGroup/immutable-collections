@@ -70,7 +70,7 @@ public final class Integers {
         return var(Integer.class, name);
     }
 
-    // Operators
+    // Predicates
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Functor<Predicate> compare = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::compare, (LogicLambda) t -> {

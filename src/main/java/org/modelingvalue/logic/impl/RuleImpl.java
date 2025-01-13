@@ -35,6 +35,7 @@ import org.modelingvalue.logic.Logic.Rule;
 public final class RuleImpl extends StructureImpl<Rule> {
     private static final long                    serialVersionUID   = -4602043866952049391L;
 
+    private static final boolean                 TRACE_LOGIC        = Boolean.getBoolean("TRACE_LOGIC");
     private static final FunctorImpl<Logic.Rule> RULE_FUNCTOR       = FunctorImpl.<Logic.Rule, Logic.Relation, Logic.Predicate> of(Logic::rule);
     private static final Functor<Logic.Rule>     RULE_FUNCTOR_PROXY = RULE_FUNCTOR.proxy();
 
@@ -86,7 +87,7 @@ public final class RuleImpl extends StructureImpl<Rule> {
         if (binding == null) {
             return Set.of();
         }
-        if (Logic.TRACE_LOGIC) {
+        if (TRACE_LOGIC) {
             System.err.println("LOGIC " + "  ".repeat(der.size()) + this + " " + binding.toString().substring(3));
         }
         PredicateImpl cond = cond();
