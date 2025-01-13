@@ -320,8 +320,7 @@ public final class Logic {
     }
 
     @SuppressWarnings("rawtypes")
-    public static final FunctorImpl<Incomplete>   INCOMPLETE_FUNCTOR       = FunctorImpl.<Incomplete, List<Predicate>> of(Logic::incomplete);
-    private static final Functor<Incomplete>      INCOMPLETE_FUNCTOR_PROXY = INCOMPLETE_FUNCTOR.proxy();
+    private static final Functor<Incomplete>      INCOMPLETE_FUNCTOR_PROXY = PredicateImpl.INCOMPLETE_FUNCTOR.proxy();
     private static final VariableImpl<Incomplete> INCOMPLETE_VAR           = new VariableImpl<Incomplete>(Incomplete.class, "I");
     private static final Incomplete               INCOMPLETE_VAR_PROXY     = INCOMPLETE_VAR.proxy();
 

@@ -35,6 +35,7 @@ import org.modelingvalue.logic.Database;
 import org.modelingvalue.logic.Database.Memoiz;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.Functor;
+import org.modelingvalue.logic.Logic.Incomplete;
 import org.modelingvalue.logic.Logic.LogicLambda;
 import org.modelingvalue.logic.Logic.Predicate;
 
@@ -84,6 +85,8 @@ public class PredicateImpl extends StructureImpl<Predicate> {
                                                                                                                        return l.append(e);
                                                                                                                    }
                                                                                                                };
+
+    public static final FunctorImpl<Incomplete>                                            INCOMPLETE_FUNCTOR  = FunctorImpl.<Incomplete, List<Predicate>> of(Logic::incomplete);
 
     public PredicateImpl(Functor<Predicate> functor, Object... args) {
         super(functor, args);
@@ -155,7 +158,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
     }
 
     public boolean isIncomplete() {
-        return Logic.INCOMPLETE_FUNCTOR.equals(functor());
+        return INCOMPLETE_FUNCTOR.equals(functor());
     }
 
     @SuppressWarnings("rawtypes")
@@ -371,6 +374,6 @@ public class PredicateImpl extends StructureImpl<Predicate> {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static PredicateImpl incompleteImpl(List<PredicateImpl> der) {
-        return PredicateImpl.of(Logic.INCOMPLETE_FUNCTOR, der);
+        return PredicateImpl.of(INCOMPLETE_FUNCTOR, der);
     }
 }
