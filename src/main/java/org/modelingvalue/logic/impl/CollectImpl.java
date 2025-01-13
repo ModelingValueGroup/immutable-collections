@@ -26,14 +26,14 @@ import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Database;
-import org.modelingvalue.logic.Logic;
+import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.Predicate;
 
 public final class CollectImpl extends PredicateImpl {
     private static final long serialVersionUID = -2799691054715131197L;
 
-    public CollectImpl(Predicate pred, Predicate accum) {
-        super(Logic.COLLECT_FUNCTOR_PROXY, pred, accum);
+    public CollectImpl(Functor<Predicate> functor, Predicate pred, Predicate accum) {
+        super(functor, pred, accum);
     }
 
     private CollectImpl(Object[] args) {

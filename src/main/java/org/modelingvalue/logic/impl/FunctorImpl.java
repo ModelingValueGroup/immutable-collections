@@ -20,9 +20,17 @@
 
 package org.modelingvalue.logic.impl;
 
-import java.lang.reflect.Proxy;
-
 import org.modelingvalue.collections.List;
+import org.modelingvalue.collections.util.SerializableBiFunction;
+import org.modelingvalue.collections.util.SerializableBiFunction.SerializableBiFunctionImpl;
+import org.modelingvalue.collections.util.SerializableFunction;
+import org.modelingvalue.collections.util.SerializableFunction.SerializableFunctionImpl;
+import org.modelingvalue.collections.util.SerializableQuadFunction;
+import org.modelingvalue.collections.util.SerializableQuadFunction.SerializableQuadFunctionImpl;
+import org.modelingvalue.collections.util.SerializableSupplier;
+import org.modelingvalue.collections.util.SerializableSupplier.SerializableSupplierImpl;
+import org.modelingvalue.collections.util.SerializableTriFunction;
+import org.modelingvalue.collections.util.SerializableTriFunction.SerializableTriFunctionImpl;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.FunctorModifier;
@@ -42,9 +50,9 @@ public final class FunctorImpl<T extends Structure> extends StructureImpl<Functo
     @SuppressWarnings({"unchecked", "rawtypes"})
     public FunctorImpl(Class<T> type, String name, List<Class<?>> args, FunctorModifier... modifiers) {
         super((Class) Functor.class, type, name, args);
-        Logic.updateSpecs(type);
+        Logic.updateSpecializations(type);
         for (Class arg : args) {
-            Logic.updateSpecs(arg);
+            Logic.updateSpecializations(arg);
         }
         this.logic = logic(modifiers);
         this.normal = normal(modifiers);
@@ -88,12 +96,6 @@ public final class FunctorImpl<T extends Structure> extends StructureImpl<Functo
     }
 
     @Override
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public final Functor<T> proxy() {
-        return (Functor<T>) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{Functor.class}, this);
-    }
-
-    @Override
     public String toString() {
         return ((String) get(2));
     }
@@ -126,5 +128,35 @@ public final class FunctorImpl<T extends Structure> extends StructureImpl<Functo
     @SuppressWarnings("unchecked")
     protected Class<T> functType() {
         return (Class<T>) get(1);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <T extends Logic.Structure, A, B, C, D> FunctorImpl<T> of(SerializableQuadFunction<A, B, C, D, T> method, Logic.FunctorModifier... modifiers) {
+        SerializableQuadFunctionImpl<A, B, C, D, T> l = method.of();
+        return new FunctorImpl<T>((Class<T>) l.out(), l.getImplMethodName(), l.in(), modifiers);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <T extends Logic.Structure, A, B, C> FunctorImpl<T> of(SerializableTriFunction<A, B, C, T> method, Logic.FunctorModifier... modifiers) {
+        SerializableTriFunctionImpl<A, B, C, T> l = method.of();
+        return new FunctorImpl<T>((Class<T>) l.out(), l.getImplMethodName(), l.in(), modifiers);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <T extends Logic.Structure, A, B> FunctorImpl<T> of(SerializableBiFunction<A, B, T> method, Logic.FunctorModifier... modifiers) {
+        SerializableBiFunctionImpl<A, B, T> l = method.of();
+        return new FunctorImpl<T>((Class<T>) l.out(), l.getImplMethodName(), l.in(), modifiers);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <T extends Logic.Structure, A> FunctorImpl<T> of(SerializableFunction<A, T> method, Logic.FunctorModifier... modifiers) {
+        SerializableFunctionImpl<A, T> l = method.of();
+        return new FunctorImpl<T>((Class<T>) l.out(), l.getImplMethodName(), l.in(), modifiers);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <T extends Logic.Structure> FunctorImpl<T> of(SerializableSupplier<T> method, Logic.FunctorModifier... modifiers) {
+        SerializableSupplierImpl<T> l = method.of();
+        return new FunctorImpl<T>((Class<T>) l.out(), l.getImplMethodName(), l.in(), modifiers);
     }
 }

@@ -26,14 +26,13 @@ import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Database;
-import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.Predicate;
 
 public final class OrImpl extends PredicateImpl {
     private static final long serialVersionUID = -1732549494864415986L;
 
-    public OrImpl(PredicateImpl pred1, PredicateImpl pred2) {
-        super(Logic.OR_FUNCTOR, pred1, pred2);
+    public OrImpl(FunctorImpl<Predicate> functor, PredicateImpl pred1, PredicateImpl pred2) {
+        super(functor, pred1, pred2);
     }
 
     private OrImpl(Object[] args) {
@@ -60,15 +59,15 @@ public final class OrImpl extends PredicateImpl {
             List<int[]> l = List.of();
             PredicateImpl p1 = pred1();
             if (p1 instanceof OrImpl) {
-                l = l.prependList(((OrImpl) p1).idxList().replaceAll(Logic.ADD_ONE));
+                l = l.prependList(((OrImpl) p1).idxList().replaceAll(ADD_ONE));
             } else {
-                l = l.append(Logic.ONE_ARRAY);
+                l = l.append(ONE_ARRAY);
             }
             PredicateImpl p2 = pred2();
             if (p2 instanceof OrImpl) {
-                l = l.appendList(((OrImpl) p2).idxList().replaceAll(Logic.ADD_TWO));
+                l = l.appendList(((OrImpl) p2).idxList().replaceAll(ADD_TWO));
             } else {
-                l = l.append(Logic.TWO_ARRAY);
+                l = l.append(TWO_ARRAY);
             }
             idxList = l;
         }

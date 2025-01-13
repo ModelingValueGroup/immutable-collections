@@ -27,6 +27,7 @@ import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Database;
 import org.modelingvalue.logic.Logic;
+import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.Predicate;
 import org.modelingvalue.logic.Logic.Relation;
 import org.modelingvalue.logic.Logic.Rule;
@@ -34,8 +35,8 @@ import org.modelingvalue.logic.Logic.Rule;
 public final class RuleImpl extends StructureImpl<Rule> {
     private static final long serialVersionUID = -4602043866952049391L;
 
-    public RuleImpl(Relation pred, Predicate goal) {
-        super(Logic.RULE_FUNCTOR_PROXY, pred, goal);
+    public RuleImpl(Functor<Rule> functor, Relation pred, Predicate goal) {
+        super(functor, pred, goal);
     }
 
     private RuleImpl(Object[] args) {

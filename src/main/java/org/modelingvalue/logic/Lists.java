@@ -50,7 +50,7 @@ public final class Lists {
     }
 
     @SuppressWarnings("rawtypes")
-    private static final FunctorImpl<ListCons> LIST_FUNCTOR_0   = Logic.<ListCons> functImpl(Lists::l);
+    private static final FunctorImpl<ListCons> LIST_FUNCTOR_0   = FunctorImpl.<ListCons> of(Lists::l);
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static final ListImpl              EMPTY_LIST       = new ListImpl(LIST_FUNCTOR_0);
     @SuppressWarnings("rawtypes")
@@ -62,7 +62,7 @@ public final class Lists {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static final FunctorImpl<ListCons> LIST_FUNCTOR_2       = Logic.<ListCons, Structure, ListCons> functImpl(Lists::l);
+    private static final FunctorImpl<ListCons> LIST_FUNCTOR_2       = FunctorImpl.<ListCons, Structure, ListCons> of(Lists::l);
     @SuppressWarnings("rawtypes")
     private static final Functor<ListCons>     LIST_FUNCTOR_2_PROXY = LIST_FUNCTOR_2.proxy();
 
@@ -72,7 +72,7 @@ public final class Lists {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    protected static <E extends Structure> ListImpl<E> lImpl(StructureImpl<E> head, ListImpl<E> tail) {
+    private static <E extends Structure> ListImpl<E> lImpl(StructureImpl<E> head, ListImpl<E> tail) {
         return new ListImpl(LIST_FUNCTOR_2, head, tail);
     }
 
@@ -85,7 +85,7 @@ public final class Lists {
     private static <E extends Structure> ListCons<E> l(org.modelingvalue.collections.List<E> es) {
         ListImpl<E> l = EMPTY_LIST;
         for (E e : es.reverse()) {
-            l = lImpl(Logic.<E, StructureImpl<E>> unproxy(e), l);
+            l = lImpl(StructureImpl.<E, StructureImpl<E>> unproxy(e), l);
         }
         return l.proxy();
     }
@@ -120,7 +120,7 @@ public final class Lists {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static final FunctorImpl<Predicate> ADD_FUNCTOR       = Logic.<Predicate, Structure, ListCons, ListCons> functImpl(Lists::add, (LogicLambda) t -> {
+    private static final FunctorImpl<Predicate> ADD_FUNCTOR       = FunctorImpl.<Predicate, Structure, ListCons, ListCons> of(Lists::add, (LogicLambda) t -> {
                                                                       StructureImpl<Structure> e = t.getStruct(1);
                                                                       ListImpl<Structure> i = t.getStruct(2);
                                                                       ListImpl<Structure> o = t.getStruct(3);

@@ -24,6 +24,8 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.UnaryOperator;
 
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
@@ -37,7 +39,51 @@ import org.modelingvalue.logic.Logic.LogicLambda;
 import org.modelingvalue.logic.Logic.Predicate;
 
 public class PredicateImpl extends StructureImpl<Predicate> {
-    private static final long serialVersionUID = -1605559565948158856L;
+    private static final long                                                              serialVersionUID    = -1605559565948158856L;
+
+    private static final int                                                               MAX_LOGIC_MEMOIZ_D4 = Logic.MAX_LOGIC_MEMOIZ / 4;
+    private static final int                                                               MAX_LOGIC_DEPTH_D2  = Logic.MAX_LOGIC_DEPTH / 2;
+
+    protected static final int[]                                                           ONE_ARRAY           = new int[]{1};
+    protected static final int[]                                                           TWO_ARRAY           = new int[]{2};
+    protected static final UnaryOperator<int[]>                                            ADD_ONE             = a -> {
+                                                                                                                   int[] r = new int[a.length + 1];
+                                                                                                                   System.arraycopy(a, 0, r, 1, a.length);
+                                                                                                                   r[0] = 1;
+                                                                                                                   return r;
+                                                                                                               };
+    protected static final UnaryOperator<int[]>                                            ADD_TWO             = a -> {
+                                                                                                                   int[] r = new int[a.length + 1];
+                                                                                                                   System.arraycopy(a, 0, r, 1, a.length);
+                                                                                                                   r[0] = 2;
+                                                                                                                   return r;
+                                                                                                               };
+
+    @SuppressWarnings("rawtypes")
+    private static final BiFunction<Set<PredicateImpl>, PredicateImpl, Set<PredicateImpl>> ADD_FACT            = (s, e) -> s == null ? Set.of(e) : s.add(e);
+    @SuppressWarnings("unchecked")
+    private static final BiFunction<List<RuleImpl>, RuleImpl, List<RuleImpl>>              ADD_RULE            = (l, e) -> {
+                                                                                                                   if (l == null) {
+                                                                                                                       return List.of(e);
+                                                                                                                   } else {
+                                                                                                                       int p = e.rulePrio();
+                                                                                                                       for (int i = 0; i < l.size(); i++) {
+                                                                                                                           RuleImpl r = l.get(i);
+                                                                                                                           if (r.equals(e)) {
+                                                                                                                               return l;
+                                                                                                                           } else if (r.cons().equals(e.cons())) {
+                                                                                                                               if (r.cond().contains(e.cond())) {
+                                                                                                                                   return l;
+                                                                                                                               } else {
+                                                                                                                                   return l.replace(i, r.set(2, new OrImpl(Logic.OR_FUNCTOR, r.cond(), e.cond())));
+                                                                                                                               }
+                                                                                                                           } else if (r.rulePrio() > p) {
+                                                                                                                               return l.insert(i, e);
+                                                                                                                           }
+                                                                                                                       }
+                                                                                                                       return l.append(e);
+                                                                                                                   }
+                                                                                                               };
 
     public PredicateImpl(Functor<Predicate> functor, Object... args) {
         super(functor, args);
@@ -67,7 +113,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         }
         database.facts.updateAndGet(m -> {
             List<Class> args = functor().args();
-            m = m.put(this, Logic.ADD_FACT.apply(m.get(this), this));
+            m = m.put(this, PredicateImpl.ADD_FACT.apply(m.get(this), this));
             for (int i = 1; i < length(); i++) {
                 m = addFact(m, set(i, getType(i)), i, args.get(i - 1));
             }
@@ -79,7 +125,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
     private Map<PredicateImpl, Set<PredicateImpl>> addFact(Map<PredicateImpl, Set<PredicateImpl>> m, PredicateImpl pred, int i, Class a) {
         Class t = pred.getType(i);
         if (a.isAssignableFrom(t)) {
-            m = m.put(pred, Logic.ADD_FACT.apply(m.get(pred), this));
+            m = m.put(pred, PredicateImpl.ADD_FACT.apply(m.get(pred), this));
             if (!a.equals(t)) {
                 for (Type g : t.getGenericInterfaces()) {
                     while (g instanceof ParameterizedType) {
@@ -105,7 +151,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public Set<PredicateImpl> incomplete() {
-        return Set.of(Logic.incompleteImpl(List.of(this)));
+        return Set.of(incompleteImpl(List.of(this)));
     }
 
     public boolean isIncomplete() {
@@ -151,7 +197,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public Map<PredicateImpl, List<RuleImpl>> addRule(RuleImpl ruleImpl, Map<PredicateImpl, List<RuleImpl>> rules, Map<Class, Set<Class>> specs) {
-        rules = rules.put(this, Logic.ADD_RULE.apply(rules.get(this), ruleImpl));
+        rules = rules.put(this, PredicateImpl.ADD_RULE.apply(rules.get(this), ruleImpl));
         for (int i = 1; i < length(); i++) {
             Object v = get(i);
             if (v instanceof Class) {
@@ -179,7 +225,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         }
         int non = nrOfNulls();
         if (non > 1 || non >= totalLength()) {
-            return Set.of(Logic.incompleteImpl(der.append(this)));
+            return Set.of(incompleteImpl(der.append(this)));
         }
         Set<PredicateImpl> facts = database.facts.get().get(this);
         if (facts != null) {
@@ -201,16 +247,16 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             }
             int li = der.lastIndexOf(this);
             if (li >= 0) {
-                return Set.of(Logic.incompleteImpl(der.append(this)));
+                return Set.of(incompleteImpl(der.append(this)));
             }
             if (der.size() >= Logic.MAX_LOGIC_DEPTH) {
-                return Set.of(Logic.incompleteImpl(der.append(this)));
+                return Set.of(incompleteImpl(der.append(this)));
             }
             Set<PredicateImpl> set = fixpoint(rules, non, der.append(this), rec, database);
-            if (der.size() >= Logic.MAX_LOGIC_DEPTH_D2) {
+            if (der.size() >= PredicateImpl.MAX_LOGIC_DEPTH_D2) {
                 Optional<? extends StructureImpl> ic = set.findAny(PredicateImpl::isToDepthIcomplete);
                 if (ic.isPresent()) {
-                    if (der.size() == Logic.MAX_LOGIC_DEPTH_D2) {
+                    if (der.size() == PredicateImpl.MAX_LOGIC_DEPTH_D2) {
                         List<PredicateImpl> list = (List) ic.get().get(1);
                         List<PredicateImpl> todo = list.sublist(der.size(), list.size());
                         while (todo.size() > 0) {
@@ -269,7 +315,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             } else if (!functor.derived) {
                 QualifiedSet<PredicateImpl, Memoiz>[] mem = database.memoiz.updateAndGet(a -> {
                     a = a.clone();
-                    if (a[0].size() >= Logic.MAX_LOGIC_MEMOIZ_D4) {
+                    if (a[0].size() >= PredicateImpl.MAX_LOGIC_MEMOIZ_D4) {
                         a[2] = a[2].putAll(a[1]);
                         a[1] = a[0];
                         a[0] = Database.EMPTY_MEMOIZ;
@@ -316,5 +362,15 @@ public class PredicateImpl extends StructureImpl<Predicate> {
     @Override
     public PredicateImpl set(int i, Object... a) {
         return (PredicateImpl) super.set(i, a);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <P extends Logic.Predicate> PredicateImpl of(FunctorImpl<P> functor, Object... args) {
+        return new PredicateImpl((FunctorImpl<Logic.Predicate>) functor, args);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static PredicateImpl incompleteImpl(List<PredicateImpl> der) {
+        return PredicateImpl.of(Logic.INCOMPLETE_FUNCTOR, der);
     }
 }

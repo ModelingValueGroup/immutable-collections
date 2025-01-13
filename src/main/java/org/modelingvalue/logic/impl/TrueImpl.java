@@ -30,8 +30,8 @@ import org.modelingvalue.logic.Logic.Predicate;
 public final class TrueImpl extends PredicateImpl {
     private static final long serialVersionUID = -8515171118744898263L;
 
-    public TrueImpl() {
-        super(Logic.YES_FUNCTOR);
+    public TrueImpl(FunctorImpl<Predicate> functor) {
+        super(functor);
     }
 
     private TrueImpl(Object[] args) {
@@ -41,7 +41,7 @@ public final class TrueImpl extends PredicateImpl {
     @Override
     @SuppressWarnings("unchecked")
     public Predicate proxy() {
-        return Logic.YES_PROXY;
+        return Logic.yes();
     }
 
     @Override

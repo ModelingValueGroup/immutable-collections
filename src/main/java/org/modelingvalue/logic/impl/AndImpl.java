@@ -26,14 +26,13 @@ import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Database;
-import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.Predicate;
 
 public final class AndImpl extends PredicateImpl {
     private static final long serialVersionUID = -7248491569810098948L;
 
-    public AndImpl(PredicateImpl pred1, PredicateImpl pred2) {
-        super(Logic.AND_FUNCTOR, pred1, pred2);
+    public AndImpl(FunctorImpl<Predicate> functor, PredicateImpl pred1, PredicateImpl pred2) {
+        super(functor, pred1, pred2);
     }
 
     private AndImpl(Object[] args) {
@@ -60,15 +59,15 @@ public final class AndImpl extends PredicateImpl {
             List<int[]> l = List.of();
             PredicateImpl p1 = pred1();
             if (p1 instanceof AndImpl) {
-                l = l.prependList(((AndImpl) p1).idxList().replaceAll(Logic.ADD_ONE));
+                l = l.prependList(((AndImpl) p1).idxList().replaceAll(ADD_ONE));
             } else {
-                l = l.append(Logic.ONE_ARRAY);
+                l = l.append(ONE_ARRAY);
             }
             PredicateImpl p2 = pred2();
             if (p2 instanceof AndImpl) {
-                l = l.appendList(((AndImpl) p2).idxList().replaceAll(Logic.ADD_TWO));
+                l = l.appendList(((AndImpl) p2).idxList().replaceAll(ADD_TWO));
             } else {
-                l = l.append(Logic.TWO_ARRAY);
+                l = l.append(TWO_ARRAY);
             }
             idxList = l;
         }

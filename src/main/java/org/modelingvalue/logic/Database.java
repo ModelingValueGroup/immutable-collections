@@ -20,6 +20,7 @@
 
 package org.modelingvalue.logic;
 
+import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.modelingvalue.collections.Entry;
@@ -50,7 +51,7 @@ public final class Database {
             super(t, s);
         }
 
-        private PredicateImpl pred() {
+        public PredicateImpl pred() {
             return get0();
         }
 
@@ -63,6 +64,34 @@ public final class Database {
         }
     }
 
+    public static final class LogicTask extends ForkJoinTask<Database> {
+        private static final long serialVersionUID = -1375078574164947441L;
+
+        private final Runnable    runnable;
+        private final Database    database;
+
+        public LogicTask(Runnable runnable, Database init) {
+            this.runnable = runnable;
+            this.database = new Database(init);
+        }
+
+        @Override
+        public Database getRawResult() {
+            return database;
+        }
+
+        @Override
+        protected void setRawResult(Database database) {
+        }
+
+        @Override
+        protected boolean exec() {
+            Logic.DATABASE.run(database, runnable);
+            database.stopped = true;
+            return true;
+        }
+    }
+
     public final AtomicReference<Map<PredicateImpl, Set<PredicateImpl>>> facts;
     public final AtomicReference<Map<PredicateImpl, List<RuleImpl>>>     rules;
     public final AtomicReference<QualifiedSet<PredicateImpl, Memoiz>[]>  memoiz;
@@ -70,7 +99,7 @@ public final class Database {
     boolean                                                              stopped;
 
     @SuppressWarnings("unchecked")
-    Database(Database init) {
+    public Database(Database init) {
         facts = new AtomicReference<>(init != null ? init.facts.get() : Map.of());
         rules = new AtomicReference<>(init != null ? init.rules.get() : Map.of());
         memoiz = new AtomicReference<>(init != null ? init.memoiz.get() : new QualifiedSet[]{EMPTY_MEMOIZ, EMPTY_MEMOIZ, EMPTY_MEMOIZ});

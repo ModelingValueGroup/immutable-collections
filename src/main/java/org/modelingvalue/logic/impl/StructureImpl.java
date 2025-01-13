@@ -25,6 +25,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Objects;
 
+import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.util.StringUtil;
 import org.modelingvalue.logic.Logic;
@@ -59,7 +60,7 @@ public class StructureImpl<F extends Structure> extends org.modelingvalue.collec
             } else if (args[0].getClass() != proxy.getClass()) {
                 return false;
             } else {
-                return super.equals(Logic.unproxy(args[0]));
+                return super.equals(unproxy(args[0]));
             }
         } else if (method.equals(HASHCODE)) {
             return super.hashCode();
@@ -117,10 +118,10 @@ public class StructureImpl<F extends Structure> extends org.modelingvalue.collec
 
     private static final Object[] array(Object functor, Object[] args) {
         Object[] result = new Object[args.length + 1];
-        Logic.noProxy(functor);
+        StructureImpl.noProxy(functor);
         result[0] = functor;
         for (int i = 0; i < args.length; i++) {
-            Logic.noProxy(args[i]);
+            StructureImpl.noProxy(args[i]);
             result[i + 1] = args[i];
         }
         return result;
@@ -129,16 +130,17 @@ public class StructureImpl<F extends Structure> extends org.modelingvalue.collec
     @SuppressWarnings("rawtypes")
     private static final Object[] unproxy(Functor functor, Object[] args) {
         Object[] result = new Object[args.length + 1];
-        result[0] = Logic.unproxy(functor);
+        result[0] = StructureImpl.unproxy(functor);
         for (int i = 0; i < args.length; i++) {
-            result[i + 1] = Logic.unproxy(args[i]);
+            result[i + 1] = StructureImpl.unproxy(args[i]);
         }
         return result;
     }
 
     @SuppressWarnings("unchecked")
     public F proxy() {
-        return (F) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{type()}, this);
+        Class<F> type = type();
+        return (F) Proxy.newProxyInstance(type.getClassLoader(), new Class[]{type}, this);
     }
 
     @SuppressWarnings("unchecked")
@@ -395,5 +397,31 @@ public class StructureImpl<F extends Structure> extends org.modelingvalue.collec
             nr++;
         }
         return nr;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static final <T extends Logic.Structure, R extends StructureImpl<T>> R unproxy(T object) {
+        return (R) Proxy.getInvocationHandler(object);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static final Object unproxy(Object object) {
+        if (object instanceof Logic.Structure) {
+            return Proxy.getInvocationHandler(object);
+        } else if (object instanceof List) {
+            return ((List) object).replaceAll(StructureImpl::unproxy);
+        } else {
+            Objects.requireNonNull(object);
+            return object;
+        }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static final void noProxy(Object object) {
+        if (object instanceof Logic.Structure) {
+            throw new IllegalArgumentException();
+        } else if (object instanceof List) {
+            ((List) object).forEach(StructureImpl::noProxy);
+        }
     }
 }

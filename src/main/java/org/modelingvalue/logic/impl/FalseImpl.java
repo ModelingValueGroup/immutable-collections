@@ -30,8 +30,8 @@ import org.modelingvalue.logic.Logic.Predicate;
 public final class FalseImpl extends PredicateImpl {
     private static final long serialVersionUID = -8515171118744898263L;
 
-    public FalseImpl() {
-        super(Logic.NO_FUNCTOR);
+    public FalseImpl(FunctorImpl<Predicate> functor) {
+        super(functor);
     }
 
     private FalseImpl(Object[] args) {
@@ -41,7 +41,7 @@ public final class FalseImpl extends PredicateImpl {
     @Override
     @SuppressWarnings("unchecked")
     public Predicate proxy() {
-        return Logic.NO_PROXY;
+        return Logic.no();
     }
 
     @Override
