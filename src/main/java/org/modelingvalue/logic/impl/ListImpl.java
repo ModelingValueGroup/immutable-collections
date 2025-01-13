@@ -22,23 +22,52 @@ package org.modelingvalue.logic.impl;
 
 import java.lang.reflect.Proxy;
 
+import org.modelingvalue.logic.Lists;
 import org.modelingvalue.logic.Lists.ListCons;
 import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.Structure;
 
 public final class ListImpl<E extends Structure> extends StructureImpl<ListCons<E>> {
-    private static final long                                   serialVersionUID = -916406585584150604L;
+    private static final long                  serialVersionUID     = -916406585584150604L;
 
-    public org.modelingvalue.collections.List<StructureImpl<E>> list;
+    @SuppressWarnings("rawtypes")
+    private static final FunctorImpl<ListCons> LIST_FUNCTOR_0       = FunctorImpl.<ListCons> of(Lists::l);
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public ListImpl(FunctorImpl functor) {
-        super(functor);
+    public static final ListImpl               EMPTY_LIST           = new ListImpl();
+    @SuppressWarnings("rawtypes")
+    public static final ListCons               EMPTY_LIST_PROXY     = ListImpl.EMPTY_LIST.proxy();
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static final FunctorImpl<ListCons> LIST_FUNCTOR_2       = FunctorImpl.<ListCons, Structure, ListCons> of(Lists::l);
+    @SuppressWarnings("rawtypes")
+    private static final Functor<ListCons>     LIST_FUNCTOR_2_PROXY = ListImpl.LIST_FUNCTOR_2.proxy();
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public static <E extends Structure> ListImpl<E> of(org.modelingvalue.collections.List<StructureImpl<E>> es) {
+        ListImpl<E> l = EMPTY_LIST;
+        for (StructureImpl<E> e : es.reverse()) {
+            l = of(e, l);
+        }
+        l.list = es;
+        return l;
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <E extends Structure> ListImpl<E> of(StructureImpl<E> head, ListImpl<E> tail) {
+        return new ListImpl(LIST_FUNCTOR_2, head, tail);
+    }
+
+    private org.modelingvalue.collections.List<StructureImpl<E>> list;
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    public ListImpl() {
+        super((FunctorImpl) LIST_FUNCTOR_0);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public ListImpl(Functor functor, E head, ListCons<E> tail) {
-        super(functor, head, tail);
+    public ListImpl(E head, ListCons<E> tail) {
+        super((Functor) LIST_FUNCTOR_2_PROXY, head, tail);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})

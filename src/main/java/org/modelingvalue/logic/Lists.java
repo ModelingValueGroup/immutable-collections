@@ -47,31 +47,14 @@ public final class Lists {
     public interface ListFunc<E extends Structure> extends List<E>, Function<List<E>> {
     }
 
-    @SuppressWarnings("rawtypes")
-    private static final FunctorImpl<ListCons> LIST_FUNCTOR_0   = FunctorImpl.<ListCons> of(Lists::l);
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private static final ListImpl              EMPTY_LIST       = new ListImpl(LIST_FUNCTOR_0);
-    @SuppressWarnings("rawtypes")
-    private static final ListCons              EMPTY_LIST_PROXY = EMPTY_LIST.proxy();
-
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static <E extends Structure> ListCons<E> l() {
-        return EMPTY_LIST_PROXY;
+        return ListImpl.EMPTY_LIST_PROXY;
     }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private static final FunctorImpl<ListCons> LIST_FUNCTOR_2       = FunctorImpl.<ListCons, Structure, ListCons> of(Lists::l);
-    @SuppressWarnings("rawtypes")
-    private static final Functor<ListCons>     LIST_FUNCTOR_2_PROXY = LIST_FUNCTOR_2.proxy();
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static <E extends Structure> ListCons<E> l(E head, ListCons<E> tail) {
-        return new ListImpl(LIST_FUNCTOR_2_PROXY, head, tail).proxy();
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private static <E extends Structure> ListImpl<E> lImpl(StructureImpl<E> head, ListImpl<E> tail) {
-        return new ListImpl(LIST_FUNCTOR_2, head, tail);
+        return new ListImpl(head, tail).proxy();
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -81,21 +64,11 @@ public final class Lists {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static <E extends Structure> ListCons<E> l(org.modelingvalue.collections.List<E> es) {
-        ListImpl<E> l = EMPTY_LIST;
+        ListImpl<E> l = ListImpl.EMPTY_LIST;
         for (E e : es.reverse()) {
-            l = lImpl(StructureImpl.<E, StructureImpl<E>> unproxy(e), l);
+            l = ListImpl.of(StructureImpl.<E, StructureImpl<E>> unproxy(e), l);
         }
         return l.proxy();
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private static <E extends Structure> ListImpl<E> lImpl(org.modelingvalue.collections.List<StructureImpl<E>> es) {
-        ListImpl<E> l = EMPTY_LIST;
-        for (StructureImpl<E> e : es.reverse()) {
-            l = lImpl(e, l);
-        }
-        l.list = es;
-        return l;
     }
 
     // Add
@@ -127,9 +100,9 @@ public final class Lists {
                                                                       if (e != null && il != null && ol != null) {
                                                                           return addOrdered(il, e).equals(ol) ? Set.of(t) : Set.of();
                                                                       } else if (e != null && il != null && ol == null) {
-                                                                          return Set.of(t.set(3, lImpl(addOrdered(il, e))));
+                                                                          return Set.of(t.set(3, ListImpl.of(addOrdered(il, e))));
                                                                       } else if (e != null && il == null && ol != null) {
-                                                                          return Set.of(t.set(2, permRemove(ol, e).replaceAll(l -> (StructureImpl) t.set(2, lImpl(l)))));
+                                                                          return Set.of(t.set(2, permRemove(ol, e).replaceAll(l -> (StructureImpl) t.set(2, ListImpl.of(l)))));
                                                                       } else if (e == null && il != null && ol != null) {
                                                                           if (il.anyMatch(ol::notContains)) {
                                                                               return Set.of();
