@@ -186,7 +186,7 @@ public final class Rationals {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> powerPred = Logic.<Predicate, RationalCons, RationalCons> functor(Rationals::power, (LogicLambda) t -> {
+    private static Functor<Predicate> squarePred = Logic.<Predicate, RationalCons, RationalCons> functor(Rationals::square, (LogicLambda) t -> {
         StructureImpl<RationalCons> at = t.getStruct(1);
         StructureImpl<RationalCons> bt = t.getStruct(2);
         BigInteger ax = at != null ? at.getVal(1) : null;
@@ -207,8 +207,8 @@ public final class Rationals {
         }
     });
 
-    public static Predicate power(RationalCons a, RationalCons r) {
-        return pred(powerPred, a, r);
+    public static Predicate square(RationalCons a, RationalCons r) {
+        return pred(squarePred, a, r);
     }
 
     // Functions
@@ -261,10 +261,10 @@ public final class Rationals {
         return function(divideFunc, a, b);
     }
 
-    private static Functor<RationalFunc> powerFunc = Logic.<RationalFunc, Rational> functor(Rationals::power);
+    private static Functor<RationalFunc> squareFunc = Logic.<RationalFunc, Rational> functor(Rationals::square);
 
-    public static RationalFunc power(Rational a) {
-        return function(powerFunc, a);
+    public static RationalFunc square(Rational a) {
+        return function(squareFunc, a);
     }
 
     private static Functor<RationalFunc> sqrtFunc = Logic.<RationalFunc, Rational> functor(Rationals::sqrt);
@@ -291,8 +291,8 @@ public final class Rationals {
         rule(is(minus(X, Y), R), and(is(X, P), is(Y, Q), plus(R, Q, P)));
         rule(is(multiply(X, Y), R), and(is(X, P), is(Y, Q), multiply(P, Q, R)));
         rule(is(divide(X, Y), R), and(is(X, P), is(Y, Q), multiply(R, Q, P)));
-        rule(is(power(X), R), and(is(X, P), power(P, R)));
-        rule(is(sqrt(X), R), and(is(X, P), power(R, P)));
+        rule(is(square(X), R), and(is(X, P), square(P, R)));
+        rule(is(sqrt(X), R), and(is(X, P), square(R, P)));
         rule(gt(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, i(1))));
         rule(lt(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, i(-1))));
         rule(ge(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, I), or(eq(I, i(1)), eq(I, i(0)))));
