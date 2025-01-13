@@ -27,7 +27,7 @@ import static org.modelingvalue.logic.Logic.*;
 import java.math.BigInteger;
 
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.logic.Integers.IntCons;
+import org.modelingvalue.logic.Integers.IntegerCons;
 import org.modelingvalue.logic.Logic.*;
 import org.modelingvalue.logic.impl.StructureImpl;
 
@@ -87,10 +87,10 @@ public final class Rationals {
     // Operators
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> compare = Logic.<Predicate, RationalCons, RationalCons, IntCons> functor(Rationals::compare, (LogicLambda) t -> {
+    private static Functor<Predicate> compare = Logic.<Predicate, RationalCons, RationalCons, IntegerCons> functor(Rationals::compare, (LogicLambda) t -> {
         StructureImpl<RationalCons> at = t.getStruct(1);
         StructureImpl<RationalCons> bt = t.getStruct(2);
-        StructureImpl<IntCons> ct = t.getStruct(3);
+        StructureImpl<IntegerCons> ct = t.getStruct(3);
         BigInteger ci = ct != null ? ct.getVal(1) : null;
         if (at != null && bt != null) {
             BigInteger ax = at.getVal(1);
@@ -115,7 +115,7 @@ public final class Rationals {
         return t.incomplete();
     });
 
-    public static Predicate compare(RationalCons a, RationalCons b, IntCons c) {
+    public static Predicate compare(RationalCons a, RationalCons b, IntegerCons c) {
         return pred(compare, a, b, c);
     }
 
@@ -282,7 +282,7 @@ public final class Rationals {
         RationalCons Q = rav("QL");
         RationalCons R = rav("RL");
 
-        IntCons I = iav("IL");
+        IntegerCons I = iav("IL");
 
         Rational X = rv("X");
         Rational Y = rv("Y");

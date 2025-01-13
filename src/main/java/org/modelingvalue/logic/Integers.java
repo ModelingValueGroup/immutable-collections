@@ -25,7 +25,13 @@ import static org.modelingvalue.logic.Logic.*;
 import java.math.BigInteger;
 
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.logic.Logic.*;
+import org.modelingvalue.logic.Logic.Constant;
+import org.modelingvalue.logic.Logic.Function;
+import org.modelingvalue.logic.Logic.Functor;
+import org.modelingvalue.logic.Logic.LogicLambda;
+import org.modelingvalue.logic.Logic.Predicate;
+import org.modelingvalue.logic.Logic.Relation;
+import org.modelingvalue.logic.Logic.Structure;
 import org.modelingvalue.logic.impl.StructureImpl;
 
 public final class Integers {
@@ -36,28 +42,28 @@ public final class Integers {
     public interface Integer extends Structure {
     }
 
-    public interface IntCons extends Integer, Constant<Integer> {
+    public interface IntegerCons extends Integer, Constant<Integer> {
     }
 
-    public interface IntFunc extends Integer, Function<Integer> {
+    public interface IntegerFunc extends Integer, Function<Integer> {
     }
 
-    private static Functor<IntCons> i = Logic.<IntCons, BigInteger> functor(Integers::i);
+    private static Functor<IntegerCons> i = Logic.<IntegerCons, BigInteger> functor(Integers::i);
 
-    public static IntCons i(BigInteger x) {
+    public static IntegerCons i(BigInteger x) {
         return constant(i, x);
     }
 
-    public static IntCons i(String val, int radix) {
+    public static IntegerCons i(String val, int radix) {
         return i(new BigInteger(val, radix));
     }
 
-    public static IntCons i(long x) {
+    public static IntegerCons i(long x) {
         return i(BigInteger.valueOf(x));
     }
 
-    public static IntCons iav(String name) {
-        return var(IntCons.class, name);
+    public static IntegerCons iav(String name) {
+        return var(IntegerCons.class, name);
     }
 
     public static Integer iv(String name) {
@@ -67,10 +73,10 @@ public final class Integers {
     // Operators
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> compare = Logic.<Predicate, IntCons, IntCons, IntCons> functor(Integers::compare, (LogicLambda) t -> {
-        StructureImpl<IntCons> at = t.getStruct(1);
-        StructureImpl<IntCons> bt = t.getStruct(2);
-        StructureImpl<IntCons> ct = t.getStruct(3);
+    private static Functor<Predicate> compare = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::compare, (LogicLambda) t -> {
+        StructureImpl<IntegerCons> at = t.getStruct(1);
+        StructureImpl<IntegerCons> bt = t.getStruct(2);
+        StructureImpl<IntegerCons> ct = t.getStruct(3);
         BigInteger ai = at != null ? at.getVal(1) : null;
         BigInteger bi = bt != null ? bt.getVal(1) : null;
         BigInteger ci = ct != null ? ct.getVal(1) : null;
@@ -91,15 +97,15 @@ public final class Integers {
         return t.incomplete();
     });
 
-    public static Predicate compare(IntCons a, IntCons b, IntCons c) {
+    public static Predicate compare(IntegerCons a, IntegerCons b, IntegerCons c) {
         return pred(compare, a, b, c);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> plusPred = Logic.<Predicate, IntCons, IntCons, IntCons> functor(Integers::plus, (LogicLambda) t -> {
-        StructureImpl<IntCons> at = t.getStruct(1);
-        StructureImpl<IntCons> bt = t.getStruct(2);
-        StructureImpl<IntCons> ct = t.getStruct(3);
+    private static Functor<Predicate> plusPred = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::plus, (LogicLambda) t -> {
+        StructureImpl<IntegerCons> at = t.getStruct(1);
+        StructureImpl<IntegerCons> bt = t.getStruct(2);
+        StructureImpl<IntegerCons> ct = t.getStruct(3);
         BigInteger ai = at != null ? at.getVal(1) : null;
         BigInteger bi = bt != null ? bt.getVal(1) : null;
         BigInteger ci = ct != null ? ct.getVal(1) : null;
@@ -116,15 +122,15 @@ public final class Integers {
         }
     });
 
-    public static Predicate plus(IntCons a, IntCons b, IntCons r) {
+    public static Predicate plus(IntegerCons a, IntegerCons b, IntegerCons r) {
         return pred(plusPred, a, b, r);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> multiplyPred = Logic.<Predicate, IntCons, IntCons, IntCons> functor(Integers::multiply, (LogicLambda) t -> {
-        StructureImpl<IntCons> at = t.getStruct(1);
-        StructureImpl<IntCons> bt = t.getStruct(2);
-        StructureImpl<IntCons> ct = t.getStruct(3);
+    private static Functor<Predicate> multiplyPred = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::multiply, (LogicLambda) t -> {
+        StructureImpl<IntegerCons> at = t.getStruct(1);
+        StructureImpl<IntegerCons> bt = t.getStruct(2);
+        StructureImpl<IntegerCons> ct = t.getStruct(3);
         BigInteger ai = at != null ? at.getVal(1) : null;
         BigInteger bi = bt != null ? bt.getVal(1) : null;
         BigInteger ci = ct != null ? ct.getVal(1) : null;
@@ -141,14 +147,14 @@ public final class Integers {
         }
     });
 
-    public static Predicate multiply(IntCons a, IntCons b, IntCons r) {
+    public static Predicate multiply(IntegerCons a, IntegerCons b, IntegerCons r) {
         return pred(multiplyPred, a, b, r);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> squarePred = Logic.<Predicate, IntCons, IntCons> functor(Integers::square, (LogicLambda) t -> {
-        StructureImpl<IntCons> at = t.getStruct(1);
-        StructureImpl<IntCons> bt = t.getStruct(2);
+    private static Functor<Predicate> squarePred = Logic.<Predicate, IntegerCons, IntegerCons> functor(Integers::square, (LogicLambda) t -> {
+        StructureImpl<IntegerCons> at = t.getStruct(1);
+        StructureImpl<IntegerCons> bt = t.getStruct(2);
         BigInteger ai = at != null ? at.getVal(1) : null;
         BigInteger bi = bt != null ? bt.getVal(1) : null;
         if (ai != null && bi != null) {
@@ -163,7 +169,7 @@ public final class Integers {
         }
     });
 
-    public static Predicate square(IntCons a, IntCons r) {
+    public static Predicate square(IntegerCons a, IntegerCons r) {
         return pred(squarePred, a, r);
     }
 
@@ -193,39 +199,39 @@ public final class Integers {
         return pred(le, a, b);
     }
 
-    private static Functor<IntFunc> plusFunc = Logic.<IntFunc, Integer, Integer> functor(Integers::plus);
+    private static Functor<IntegerFunc> plusFunc = Logic.<IntegerFunc, Integer, Integer> functor(Integers::plus);
 
-    public static IntFunc plus(Integer a, Integer b) {
+    public static IntegerFunc plus(Integer a, Integer b) {
         return function(plusFunc, a, b);
     }
 
-    private static Functor<IntFunc> minusFunc = Logic.<IntFunc, Integer, Integer> functor(Integers::minus);
+    private static Functor<IntegerFunc> minusFunc = Logic.<IntegerFunc, Integer, Integer> functor(Integers::minus);
 
-    public static IntFunc minus(Integer a, Integer b) {
+    public static IntegerFunc minus(Integer a, Integer b) {
         return function(minusFunc, a, b);
     }
 
-    private static Functor<IntFunc> multiplyFunc = Logic.<IntFunc, Integer, Integer> functor(Integers::multiply);
+    private static Functor<IntegerFunc> multiplyFunc = Logic.<IntegerFunc, Integer, Integer> functor(Integers::multiply);
 
-    public static IntFunc multiply(Integer a, Integer b) {
+    public static IntegerFunc multiply(Integer a, Integer b) {
         return function(multiplyFunc, a, b);
     }
 
-    private static Functor<IntFunc> divideFunc = Logic.<IntFunc, Integer, Integer> functor(Integers::divide);
+    private static Functor<IntegerFunc> divideFunc = Logic.<IntegerFunc, Integer, Integer> functor(Integers::divide);
 
-    public static IntFunc divide(Integer a, Integer b) {
+    public static IntegerFunc divide(Integer a, Integer b) {
         return function(divideFunc, a, b);
     }
 
-    private static Functor<IntFunc> squareFunc = Logic.<IntFunc, Integer> functor(Integers::square);
+    private static Functor<IntegerFunc> squareFunc = Logic.<IntegerFunc, Integer> functor(Integers::square);
 
-    public static IntFunc square(Integer a) {
+    public static IntegerFunc square(Integer a) {
         return function(squareFunc, a);
     }
 
-    private static Functor<IntFunc> sqrtFunc = Logic.<IntFunc, Integer> functor(Integers::sqrt);
+    private static Functor<IntegerFunc> sqrtFunc = Logic.<IntegerFunc, Integer> functor(Integers::sqrt);
 
-    public static IntFunc sqrt(Integer a) {
+    public static IntegerFunc sqrt(Integer a) {
         return function(sqrtFunc, a);
     }
 
@@ -234,9 +240,9 @@ public final class Integers {
     public static void integerRules() {
         isRules();
 
-        IntCons P = iav("PL");
-        IntCons Q = iav("QL");
-        IntCons R = iav("RL");
+        IntegerCons P = iav("PL");
+        IntegerCons Q = iav("QL");
+        IntegerCons R = iav("RL");
 
         Integer X = iv("X");
         Integer Y = iv("Y");

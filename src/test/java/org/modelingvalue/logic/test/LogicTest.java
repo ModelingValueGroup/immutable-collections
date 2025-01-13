@@ -49,8 +49,8 @@ import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.SerializableBiFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
 import org.modelingvalue.logic.Database;
-import org.modelingvalue.logic.Integers.IntCons;
-import org.modelingvalue.logic.Integers.IntFunc;
+import org.modelingvalue.logic.Integers.IntegerCons;
+import org.modelingvalue.logic.Integers.IntegerFunc;
 import org.modelingvalue.logic.Integers.Integer;
 import org.modelingvalue.logic.Lists.ListCons;
 import org.modelingvalue.logic.Logic;
@@ -140,9 +140,9 @@ public class LogicTest {
         return constant(strPerson, name);
     }
 
-    static Functor<PersonCons> intPerson = functor((SerializableFunction<IntCons, PersonCons>) LogicTest::person);
+    static Functor<PersonCons> intPerson = functor((SerializableFunction<IntegerCons, PersonCons>) LogicTest::person);
 
-    static PersonCons person(IntCons i) {
+    static PersonCons person(IntegerCons i) {
         return constant(intPerson, i);
     }
 
@@ -196,8 +196,8 @@ public class LogicTest {
 
     // Variables
 
-    IntCons                  P      = iav("P");
-    IntCons                  Q      = iav("Q");
+    IntegerCons                  P      = iav("P");
+    IntegerCons                  Q      = iav("Q");
 
     Integer                  R      = iv("R");
     Integer                  S      = iv("S");
@@ -233,15 +233,15 @@ public class LogicTest {
 
     // Fibonacci
 
-    static Functor<Relation> fib2   = functor((SerializableBiFunction<IntCons, IntCons, Relation>) LogicTest::fib);
+    static Functor<Relation> fib2   = functor((SerializableBiFunction<IntegerCons, IntegerCons, Relation>) LogicTest::fib);
 
-    static Relation fib(IntCons i, IntCons f) {
+    static Relation fib(IntegerCons i, IntegerCons f) {
         return pred(fib2, i, f);
     }
 
-    static Functor<IntFunc> fib1 = functor((SerializableFunction<Integer, IntFunc>) LogicTest::fib);
+    static Functor<IntegerFunc> fib1 = functor((SerializableFunction<Integer, IntegerFunc>) LogicTest::fib);
 
-    static IntFunc fib(Integer i) {
+    static IntegerFunc fib(Integer i) {
         return function(fib1, i);
     }
 
