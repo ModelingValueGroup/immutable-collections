@@ -180,7 +180,7 @@ public final class Database {
     }
 
     public List<RuleImpl> getRules(PredicateImpl pred) {
-        return rules.get().get(pred);
+        return rules.get().get(pred.signature());
     }
 
     public Set<PredicateImpl> getMemoiz(PredicateImpl pred) {

@@ -154,8 +154,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         if (facts != null) {
             return facts;
         }
-        PredicateImpl signature = signature();
-        List<RuleImpl> rules = database.getRules(signature);
+        List<RuleImpl> rules = database.getRules(this);
         if (rules != null) {
             facts = rec.get(this);
             if (facts != null) {
@@ -190,7 +189,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         List<PredicateImpl> todo = list.sublist(der.size(), list.size());
         while (todo.size() > 0) {
             PredicateImpl p = todo.last();
-            set = p.fixpoint(database.getRules(p.signature()), der.append(p), rec, database);
+            set = p.fixpoint(database.getRules(p), der.append(p), rec, database);
             ic = set.findAny(PredicateImpl::isToDepthIcomplete);
             if (ic.isPresent()) {
                 list = (List) ic.get().get(1);
