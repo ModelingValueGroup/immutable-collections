@@ -27,15 +27,16 @@ import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Database;
 import org.modelingvalue.logic.Logic;
+import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.Predicate;
 
 public final class CollectImpl extends PredicateImpl {
-    private static final long                           serialVersionUID      = -2799691054715131197L;
+    private static final long                   serialVersionUID      = -2799691054715131197L;
 
-    private static final FunctorImpl<Logic.Predicate>   COLLECT_FUNCTOR       = FunctorImpl.<Logic.Predicate, Logic.Predicate, Logic.Predicate> of(Logic::collect);
-    private static final Logic.Functor<Logic.Predicate> COLLECT_FUNCTOR_PROXY = COLLECT_FUNCTOR.proxy();
+    private static final FunctorImpl<Predicate> COLLECT_FUNCTOR       = FunctorImpl.<Predicate, Predicate, Predicate> of(Logic::collect);
+    private static final Functor<Predicate>     COLLECT_FUNCTOR_PROXY = COLLECT_FUNCTOR.proxy();
 
-    private int                                         resultIndex           = -1;
+    private int                                 resultIndex           = -1;
 
     public CollectImpl(Predicate pred, Predicate accum) {
         super(COLLECT_FUNCTOR_PROXY, pred, accum);

@@ -248,8 +248,8 @@ public class PredicateImpl extends StructureImpl<Predicate> {
     }
 
     @SuppressWarnings("unchecked")
-    public static <P extends Logic.Predicate> PredicateImpl of(FunctorImpl<P> functor, Object... args) {
-        return new PredicateImpl((FunctorImpl<Logic.Predicate>) functor, args);
+    public static <P extends Predicate> PredicateImpl of(FunctorImpl<P> functor, Object... args) {
+        return new PredicateImpl((FunctorImpl<Predicate>) functor, args);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

@@ -26,15 +26,14 @@ import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Database;
-import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.Predicate;
 
 public final class OrImpl extends PredicateImpl {
-    private static final long                         serialVersionUID = -1732549494864415986L;
+    private static final long                   serialVersionUID = -1732549494864415986L;
 
-    private static final FunctorImpl<Logic.Predicate> OR_FUNCTOR       = FunctorImpl.<Logic.Predicate, Logic.Predicate, Logic.Predicate> of(OrImpl::or);
+    private static final FunctorImpl<Predicate> OR_FUNCTOR       = FunctorImpl.<Predicate, Predicate, Predicate> of(OrImpl::or);
 
-    private List<int[]>                               idxList;
+    private List<int[]>                         idxList;
 
     private static Predicate or(Predicate p1, Predicate p2) {
         return new OrImpl(StructureImpl.unproxy(p1), StructureImpl.unproxy(p2)).proxy();

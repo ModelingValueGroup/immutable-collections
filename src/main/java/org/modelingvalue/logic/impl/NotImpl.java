@@ -27,13 +27,14 @@ import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Database;
 import org.modelingvalue.logic.Logic;
+import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.Predicate;
 
 public final class NotImpl extends PredicateImpl {
-    private static final long                           serialVersionUID  = -4543178470298951866L;
+    private static final long                   serialVersionUID  = -4543178470298951866L;
 
-    private static final FunctorImpl<Logic.Predicate>   NOT_FUNCTOR       = FunctorImpl.<Logic.Predicate, Logic.Predicate> of(Logic::not);
-    private static final Logic.Functor<Logic.Predicate> NOT_FUNCTOR_PROXY = NOT_FUNCTOR.proxy();
+    private static final FunctorImpl<Predicate> NOT_FUNCTOR       = FunctorImpl.<Predicate, Predicate> of(Logic::not);
+    private static final Functor<Predicate>     NOT_FUNCTOR_PROXY = NOT_FUNCTOR.proxy();
 
     public NotImpl(Predicate pred) {
         super(NOT_FUNCTOR_PROXY, pred);

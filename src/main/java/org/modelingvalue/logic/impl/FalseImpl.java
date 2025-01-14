@@ -28,9 +28,9 @@ import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.Predicate;
 
 public final class FalseImpl extends PredicateImpl {
-    private static final long                        serialVersionUID = -8515171118744898263L;
+    private static final long                  serialVersionUID = -8515171118744898263L;
 
-    public static final FunctorImpl<Logic.Predicate> FALSE_FUNCTOR    = FunctorImpl.<Logic.Predicate> of(Logic::F);
+    public static final FunctorImpl<Predicate> FALSE_FUNCTOR    = FunctorImpl.<Predicate> of(Logic::F);
 
     public FalseImpl() {
         super(FALSE_FUNCTOR);

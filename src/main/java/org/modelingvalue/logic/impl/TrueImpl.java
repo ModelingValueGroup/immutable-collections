@@ -28,9 +28,9 @@ import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.Predicate;
 
 public final class TrueImpl extends PredicateImpl {
-    private static final long                         serialVersionUID = -8515171118744898263L;
+    private static final long                   serialVersionUID = -8515171118744898263L;
 
-    private static final FunctorImpl<Logic.Predicate> TRUE_FUNCTOR     = FunctorImpl.<Logic.Predicate> of(Logic::T);
+    private static final FunctorImpl<Predicate> TRUE_FUNCTOR     = FunctorImpl.<Predicate> of(Logic::T);
 
     public TrueImpl() {
         super(TRUE_FUNCTOR);

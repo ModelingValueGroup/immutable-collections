@@ -28,7 +28,6 @@ import java.util.Objects;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.util.StringUtil;
-import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.NormalizeLambda;
 import org.modelingvalue.logic.Logic.Structure;
@@ -400,13 +399,13 @@ public class StructureImpl<F extends Structure> extends org.modelingvalue.collec
     }
 
     @SuppressWarnings("unchecked")
-    public static final <T extends Logic.Structure, R extends StructureImpl<T>> R unproxy(T object) {
+    public static final <T extends Structure, R extends StructureImpl<T>> R unproxy(T object) {
         return (R) Proxy.getInvocationHandler(object);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static final Object unproxy(Object object) {
-        if (object instanceof Logic.Structure) {
+        if (object instanceof Structure) {
             return Proxy.getInvocationHandler(object);
         } else if (object instanceof List) {
             return ((List) object).replaceAll(StructureImpl::unproxy);
@@ -418,7 +417,7 @@ public class StructureImpl<F extends Structure> extends org.modelingvalue.collec
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static final void noProxy(Object object) {
-        if (object instanceof Logic.Structure) {
+        if (object instanceof Structure) {
             throw new IllegalArgumentException();
         } else if (object instanceof List) {
             ((List) object).forEach(StructureImpl::noProxy);

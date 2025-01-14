@@ -32,7 +32,6 @@ import org.modelingvalue.collections.util.SerializableSupplier.SerializableSuppl
 import org.modelingvalue.collections.util.SerializableTriFunction;
 import org.modelingvalue.collections.util.SerializableTriFunction.SerializableTriFunctionImpl;
 import org.modelingvalue.logic.Database;
-import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.FunctorModifier;
 import org.modelingvalue.logic.Logic.FunctorModifierEnum;
@@ -140,31 +139,31 @@ public final class FunctorImpl<T extends Structure> extends StructureImpl<Functo
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <T extends Logic.Structure, A, B, C, D> FunctorImpl<T> of(SerializableQuadFunction<A, B, C, D, T> method, Logic.FunctorModifier... modifiers) {
+    public static <T extends Structure, A, B, C, D> FunctorImpl<T> of(SerializableQuadFunction<A, B, C, D, T> method, FunctorModifier... modifiers) {
         SerializableQuadFunctionImpl<A, B, C, D, T> l = method.of();
         return new FunctorImpl<T>((Class<T>) l.out(), l.getImplMethodName(), l.in(), modifiers);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <T extends Logic.Structure, A, B, C> FunctorImpl<T> of(SerializableTriFunction<A, B, C, T> method, Logic.FunctorModifier... modifiers) {
+    public static <T extends Structure, A, B, C> FunctorImpl<T> of(SerializableTriFunction<A, B, C, T> method, FunctorModifier... modifiers) {
         SerializableTriFunctionImpl<A, B, C, T> l = method.of();
         return new FunctorImpl<T>((Class<T>) l.out(), l.getImplMethodName(), l.in(), modifiers);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <T extends Logic.Structure, A, B> FunctorImpl<T> of(SerializableBiFunction<A, B, T> method, Logic.FunctorModifier... modifiers) {
+    public static <T extends Structure, A, B> FunctorImpl<T> of(SerializableBiFunction<A, B, T> method, FunctorModifier... modifiers) {
         SerializableBiFunctionImpl<A, B, T> l = method.of();
         return new FunctorImpl<T>((Class<T>) l.out(), l.getImplMethodName(), l.in(), modifiers);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <T extends Logic.Structure, A> FunctorImpl<T> of(SerializableFunction<A, T> method, Logic.FunctorModifier... modifiers) {
+    public static <T extends Structure, A> FunctorImpl<T> of(SerializableFunction<A, T> method, FunctorModifier... modifiers) {
         SerializableFunctionImpl<A, T> l = method.of();
         return new FunctorImpl<T>((Class<T>) l.out(), l.getImplMethodName(), l.in(), modifiers);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <T extends Logic.Structure> FunctorImpl<T> of(SerializableSupplier<T> method, Logic.FunctorModifier... modifiers) {
+    public static <T extends Structure> FunctorImpl<T> of(SerializableSupplier<T> method, FunctorModifier... modifiers) {
         SerializableSupplierImpl<T> l = method.of();
         return new FunctorImpl<T>((Class<T>) l.out(), l.getImplMethodName(), l.in(), modifiers);
     }
