@@ -32,6 +32,8 @@ public final class TrueImpl extends PredicateImpl {
 
     private static final FunctorImpl<Predicate> TRUE_FUNCTOR     = FunctorImpl.<Predicate> of(Logic::T);
 
+    private final Set<PredicateImpl>            TRUE             = Set.of(this);
+
     public TrueImpl() {
         super(TRUE_FUNCTOR);
     }
@@ -55,7 +57,7 @@ public final class TrueImpl extends PredicateImpl {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public Set<PredicateImpl> match(PredicateImpl goal, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
-        return Set.of(this);
+        return TRUE;
     }
 
     @SuppressWarnings("rawtypes")

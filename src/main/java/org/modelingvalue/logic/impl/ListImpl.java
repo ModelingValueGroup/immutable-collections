@@ -20,8 +20,6 @@
 
 package org.modelingvalue.logic.impl;
 
-import java.lang.reflect.Proxy;
-
 import org.modelingvalue.logic.Lists;
 import org.modelingvalue.logic.Lists.ListCons;
 import org.modelingvalue.logic.Logic.Functor;
@@ -33,10 +31,9 @@ public final class ListImpl<E extends Structure> extends StructureImpl<ListCons<
     @SuppressWarnings("rawtypes")
     private static final FunctorImpl<ListCons> LIST_FUNCTOR_0       = FunctorImpl.<ListCons> of(Lists::l);
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public static final ListImpl               EMPTY_LIST           = new ListImpl();
-    @SuppressWarnings("rawtypes")
-    public static final ListCons               EMPTY_LIST_PROXY     = ListImpl.EMPTY_LIST.proxy();
+    @SuppressWarnings("unchecked")
+    public static final ListImpl<?>            EMPTY_LIST           = new ListImpl<>();
+    public static final ListCons<?>            EMPTY_LIST_PROXY     = ListImpl.EMPTY_LIST.proxy();
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static final FunctorImpl<ListCons> LIST_FUNCTOR_2       = FunctorImpl.<ListCons, Structure, ListCons> of(Lists::l);
@@ -45,7 +42,7 @@ public final class ListImpl<E extends Structure> extends StructureImpl<ListCons<
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static <E extends Structure> ListImpl<E> of(org.modelingvalue.collections.List<StructureImpl<E>> es) {
-        ListImpl<E> l = EMPTY_LIST;
+        ListImpl<E> l = (ListImpl) EMPTY_LIST;
         for (StructureImpl<E> e : es.reverse()) {
             l = of(e, l);
         }
@@ -77,12 +74,6 @@ public final class ListImpl<E extends Structure> extends StructureImpl<ListCons<
 
     private ListImpl(Object[] args) {
         super(args);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public final ListCons<E> proxy() {
-        return (ListCons<E>) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{ListCons.class}, this);
     }
 
     @Override

@@ -20,8 +20,6 @@
 
 package org.modelingvalue.logic.impl;
 
-import java.lang.reflect.Proxy;
-
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
@@ -48,12 +46,6 @@ public final class RuleImpl extends StructureImpl<Rule> {
 
     private RuleImpl(Object[] args) {
         super(args);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public final Rule proxy() {
-        return (Rule) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{Rule.class}, this);
     }
 
     @Override

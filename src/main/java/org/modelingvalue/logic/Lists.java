@@ -49,12 +49,12 @@ public final class Lists {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static <E extends Structure> ListCons<E> l() {
-        return ListImpl.EMPTY_LIST_PROXY;
+        return (ListCons) ListImpl.EMPTY_LIST_PROXY;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static <E extends Structure> ListCons<E> l(E head, ListCons<E> tail) {
-        return new ListImpl(head, tail).proxy();
+        return new ListImpl<E>(head, tail).proxy();
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -64,7 +64,7 @@ public final class Lists {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static <E extends Structure> ListCons<E> l(org.modelingvalue.collections.List<E> es) {
-        ListImpl<E> l = ListImpl.EMPTY_LIST;
+        ListImpl<E> l = (ListImpl) ListImpl.EMPTY_LIST;
         for (E e : es.reverse()) {
             l = ListImpl.of(StructureImpl.<E, StructureImpl<E>> unproxy(e), l);
         }

@@ -20,8 +20,6 @@
 
 package org.modelingvalue.logic.impl;
 
-import java.lang.reflect.Proxy;
-
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
@@ -33,11 +31,11 @@ public final class AndImpl extends PredicateImpl {
 
     private static final FunctorImpl<Predicate> AND_FUNCTOR      = FunctorImpl.<Predicate, Predicate, Predicate> of(AndImpl::and);
 
-    private List<int[]>                         idxList;
-
     private static Predicate and(Predicate p1, Predicate p2) {
         return new AndImpl(StructureImpl.unproxy(p1), StructureImpl.unproxy(p2)).proxy();
     }
+
+    private List<int[]> idxList;
 
     public AndImpl(PredicateImpl pred1, PredicateImpl pred2) {
         super(AND_FUNCTOR, pred1, pred2);
@@ -45,12 +43,6 @@ public final class AndImpl extends PredicateImpl {
 
     private AndImpl(Object[] args) {
         super(args);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public Predicate proxy() {
-        return (Predicate) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{Predicate.class}, this);
     }
 
     @Override

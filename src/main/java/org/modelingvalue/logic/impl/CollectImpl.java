@@ -20,8 +20,6 @@
 
 package org.modelingvalue.logic.impl;
 
-import java.lang.reflect.Proxy;
-
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
@@ -44,12 +42,6 @@ public final class CollectImpl extends PredicateImpl {
 
     private CollectImpl(Object[] args) {
         super(args);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public Predicate proxy() {
-        return (Predicate) Proxy.newProxyInstance(type().getClassLoader(), new Class[]{Predicate.class}, this);
     }
 
     @Override
