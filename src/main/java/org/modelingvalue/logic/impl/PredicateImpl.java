@@ -136,7 +136,6 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         return v instanceof Class ? (Class) v : v instanceof StructureImpl ? ((StructureImpl) v).type() : null;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public Set<PredicateImpl> match(PredicateImpl goal, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
         FunctorImpl<Predicate> functor = functor();
         LogicLambda logic = functor.logic();
@@ -171,7 +170,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             }
             Set<PredicateImpl> set = fixpoint(rules, non, der.append(this), rec, database);
             if (der.size() >= MAX_LOGIC_DEPTH_D2) {
-                Optional<? extends StructureImpl> ic = set.findAny(PredicateImpl::isToDepthIcomplete);
+                Optional<PredicateImpl> ic = set.findAny(PredicateImpl::isToDepthIcomplete);
                 if (ic.isPresent()) {
                     if (der.size() == MAX_LOGIC_DEPTH_D2) {
                         return flatten(set, ic, der, rec, database);
@@ -186,7 +185,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private Set<PredicateImpl> flatten(Set<PredicateImpl> set, Optional<? extends StructureImpl> ic, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
+    private Set<PredicateImpl> flatten(Set<PredicateImpl> set, Optional<PredicateImpl> ic, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
         List<PredicateImpl> list = (List) ic.get().get(1);
         List<PredicateImpl> todo = list.sublist(der.size(), list.size());
         while (todo.size() > 0) {
