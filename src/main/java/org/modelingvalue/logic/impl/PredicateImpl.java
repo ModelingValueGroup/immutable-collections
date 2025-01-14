@@ -147,10 +147,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             return logic.apply((PredicateImpl) this);
         }
         int nou = nrOfUnbound();
-        if (nou > 1) {
-            return incomplete(der);
-        }
-        if (nou == 1 && functor.args().size() == 1) {
+        if (nou > 1 || (nou == 1 && functor.args().size() == 1)) {
             return incomplete(der);
         }
         Set<PredicateImpl> facts = database.getFacts(this);
@@ -168,10 +165,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             if (r != null) {
                 return r;
             }
-            if (der.lastIndexOf(this) >= 0) {
-                return incomplete(der);
-            }
-            if (der.size() >= MAX_LOGIC_DEPTH) {
+            if (der.size() >= MAX_LOGIC_DEPTH || der.lastIndexOf(this) >= 0) {
                 return incomplete(der);
             }
             Set<PredicateImpl> set = fixpoint(rules, der.append(this), rec, database);
