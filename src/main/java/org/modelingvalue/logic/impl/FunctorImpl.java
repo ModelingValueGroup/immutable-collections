@@ -138,6 +138,11 @@ public final class FunctorImpl<T extends Structure> extends StructureImpl<Functo
         return (Class<T>) get(1);
     }
 
+    @Override
+    public FunctorImpl<T> set(int i, Object... a) {
+        return (FunctorImpl<T>) super.set(i, a);
+    }
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static <T extends Structure, A, B, C, D> FunctorImpl<T> of(SerializableQuadFunction<A, B, C, D, T> method, FunctorModifier... modifiers) {
         SerializableQuadFunctionImpl<A, B, C, D, T> l = method.of();

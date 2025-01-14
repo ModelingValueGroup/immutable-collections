@@ -55,6 +55,11 @@ public final class VariableImpl<F extends Structure> extends StructureImpl<F> {
         return new VariableImpl<F>(array);
     }
 
+    @Override
+    public VariableImpl<F> set(int i, Object... a) {
+        return (VariableImpl<F>) super.set(i, a);
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     protected Class<F> type() {
