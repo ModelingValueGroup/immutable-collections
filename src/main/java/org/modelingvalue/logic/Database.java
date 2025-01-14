@@ -97,7 +97,7 @@ public final class Database {
             return get0();
         }
 
-        public Set<PredicateImpl> set() {
+        public Set<PredicateImpl> match() {
             return get1();
         }
 
@@ -188,7 +188,7 @@ public final class Database {
             Memoization memoiz = m.get(pred);
             if (memoiz != null) {
                 memoiz.count++;
-                return memoiz.set();
+                return memoiz.match();
             }
         }
         return null;
