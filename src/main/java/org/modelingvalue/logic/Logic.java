@@ -62,12 +62,12 @@ public final class Logic {
 
     @SuppressWarnings("unchecked")
     public static <F extends Function<T>, T extends Structure> F function(Functor<F> functor, Object... args) {
-        return new StructureImpl<F>(functor, args).normal().proxy();
+        return new StructureImpl<F>(functor, args).proxy();
     }
 
     // Functor
 
-    public interface Functor<T extends Structure> extends Structure {
+    public interface Functor<T extends Structure> extends Constant<Functor<T>> {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -154,7 +154,7 @@ public final class Logic {
 
     // Variables
 
-    public interface Variable extends Structure {
+    public interface Variable extends Constant<Variable> {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -268,7 +268,7 @@ public final class Logic {
 
     // Rules
 
-    public interface Rule extends Structure {
+    public interface Rule extends Constant<Rule> {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
