@@ -191,7 +191,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private Set<PredicateImpl> flatten(Set<PredicateImpl> set, Optional<PredicateImpl> ic, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
+    private static Set<PredicateImpl> flatten(Set<PredicateImpl> set, Optional<PredicateImpl> ic, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
         List<PredicateImpl> list = (List) ic.get().get(1);
         List<PredicateImpl> todo = list.sublist(der.size(), list.size());
         while (todo.size() > 0) {
