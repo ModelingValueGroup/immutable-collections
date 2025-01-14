@@ -85,44 +85,44 @@ public final class AndImpl extends PredicateImpl {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
-        Set<PredicateImpl> out = Set.of();
-        Set<AndImpl> ands = Set.of(this);
+        Set<PredicateImpl> facts = Set.of(), match, incom, allIncom;
+        Set<AndImpl> ands1 = Set.of(this), ands2;
         idxList = ((AndImpl) decl).idxList();
         do {
-            Set<AndImpl> ands2 = ands;
-            ands = Set.of();
+            ands2 = ands1;
+            ands1 = Set.of();
             outer:
             for (AndImpl and : ands2) {
                 List<int[]> idxl = and.idxList;
                 if (idxl.isEmpty()) {
-                    out = out.add(and);
+                    facts = facts.add(and);
                 } else {
-                    Set<PredicateImpl> ic = Set.of();
+                    allIncom = Set.of();
                     for (int ii = 0; ii < idxl.size(); ii++) {
                         int[] i = idxl.get(ii);
-                        PredicateImpl g = decl.getPred(i);
-                        Set<PredicateImpl> ts = and.getPred(i).match(g, stack, rec, database);
-                        Set<PredicateImpl> in = ts.retainAll(PredicateImpl::isIncomplete);
-                        if (in.isEmpty()) {
+                        PredicateImpl dcl = decl.getPred(i);
+                        match = and.getPred(i).match(dcl, stack, rec, database);
+                        incom = match.retainAll(PredicateImpl::isIncomplete);
+                        if (incom.isEmpty()) {
                             List<int[]> iil = idxl.removeIndex(ii);
-                            ands = ands.addAll(ts.replaceAll(m -> {
-                                AndImpl a = (AndImpl) decl.setBinding(and, g.getBinding(m, Map.of()));
+                            ands1 = ands1.addAll(match.replaceAll(m -> {
+                                AndImpl a = (AndImpl) decl.setBinding(and, dcl.getBinding(m, Map.of()));
                                 a.idxList = iil;
                                 return a;
                             }));
                             continue outer;
-                        } else if (in.anyMatch(PredicateImpl::isToDepthIcomplete)) {
-                            return in;
+                        } else if (incom.anyMatch(PredicateImpl::isToDepthIcomplete)) {
+                            return incom;
                         } else {
-                            ic = ic.addAll(in);
+                            allIncom = allIncom.addAll(incom);
                         }
                     }
-                    out = out.addAll(ic);
+                    facts = facts.addAll(allIncom);
                 }
 
             }
-        } while (!ands.isEmpty());
-        return out;
+        } while (!ands1.isEmpty());
+        return facts;
     }
 
     @Override
