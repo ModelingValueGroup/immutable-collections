@@ -157,13 +157,13 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         PredicateImpl signature = signature();
         List<RuleImpl> rules = database.getRules(signature);
         if (rules != null) {
-            Set<PredicateImpl> r = rec.get(this);
-            if (r != null) {
-                return r;
+            facts = rec.get(this);
+            if (facts != null) {
+                return facts;
             }
-            r = database.getMemoiz(this);
-            if (r != null) {
-                return r;
+            facts = database.getMemoiz(this);
+            if (facts != null) {
+                return facts;
             }
             if (der.size() >= MAX_LOGIC_DEPTH || der.lastIndexOf(this) >= 0) {
                 return incomplete(der);
