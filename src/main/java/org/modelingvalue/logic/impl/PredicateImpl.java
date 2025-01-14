@@ -173,7 +173,10 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             if (der.size() >= MAX_LOGIC_DEPTH_D2) {
                 Optional<? extends StructureImpl> ic = set.findAny(PredicateImpl::isToDepthIcomplete);
                 if (ic.isPresent()) {
-                    return flatten(set, ic, der, rec, database);
+                    if (der.size() == MAX_LOGIC_DEPTH_D2) {
+                        return flatten(set, ic, der, rec, database);
+                    }
+                    return set;
                 }
             }
             database.memoization(this, set);
@@ -184,20 +187,18 @@ public class PredicateImpl extends StructureImpl<Predicate> {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private Set<PredicateImpl> flatten(Set<PredicateImpl> set, Optional<? extends StructureImpl> ic, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
-        if (der.size() == MAX_LOGIC_DEPTH_D2) {
-            List<PredicateImpl> list = (List) ic.get().get(1);
-            List<PredicateImpl> todo = list.sublist(der.size(), list.size());
-            while (todo.size() > 0) {
-                PredicateImpl p = todo.last();
-                set = p.fixpoint(database.getRules(p.signature()), p.nrOfNulls(), der.append(p), rec, database);
-                ic = set.findAny(PredicateImpl::isToDepthIcomplete);
-                if (ic.isPresent()) {
-                    list = (List) ic.get().get(1);
-                    todo = todo.appendList(list.sublist(der.size(), list.size()));
-                } else {
-                    database.memoization(p, set);
-                    todo = todo.removeLast();
-                }
+        List<PredicateImpl> list = (List) ic.get().get(1);
+        List<PredicateImpl> todo = list.sublist(der.size(), list.size());
+        while (todo.size() > 0) {
+            PredicateImpl p = todo.last();
+            set = p.fixpoint(database.getRules(p.signature()), p.nrOfNulls(), der.append(p), rec, database);
+            ic = set.findAny(PredicateImpl::isToDepthIcomplete);
+            if (ic.isPresent()) {
+                list = (List) ic.get().get(1);
+                todo = todo.appendList(list.sublist(der.size(), list.size()));
+            } else {
+                database.memoization(p, set);
+                todo = todo.removeLast();
             }
         }
         return set;
