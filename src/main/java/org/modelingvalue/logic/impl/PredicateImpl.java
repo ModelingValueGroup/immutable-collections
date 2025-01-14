@@ -185,8 +185,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private static Set<PredicateImpl> flatten(Set<PredicateImpl> facts, Optional<PredicateImpl> ic, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
-        List<PredicateImpl> list = (List) ic.get().get(1);
-        List<PredicateImpl> todo = list.sublist(stack.size(), list.size());
+        List<PredicateImpl> list = (List) ic.get().get(1), todo = list.sublist(stack.size(), list.size());
         while (todo.size() > 0) {
             PredicateImpl p = todo.last();
             facts = p.fixpoint(database.getRules(p), stack.append(p), rec, database);
@@ -209,7 +208,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         do {
             added = evalRules(rules, stack, found.isEmpty() ? rec : rec.put(this, found), database).removeAll(facts);
             found = (Set) added.retainAll(this::equalFunctor);
-            incomplete |= added.anyMatch(this::isIncomplete);
+            incomplete |= found.size() < added.size();
             if (incomplete && facts.isEmpty() && !found.isEmpty()) {
                 facts = facts.addAll(found);
             } else {
@@ -221,9 +220,9 @@ public class PredicateImpl extends StructureImpl<Predicate> {
 
     @SuppressWarnings("rawtypes")
     private Set<PredicateImpl> evalRules(List<RuleImpl> rules, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
-        Set<PredicateImpl> facts = Set.of();
+        Set<PredicateImpl> facts = Set.of(), eval;
         for (RuleImpl rule : rules) {
-            Set<PredicateImpl> eval = rule.eval(this, stack, rec, database);
+            eval = rule.eval(this, stack, rec, database);
             if (eval.anyMatch(PredicateImpl::isToDepthIcomplete)) {
                 return eval;
             } else {
