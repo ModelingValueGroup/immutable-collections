@@ -146,14 +146,12 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         if (logic != null) {
             return logic.apply((PredicateImpl) this);
         }
-        if (!der.isEmpty()) {
-            int nou = nrOfUnbound();
-            if (nou > 1) {
-                return incomplete(der);
-            }
-            if (nou == 1 && decl.nrOfVariables() == 1) {
-                return incomplete(der);
-            }
+        int nou = nrOfUnbound();
+        if (nou > 1) {
+            return incomplete(der);
+        }
+        if (nou == 1 && functor.args().size() == 1) {
+            return incomplete(der);
         }
         Set<PredicateImpl> facts = database.getFacts(this);
         if (facts != null) {
