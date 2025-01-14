@@ -294,8 +294,8 @@ public final class Logic {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static Incomplete incomplete(List<Predicate> der) {
-        return pred(INCOMPLETE_FUNCTOR_PROXY, der);
+    public static Incomplete incomplete(List<Predicate> stack) {
+        return pred(INCOMPLETE_FUNCTOR_PROXY, stack);
     }
 
     // Facts
@@ -307,8 +307,8 @@ public final class Logic {
 
     // Bindings
 
-    public static Map<Variable, Object> incomplete(Predicate... der) {
-        return Map.of(Entry.of((Variable) incompleteVar(), incomplete(List.of(der))));
+    public static Map<Variable, Object> incomplete(Predicate... stack) {
+        return Map.of(Entry.of((Variable) incompleteVar(), incomplete(List.of(stack))));
     }
 
     public static Map<Variable, Object> binding(Structure... varVal) {

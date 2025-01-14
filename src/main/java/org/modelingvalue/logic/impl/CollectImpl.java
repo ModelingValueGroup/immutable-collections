@@ -125,7 +125,7 @@ public final class CollectImpl extends PredicateImpl {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
+    public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
         Map<VariableImpl, Object> localVars = ((CollectImpl) decl).localVariables();
         int ii = ((CollectImpl) decl).identityIndex();
         int ri = ((CollectImpl) decl).resultIndex();
@@ -135,7 +135,7 @@ public final class CollectImpl extends PredicateImpl {
         StructureImpl id = accum.getStruct(ii);
         Set<StructureImpl> rs = Set.of(id);
         Set<PredicateImpl> inc = Set.of();
-        for (PredicateImpl pm : goalPred.setBinding(pred(), localVars).match(goalPred, der, rec, database)) {
+        for (PredicateImpl pm : goalPred.setBinding(pred(), localVars).match(goalPred, stack, rec, database)) {
             if (pm.isIncomplete()) {
                 inc = inc.add(pm);
             } else {
@@ -143,7 +143,7 @@ public final class CollectImpl extends PredicateImpl {
                 Set<StructureImpl> irs = Set.of();
                 for (StructureImpl r : rs) {
                     PredicateImpl s = goalAccum.setBinding(accum, b).set(ii, r);
-                    for (PredicateImpl am : s.match(goalAccum, der, rec, database)) {
+                    for (PredicateImpl am : s.match(goalAccum, stack, rec, database)) {
                         if (am.isIncomplete()) {
                             inc = inc.add(am);
                         } else {

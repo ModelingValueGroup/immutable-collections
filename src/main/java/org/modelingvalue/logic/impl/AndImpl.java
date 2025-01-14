@@ -84,7 +84,7 @@ public final class AndImpl extends PredicateImpl {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
+    public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
         Set<PredicateImpl> out = Set.of();
         Set<AndImpl> ands = Set.of(this);
         idxList = ((AndImpl) decl).idxList();
@@ -101,7 +101,7 @@ public final class AndImpl extends PredicateImpl {
                     for (int ii = 0; ii < idxl.size(); ii++) {
                         int[] i = idxl.get(ii);
                         PredicateImpl g = decl.getPred(i);
-                        Set<PredicateImpl> ts = and.getPred(i).match(g, der, rec, database);
+                        Set<PredicateImpl> ts = and.getPred(i).match(g, stack, rec, database);
                         Set<PredicateImpl> in = ts.retainAll(PredicateImpl::isIncomplete);
                         if (in.isEmpty()) {
                             List<int[]> iil = idxl.removeIndex(ii);
