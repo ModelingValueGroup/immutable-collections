@@ -86,7 +86,11 @@ public class PredicateImpl extends StructureImpl<Predicate> {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public Set<PredicateImpl> incomplete() {
-        return Set.of(incompleteImpl(List.of(this)));
+        return Set.of(PredicateImpl.of(INCOMPLETE_FUNCTOR, List.of(this)));
+    }
+
+    private Set<PredicateImpl> incomplete(List<PredicateImpl> der) {
+        return Set.of(PredicateImpl.of(INCOMPLETE_FUNCTOR, der.append(this)));
     }
 
     public boolean isIncomplete() {
@@ -136,15 +140,20 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         return v instanceof Class ? (Class) v : v instanceof StructureImpl ? ((StructureImpl) v).type() : null;
     }
 
-    public Set<PredicateImpl> match(PredicateImpl goal, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
+    public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
         FunctorImpl<Predicate> functor = functor();
         LogicLambda logic = functor.logic();
         if (logic != null) {
             return logic.apply((PredicateImpl) this);
         }
-        int non = nrOfNulls();
-        if (non > 1 || non >= totalLength()) {
-            return Set.of(incompleteImpl(der.append(this)));
+        if (!der.isEmpty()) {
+            int nou = nrOfUnbound();
+            if (nou > 1) {
+                return incomplete(der);
+            }
+            if (nou == 1 && decl.nrOfVariables() == 1) {
+                return incomplete(der);
+            }
         }
         Set<PredicateImpl> facts = database.getFacts(this);
         if (facts != null) {
@@ -161,14 +170,13 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             if (r != null) {
                 return r;
             }
-            int li = der.lastIndexOf(this);
-            if (li >= 0) {
-                return Set.of(incompleteImpl(der.append(this)));
+            if (der.lastIndexOf(this) >= 0) {
+                return incomplete(der);
             }
             if (der.size() >= MAX_LOGIC_DEPTH) {
-                return Set.of(incompleteImpl(der.append(this)));
+                return incomplete(der);
             }
-            Set<PredicateImpl> set = fixpoint(rules, non, der.append(this), rec, database);
+            Set<PredicateImpl> set = fixpoint(rules, der.append(this), rec, database);
             if (der.size() >= MAX_LOGIC_DEPTH_D2) {
                 Optional<PredicateImpl> ic = set.findAny(PredicateImpl::isToDepthIcomplete);
                 if (ic.isPresent()) {
@@ -190,7 +198,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         List<PredicateImpl> todo = list.sublist(der.size(), list.size());
         while (todo.size() > 0) {
             PredicateImpl p = todo.last();
-            set = p.fixpoint(database.getRules(p.signature()), p.nrOfNulls(), der.append(p), rec, database);
+            set = p.fixpoint(database.getRules(p.signature()), der.append(p), rec, database);
             ic = set.findAny(PredicateImpl::isToDepthIcomplete);
             if (ic.isPresent()) {
                 list = (List) ic.get().get(1);
@@ -204,12 +212,12 @@ public class PredicateImpl extends StructureImpl<Predicate> {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private Set<PredicateImpl> fixpoint(List<RuleImpl> rules, int non, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
+    private Set<PredicateImpl> fixpoint(List<RuleImpl> rules, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
         Set<PredicateImpl> result = Set.of(), added = Set.of();
         Set<PredicateImpl> found = Set.of();
         boolean incomplete = false;
         do {
-            added = evalRules(rules, non, der, found.isEmpty() ? rec : rec.put(this, found), database).removeAll(result);
+            added = evalRules(rules, der, found.isEmpty() ? rec : rec.put(this, found), database).removeAll(result);
             found = (Set) added.retainAll(this::equalFunctor);
             incomplete |= added.anyMatch(this::isIncomplete);
             if (incomplete && result.isEmpty() && !found.isEmpty()) {
@@ -222,7 +230,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
     }
 
     @SuppressWarnings("rawtypes")
-    private Set<PredicateImpl> evalRules(List<RuleImpl> rules, int non, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
+    private Set<PredicateImpl> evalRules(List<RuleImpl> rules, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
         Set<PredicateImpl> r = Set.of();
         for (RuleImpl rule : rules) {
             Set<PredicateImpl> eval = rule.eval(this, der, rec, database);
@@ -249,10 +257,5 @@ public class PredicateImpl extends StructureImpl<Predicate> {
     @SuppressWarnings("unchecked")
     public static <P extends Predicate> PredicateImpl of(FunctorImpl<P> functor, Object... args) {
         return new PredicateImpl((FunctorImpl<Predicate>) functor, args);
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public static PredicateImpl incompleteImpl(List<PredicateImpl> der) {
-        return PredicateImpl.of(INCOMPLETE_FUNCTOR, der);
     }
 }

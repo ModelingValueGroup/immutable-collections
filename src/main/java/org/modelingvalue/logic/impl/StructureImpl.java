@@ -372,28 +372,29 @@ public class StructureImpl<F extends Structure> extends org.modelingvalue.collec
     }
 
     @SuppressWarnings("rawtypes")
-    protected int nrOfNulls() {
+    protected final int nrOfUnbound() {
         int nr = 0;
         for (int i = 1; i < length(); i++) {
             Object v = get(i);
-            if (v == null || v instanceof Class) {
+            if (v instanceof Class) {
                 nr++;
             } else if (v instanceof StructureImpl) {
-                nr += ((StructureImpl) v).nrOfNulls();
+                nr += ((StructureImpl) v).nrOfUnbound();
             }
         }
         return nr;
     }
 
     @SuppressWarnings("rawtypes")
-    protected int totalLength() {
+    protected final int nrOfVariables() {
         int nr = 0;
         for (int i = 1; i < length(); i++) {
             Object v = get(i);
-            if (v instanceof StructureImpl) {
-                nr += ((StructureImpl) v).totalLength();
+            if (v instanceof VariableImpl) {
+                nr++;
+            } else if (v instanceof StructureImpl) {
+                nr += ((StructureImpl) v).nrOfVariables();
             }
-            nr++;
         }
         return nr;
     }

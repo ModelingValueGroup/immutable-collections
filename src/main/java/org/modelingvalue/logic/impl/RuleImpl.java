@@ -88,7 +88,7 @@ public final class RuleImpl extends StructureImpl<Rule> {
     }
 
     public int rulePrio() {
-        return cond().totalLength();
+        return cond().nrOfVariables();
     }
 
     @Override

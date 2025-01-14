@@ -56,6 +56,7 @@ public final class NotImpl extends PredicateImpl {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public Set<PredicateImpl> match(PredicateImpl goal, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
+
         Set<PredicateImpl> r = pred().match(((NotImpl) goal).pred(), der, rec, database);
         return r.isEmpty() ? Set.of(this) : r.retainAll(PredicateImpl::isIncomplete);
     }
