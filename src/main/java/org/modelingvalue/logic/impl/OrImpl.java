@@ -84,15 +84,15 @@ public final class OrImpl extends PredicateImpl {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Set<PredicateImpl> match(PredicateImpl goal, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
+    public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
         Set<PredicateImpl> r = Set.of();
-        for (int[] i : ((OrImpl) goal).idxList()) {
-            PredicateImpl g = goal.getPred(i);
+        for (int[] i : ((OrImpl) decl).idxList()) {
+            PredicateImpl g = decl.getPred(i);
             Set<PredicateImpl> m = getPred(i).match(g, der, rec, database);
             if (m.anyMatch(PredicateImpl::isToDepthIcomplete)) {
                 return m;
             } else {
-                r = r.addAll(m.replaceAll(t -> t.isIncomplete() ? t : goal.setBinding(this, g.getBinding(t, Map.of()))));
+                r = r.addAll(m.replaceAll(t -> t.isIncomplete() ? t : decl.setBinding(this, g.getBinding(t, Map.of()))));
             }
         }
         return r;

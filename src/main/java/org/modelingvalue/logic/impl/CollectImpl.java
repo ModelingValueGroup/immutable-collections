@@ -125,12 +125,12 @@ public final class CollectImpl extends PredicateImpl {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Set<PredicateImpl> match(PredicateImpl goal, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
-        Map<VariableImpl, Object> localVars = ((CollectImpl) goal).localVariables();
-        int ii = ((CollectImpl) goal).identityIndex();
-        int ri = ((CollectImpl) goal).resultIndex();
-        PredicateImpl goalPred = ((CollectImpl) goal).pred();
-        PredicateImpl goalAccum = ((CollectImpl) goal).accum();
+    public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
+        Map<VariableImpl, Object> localVars = ((CollectImpl) decl).localVariables();
+        int ii = ((CollectImpl) decl).identityIndex();
+        int ri = ((CollectImpl) decl).resultIndex();
+        PredicateImpl goalPred = ((CollectImpl) decl).pred();
+        PredicateImpl goalAccum = ((CollectImpl) decl).accum();
         PredicateImpl accum = accum();
         StructureImpl id = accum.getStruct(ii);
         Set<StructureImpl> rs = Set.of(id);

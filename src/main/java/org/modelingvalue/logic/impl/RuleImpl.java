@@ -40,8 +40,8 @@ public final class RuleImpl extends StructureImpl<Rule> {
     @SuppressWarnings("rawtypes")
     private Map<VariableImpl, Object>      variables;
 
-    public RuleImpl(Relation pred, Predicate goal) {
-        super(RULE_FUNCTOR_PROXY, pred, goal);
+    public RuleImpl(Relation pred, Predicate decl) {
+        super(RULE_FUNCTOR_PROXY, pred, decl);
     }
 
     private RuleImpl(Object[] args) {

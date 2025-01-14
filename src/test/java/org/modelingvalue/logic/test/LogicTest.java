@@ -69,21 +69,21 @@ public class LogicTest {
         return Logic.run(test, init);
     }
 
-    static void isTrue(Predicate goal) {
-        assertTrue(Logic.isTrue(goal));
+    static void isTrue(Predicate query) {
+        assertTrue(Logic.isTrue(query));
     }
 
-    static void isFalse(Predicate goal) {
-        assertTrue(Logic.isFalse(goal));
+    static void isFalse(Predicate query) {
+        assertTrue(Logic.isFalse(query));
     }
 
-    static void isIncomplete(Predicate goal) {
-        assertTrue(Logic.isIncomplete(goal));
+    static void isIncomplete(Predicate query) {
+        assertTrue(Logic.isIncomplete(query));
     }
 
     @SafeVarargs
-    static void hasBindings(Predicate goal, Map<Variable, Object>... bindings) {
-        assertEquals(Set.of(bindings), getBindings(goal));
+    static void hasBindings(Predicate query, Map<Variable, Object>... bindings) {
+        assertEquals(Set.of(bindings), getBindings(query));
     }
 
     // Root
