@@ -167,71 +167,70 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             if (stack.size() >= MAX_LOGIC_DEPTH || stack.lastIndexOf(this) >= 0) {
                 return incomplete(stack);
             }
-            Set<PredicateImpl> set = fixpoint(rules, stack.append(this), rec, database);
+            facts = fixpoint(rules, stack.append(this), rec, database);
             if (stack.size() >= MAX_LOGIC_DEPTH_D2) {
-                Optional<PredicateImpl> ic = set.findAny(PredicateImpl::isToDepthIcomplete);
+                Optional<PredicateImpl> ic = facts.findAny(PredicateImpl::isToDepthIcomplete);
                 if (ic.isPresent()) {
                     if (stack.size() == MAX_LOGIC_DEPTH_D2) {
-                        return flatten(set, ic, stack, rec, database);
+                        return flatten(facts, ic, stack, rec, database);
                     }
-                    return set;
+                    return facts;
                 }
             }
-            database.memoization(this, set);
-            return set;
+            database.memoization(this, facts);
+            return facts;
         }
         return Set.of();
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static Set<PredicateImpl> flatten(Set<PredicateImpl> set, Optional<PredicateImpl> ic, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
+    private static Set<PredicateImpl> flatten(Set<PredicateImpl> facts, Optional<PredicateImpl> ic, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
         List<PredicateImpl> list = (List) ic.get().get(1);
         List<PredicateImpl> todo = list.sublist(stack.size(), list.size());
         while (todo.size() > 0) {
             PredicateImpl p = todo.last();
-            set = p.fixpoint(database.getRules(p), stack.append(p), rec, database);
-            ic = set.findAny(PredicateImpl::isToDepthIcomplete);
+            facts = p.fixpoint(database.getRules(p), stack.append(p), rec, database);
+            ic = facts.findAny(PredicateImpl::isToDepthIcomplete);
             if (ic.isPresent()) {
                 list = (List) ic.get().get(1);
                 todo = todo.appendList(list.sublist(stack.size(), list.size()));
             } else {
-                database.memoization(p, set);
+                database.memoization(p, facts);
                 todo = todo.removeLast();
             }
         }
-        return set;
+        return facts;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private Set<PredicateImpl> fixpoint(List<RuleImpl> rules, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
-        Set<PredicateImpl> result = Set.of(), added = Set.of();
-        Set<PredicateImpl> found = Set.of();
+        Set<PredicateImpl> facts = Set.of(), added = Set.of(), found = Set.of();
         boolean incomplete = false;
         do {
-            added = evalRules(rules, stack, found.isEmpty() ? rec : rec.put(this, found), database).removeAll(result);
+            added = evalRules(rules, stack, found.isEmpty() ? rec : rec.put(this, found), database).removeAll(facts);
             found = (Set) added.retainAll(this::equalFunctor);
             incomplete |= added.anyMatch(this::isIncomplete);
-            if (incomplete && result.isEmpty() && !found.isEmpty()) {
-                result = result.addAll(found);
+            if (incomplete && facts.isEmpty() && !found.isEmpty()) {
+                facts = facts.addAll(found);
             } else {
-                result = result.addAll(added);
+                facts = facts.addAll(added);
             }
         } while (incomplete && !found.isEmpty());
-        return result;
+        return facts;
     }
 
     @SuppressWarnings("rawtypes")
     private Set<PredicateImpl> evalRules(List<RuleImpl> rules, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
-        Set<PredicateImpl> r = Set.of();
+        Set<PredicateImpl> facts = Set.of();
         for (RuleImpl rule : rules) {
             Set<PredicateImpl> eval = rule.eval(this, stack, rec, database);
             if (eval.anyMatch(PredicateImpl::isToDepthIcomplete)) {
                 return eval;
             } else {
-                r = r.addAll(eval);
+                facts = facts.addAll(eval);
             }
         }
-        return r;
+        return facts;
     }
 
     @SuppressWarnings("rawtypes")
