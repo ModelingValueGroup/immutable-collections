@@ -62,7 +62,7 @@ public final class VariableImpl<F extends Structure> extends StructureImpl<F> {
 
     @SuppressWarnings("unchecked")
     @Override
-    protected Class<F> type() {
+    public Class<F> type() {
         return (Class<F>) get(0);
     }
 }

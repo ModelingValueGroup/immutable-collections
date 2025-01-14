@@ -73,12 +73,12 @@ public final class AndImpl extends PredicateImpl {
     }
 
     @SuppressWarnings("rawtypes")
-    protected final PredicateImpl pred1() {
+    public final PredicateImpl pred1() {
         return (PredicateImpl) get(1);
     }
 
     @SuppressWarnings("rawtypes")
-    protected final PredicateImpl pred2() {
+    public final PredicateImpl pred2() {
         return (PredicateImpl) get(2);
     }
 

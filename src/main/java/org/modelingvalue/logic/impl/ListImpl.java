@@ -83,12 +83,12 @@ public final class ListImpl<E extends Structure> extends StructureImpl<ListCons<
     }
 
     @SuppressWarnings("unchecked")
-    protected StructureImpl<E> head() {
+    public StructureImpl<E> head() {
         return (StructureImpl<E>) get(1);
     }
 
     @SuppressWarnings("unchecked")
-    protected ListImpl<E> tail() {
+    public ListImpl<E> tail() {
         return (ListImpl<E>) get(2);
     }
 

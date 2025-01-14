@@ -51,12 +51,12 @@ public final class CollectImpl extends PredicateImpl {
     }
 
     @SuppressWarnings("rawtypes")
-    protected final PredicateImpl pred() {
+    public final PredicateImpl pred() {
         return (PredicateImpl) get(1);
     }
 
     @SuppressWarnings("rawtypes")
-    protected final PredicateImpl accum() {
+    public final PredicateImpl accum() {
         return (PredicateImpl) get(2);
     }
 

@@ -236,12 +236,6 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         return r;
     }
 
-    @Override
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public PredicateImpl eq(StructureImpl<Predicate> other) {
-        return (PredicateImpl) super.eq(other);
-    }
-
     @SuppressWarnings("rawtypes")
     public boolean contains(PredicateImpl cond) {
         return equals(cond);

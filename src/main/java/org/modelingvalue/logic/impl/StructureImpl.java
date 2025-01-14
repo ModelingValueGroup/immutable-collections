@@ -181,7 +181,7 @@ public class StructureImpl<F extends Structure> extends org.modelingvalue.collec
         return r;
     }
 
-    public StructureImpl<F> eq(StructureImpl<F> other) {
+    public final StructureImpl<F> eq(StructureImpl<F> other) {
         if (equals(other)) {
             return this;
         } else if (length() != other.length()) {

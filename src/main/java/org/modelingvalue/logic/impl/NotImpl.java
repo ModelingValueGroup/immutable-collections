@@ -49,7 +49,7 @@ public final class NotImpl extends PredicateImpl {
     }
 
     @SuppressWarnings("rawtypes")
-    protected final PredicateImpl pred() {
+    public final PredicateImpl pred() {
         return (PredicateImpl) get(1);
     }
 
