@@ -27,7 +27,6 @@ import java.util.function.UnaryOperator;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.logic.Database;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.Incomplete;
@@ -140,7 +139,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         return v instanceof Class ? (Class) v : v instanceof StructureImpl ? ((StructureImpl) v).type() : null;
     }
 
-    public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
+    public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, DatabaseImpl database) {
         FunctorImpl<Predicate> functor = functor();
         LogicLambda logic = functor.logic();
         if (logic != null) {
@@ -184,7 +183,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static Set<PredicateImpl> flatten(Set<PredicateImpl> facts, Optional<PredicateImpl> ic, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
+    private static Set<PredicateImpl> flatten(Set<PredicateImpl> facts, Optional<PredicateImpl> ic, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, DatabaseImpl database) {
         List<PredicateImpl> list = (List) ic.get().get(1), todo = list.sublist(stack.size(), list.size());
         while (todo.size() > 0) {
             PredicateImpl p = todo.last();
@@ -202,7 +201,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private Set<PredicateImpl> fixpoint(List<RuleImpl> rules, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
+    private Set<PredicateImpl> fixpoint(List<RuleImpl> rules, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, DatabaseImpl database) {
         Set<PredicateImpl> facts = Set.of(), added = Set.of(), found = Set.of();
         boolean incomplete = false;
         do {
@@ -219,7 +218,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
     }
 
     @SuppressWarnings("rawtypes")
-    private Set<PredicateImpl> evalRules(List<RuleImpl> rules, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
+    private Set<PredicateImpl> evalRules(List<RuleImpl> rules, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, DatabaseImpl database) {
         Set<PredicateImpl> facts = Set.of(), eval;
         for (RuleImpl rule : rules) {
             eval = rule.eval(this, stack, rec, database);

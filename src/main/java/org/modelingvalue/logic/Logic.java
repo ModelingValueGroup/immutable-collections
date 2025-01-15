@@ -197,7 +197,7 @@ public final class Logic {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Set<PredicateImpl> match(PredicateImpl impl) {
-        return impl.setBinding(impl, impl.variables()).match(impl, List.of(), Map.of(), Database.CURRENT.get());
+        return impl.setBinding(impl, impl.variables()).match(impl, List.of(), Map.of(), DatabaseImpl.CURRENT.get());
     }
 
     @SuppressWarnings("rawtypes")
@@ -274,7 +274,7 @@ public final class Logic {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static Rule rule(Relation consequence, Predicate condition) {
         RuleImpl ruleImpl = new RuleImpl(consequence, condition);
-        Database.CURRENT.get().addRule(ruleImpl);
+        DatabaseImpl.CURRENT.get().addRule(ruleImpl);
         return ruleImpl.proxy();
     }
 
@@ -302,7 +302,7 @@ public final class Logic {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static void fact(Relation pred) {
-        Database.CURRENT.get().addFact(StructureImpl.<Predicate, PredicateImpl> unproxy(pred));
+        DatabaseImpl.CURRENT.get().addFact(StructureImpl.<Predicate, PredicateImpl> unproxy(pred));
     }
 
     // Bindings

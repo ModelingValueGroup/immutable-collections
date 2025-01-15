@@ -56,6 +56,7 @@ import org.modelingvalue.logic.Lists.ListCons;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.*;
 import org.modelingvalue.logic.Rationals.RationalCons;
+import org.modelingvalue.logic.impl.DatabaseImpl;
 
 public class LogicTest {
 
@@ -65,7 +66,7 @@ public class LogicTest {
         return Logic.run(test);
     }
 
-    Database run(Runnable test, Database init) {
+    Database run(Runnable test, DatabaseImpl init) {
         return Logic.run(test, init);
     }
 
@@ -291,7 +292,10 @@ public class LogicTest {
             familyRules();
             fibonacciRules();
         });
-        for (Entry<Structure, org.modelingvalue.collections.List<Rule>> e : db.rules()) {
+        for (Entry<Relation, org.modelingvalue.collections.List<Rule>> e : db.rules()) {
+            System.err.println(e.getKey() + " " + e.getValue());
+        }
+        for (Entry<Relation, Set<Relation>> e : db.facts()) {
             System.err.println(e.getKey() + " " + e.getValue());
         }
     }

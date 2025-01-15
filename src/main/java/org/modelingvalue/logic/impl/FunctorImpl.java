@@ -31,7 +31,6 @@ import org.modelingvalue.collections.util.SerializableSupplier;
 import org.modelingvalue.collections.util.SerializableSupplier.SerializableSupplierImpl;
 import org.modelingvalue.collections.util.SerializableTriFunction;
 import org.modelingvalue.collections.util.SerializableTriFunction.SerializableTriFunctionImpl;
-import org.modelingvalue.logic.Database;
 import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.FunctorModifier;
 import org.modelingvalue.logic.Logic.FunctorModifierEnum;
@@ -50,9 +49,9 @@ public final class FunctorImpl<T extends Structure> extends StructureImpl<Functo
     @SuppressWarnings({"unchecked", "rawtypes"})
     public FunctorImpl(Class<T> type, String name, List<Class<?>> args, FunctorModifier... modifiers) {
         super((Class) Functor.class, type, name, args);
-        Database.updateSpecializations(type);
+        DatabaseImpl.updateSpecializations(type);
         for (Class arg : args) {
-            Database.updateSpecializations(arg);
+            DatabaseImpl.updateSpecializations(arg);
         }
         this.logic = logic(modifiers);
         this.normal = normal(modifiers);

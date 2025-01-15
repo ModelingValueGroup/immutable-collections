@@ -23,7 +23,6 @@ package org.modelingvalue.logic.impl;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.logic.Database;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.Predicate;
@@ -73,7 +72,7 @@ public final class RuleImpl extends StructureImpl<Rule> {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    protected Set<PredicateImpl> eval(PredicateImpl pred, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
+    protected Set<PredicateImpl> eval(PredicateImpl pred, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, DatabaseImpl database) {
         PredicateImpl cons = cons();
         Map<VariableImpl, Object> binding = cons.getBinding(pred, Map.of());
         if (binding == null) {

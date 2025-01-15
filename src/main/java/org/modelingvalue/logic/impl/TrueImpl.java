@@ -23,7 +23,6 @@ package org.modelingvalue.logic.impl;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.logic.Database;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.Predicate;
 
@@ -56,7 +55,7 @@ public final class TrueImpl extends PredicateImpl {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, Database database) {
+    public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, DatabaseImpl database) {
         return TRUE;
     }
 
