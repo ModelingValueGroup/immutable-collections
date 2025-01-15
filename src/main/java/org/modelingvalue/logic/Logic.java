@@ -43,11 +43,11 @@ public final class Logic {
     // Run
 
     public static final Database run(Runnable runnable) {
-        return Database.run(runnable, null);
+        return DatabaseImpl.run(runnable, null);
     }
 
     public static final Database run(Runnable runnable, Database init) {
-        return Database.run(runnable, init);
+        return DatabaseImpl.run(runnable, (DatabaseImpl) init);
     }
 
     // Structures

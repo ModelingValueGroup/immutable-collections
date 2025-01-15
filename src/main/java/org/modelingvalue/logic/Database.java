@@ -5,13 +5,8 @@ import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Logic.Relation;
 import org.modelingvalue.logic.Logic.Rule;
-import org.modelingvalue.logic.impl.DatabaseImpl;
 
 public interface Database {
-
-    static Database run(Runnable runnable, Database init) {
-        return DatabaseImpl.run(runnable, (DatabaseImpl) init);
-    }
 
     Map<Relation, List<Rule>> rules();
 
