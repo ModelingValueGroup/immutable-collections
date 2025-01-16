@@ -162,6 +162,12 @@ public final class DatabaseImpl implements Database {
     private final AtomicReference<Map<PredicateImpl, Set<PredicateImpl>>>     facts;
     private final AtomicReference<Map<PredicateImpl, List<RuleImpl>>>         rules;
     private final AtomicReference<QualifiedSet<PredicateImpl, Memoization>[]> memoization;
+    private final PredicateImpl.Context                                       context = new PredicateImpl.Context() {
+                                                                                          @Override
+                                                                                          public DatabaseImpl database() {
+                                                                                              return DatabaseImpl.this;
+                                                                                          }
+                                                                                      };
 
     private boolean                                                           stopped;
 
@@ -320,5 +326,9 @@ public final class DatabaseImpl implements Database {
             }
         }
         return m;
+    }
+
+    public PredicateImpl.Context context() {
+        return context;
     }
 }

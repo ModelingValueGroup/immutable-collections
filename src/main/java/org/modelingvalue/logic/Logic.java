@@ -34,6 +34,7 @@ import org.modelingvalue.collections.util.SerializableQuadFunction;
 import org.modelingvalue.collections.util.SerializableSupplier;
 import org.modelingvalue.collections.util.SerializableTriFunction;
 import org.modelingvalue.logic.impl.*;
+import org.modelingvalue.logic.impl.PredicateImpl.Match;
 
 public final class Logic {
 
@@ -171,33 +172,36 @@ public final class Logic {
     }
 
     public static boolean isTrue(Predicate pred) {
-        return match(pred).anyMatch(t -> !t.isIncomplete());
+        Match match = match(pred);
+        return !match.pos().isEmpty();
     }
 
     public static boolean isFalse(Predicate pred) {
-        return match(pred).isEmpty();
+        Match match = match(pred);
+        return match.pos().isEmpty() && match.inc().isEmpty();
     }
 
     public static boolean isIncomplete(Predicate pred) {
-        return match(pred).anyMatch(PredicateImpl::isIncomplete);
+        Match match = match(pred);
+        return !match.inc().isEmpty();
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static Set<Map<Variable, Object>> getBindings(Predicate pred) {
         PredicateImpl impl = StructureImpl.<Predicate, PredicateImpl> unproxy(pred);
-        Set<PredicateImpl> match = match(impl);
+        PredicateImpl.Match match = match(impl);
         Set<Map<VariableImpl, Object>> bindings = match.replaceAll(m -> m.isIncomplete() ? Map.of(Entry.of(INCOMPLETE_VAR, m)) : impl.getBinding(m, Map.of()));
         return bindings.replaceAll(m -> m.replaceAll(e -> Entry.of((Variable) e.getKey().proxy(), proxy(e.getValue()))));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Set<PredicateImpl> match(Predicate pred) {
+    private static PredicateImpl.Match match(Predicate pred) {
         return match(StructureImpl.<Predicate, PredicateImpl> unproxy(pred));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Set<PredicateImpl> match(PredicateImpl impl) {
-        return impl.setBinding(impl, impl.variables()).match(impl, List.of(), Map.of(), DatabaseImpl.CURRENT.get());
+    private static PredicateImpl.Match match(PredicateImpl impl) {
+        return impl.setBinding(impl, impl.variables()).match(impl, DatabaseImpl.CURRENT.get().context());
     }
 
     @SuppressWarnings("rawtypes")
