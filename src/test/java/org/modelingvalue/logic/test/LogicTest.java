@@ -249,10 +249,10 @@ public class LogicTest {
     private void fibonacciRules() {
         integerRules();
 
-        rule(is(fib(R), Q), and(is(R, P), fib(P, Q)));
-
         rule(fib(P, Q), and(le(P, i(1)), eq(Q, P)));
         rule(fib(P, Q), and(gt(P, i(1)), is(plus(fib(minus(P, i(1))), fib(minus(P, i(2)))), Q)));
+
+        rule(is(fib(R), Q), and(is(R, P), fib(P, Q)));
     }
 
     // Root Rules
@@ -260,14 +260,13 @@ public class LogicTest {
     private void rootRules() {
         integerRules();
 
-        rule(is(parent(X), A), and(is(X, B), parentChild(A, B)));
-        rule(is(child(X), A), and(is(X, B), parentChild(B, A)));
-
-        rule(is(root(X), V), and(is(X, B), rootPerson(V, B)));
-
         rule(parentChild(person(Q), person(P)), and(lt(Q, i(4)), is(plus(Q, i(1)), P)));
         rule(rootPerson(V, person(0)), T());
         rule(rootPerson(V, C), and(rootPerson(V, A), parentChild(A, C)));
+
+        rule(is(parent(X), A), and(is(X, B), parentChild(A, B)));
+        rule(is(child(X), A), and(is(X, B), parentChild(B, A)));
+        rule(is(root(X), V), and(is(X, B), rootPerson(V, B)));
     }
 
     // Family Rules
@@ -275,14 +274,14 @@ public class LogicTest {
     private void familyRules() {
         isRules();
 
+        rule(ancestorDescendent(A, C), parentChild(A, C));
+        rule(ancestorDescendent(A, C), and(ancestorDescendent(A, B), parentChild(B, C)));
+
         rule(is(parent(X), A), and(is(X, B), parentChild(A, B)));
         rule(is(child(X), A), and(is(X, B), parentChild(B, A)));
 
         rule(is(ancestor(X), A), and(is(X, B), ancestorDescendent(A, B)));
         rule(is(descendent(X), A), and(is(X, B), ancestorDescendent(B, A)));
-
-        rule(ancestorDescendent(A, C), parentChild(A, C));
-        rule(ancestorDescendent(A, C), and(ancestorDescendent(A, B), parentChild(B, C)));
     }
 
     // @Test

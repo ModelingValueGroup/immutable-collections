@@ -247,16 +247,17 @@ public final class Integers {
         Integer X = iv("X");
         Integer Y = iv("Y");
 
+        rule(gt(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, i(1))));
+        rule(lt(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, i(-1))));
+        rule(ge(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, R), or(eq(R, i(1)), eq(R, i(0)))));
+        rule(le(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, R), or(eq(R, i(-1)), eq(R, i(0)))));
+
         rule(is(plus(X, Y), R), and(is(X, P), is(Y, Q), plus(P, Q, R)));
         rule(is(minus(X, Y), R), and(is(X, P), is(Y, Q), plus(R, Q, P)));
         rule(is(multiply(X, Y), R), and(is(X, P), is(Y, Q), multiply(P, Q, R)));
         rule(is(divide(X, Y), R), and(is(X, P), is(Y, Q), multiply(R, Q, P)));
         rule(is(square(X), R), and(is(X, P), square(P, R)));
         rule(is(sqrt(X), R), and(is(X, P), square(R, P)));
-        rule(gt(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, i(1))));
-        rule(lt(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, i(-1))));
-        rule(ge(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, R), or(eq(R, i(1)), eq(R, i(0)))));
-        rule(le(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, R), or(eq(R, i(-1)), eq(R, i(0)))));
     }
 
 }
