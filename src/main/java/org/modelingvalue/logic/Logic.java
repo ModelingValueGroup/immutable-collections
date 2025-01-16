@@ -311,12 +311,8 @@ public final class Logic {
         return Map.of(Entry.of((Variable) incompleteVar(), incomplete(List.of(stack))));
     }
 
-    public static Map<Variable, Object> binding(Structure... varVal) {
-        Map<Variable, Object> b = Map.of();
-        for (int i = 0; i < varVal.length; i += 2) {
-            b = b.add(Entry.of((Variable) varVal[i], varVal[i + 1]));
-        }
-        return b;
+    public static <T extends Structure> Map<Variable, Object> binding(Constant<T> var, Constant<T> val) {
+        return Map.of(Entry.of((Variable) var, val));
     }
 
     // Equals
