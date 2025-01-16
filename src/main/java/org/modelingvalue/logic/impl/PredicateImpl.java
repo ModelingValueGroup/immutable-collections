@@ -56,6 +56,33 @@ public class PredicateImpl extends StructureImpl<Predicate> {
 
     public static final FunctorImpl<Incomplete> INCOMPLETE_FUNCTOR = FunctorImpl.<Incomplete, List<Predicate>> of(Logic::incomplete);
 
+    public interface Match {
+
+        Match EMPTY = new Match() {
+        };
+
+        default Set<Predicate> pos() {
+            return Set.of();
+        }
+
+        default Set<List<Predicate>> inc() {
+            return Set.of();
+        }
+    }
+
+    public interface Context {
+
+        default List<PredicateImpl> stack() {
+            return List.of();
+        }
+
+        default Map<PredicateImpl, Set<PredicateImpl>> rec() {
+            return Map.of();
+        }
+
+        DatabaseImpl database();
+    }
+
     public PredicateImpl(Functor<Predicate> functor, Object... args) {
         super(functor, args);
     }
@@ -139,7 +166,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         return v instanceof Class ? (Class) v : v instanceof StructureImpl ? ((StructureImpl) v).type() : null;
     }
 
-    public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, DatabaseImpl database) {
+    public Match match(PredicateImpl decl, Context ctx) {
         FunctorImpl<Predicate> functor = functor();
         LogicLambda logic = functor.logic();
         if (logic != null) {
@@ -179,7 +206,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             database.memoization(this, facts);
             return facts;
         }
-        return Set.of();
+        return Match.EMPTY;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
