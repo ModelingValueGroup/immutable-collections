@@ -56,7 +56,6 @@ import org.modelingvalue.logic.Lists.ListCons;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.*;
 import org.modelingvalue.logic.Rationals.RationalCons;
-import org.modelingvalue.logic.impl.DatabaseImpl;
 
 public class LogicTest {
 
@@ -66,7 +65,7 @@ public class LogicTest {
         return Logic.run(test);
     }
 
-    Database run(Runnable test, DatabaseImpl init) {
+    Database run(Runnable test, Database init) {
         return Logic.run(test, init);
     }
 
