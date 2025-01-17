@@ -44,6 +44,7 @@ import static org.modelingvalue.logic.Rationals.sqrt;
 
 import org.junit.jupiter.api.RepeatedTest;
 import org.modelingvalue.collections.Entry;
+import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.SerializableBiFunction;
@@ -84,6 +85,10 @@ public class LogicTest {
     @SafeVarargs
     static void hasBindings(Predicate query, Map<Variable, Object>... bindings) {
         assertEquals(Set.of(bindings), getBindings(query));
+    }
+
+    static void hasIncomplete(Predicate query, Predicate... predicates) {
+        assertEquals(Set.of(List.of(predicates)), getIncomplete(query));
     }
 
     // Root
@@ -378,7 +383,7 @@ public class LogicTest {
         run(() -> {
             rule(parentChild(B, C), parentChild(B, C));
 
-            hasBindings(parentChild(Wim, Jan), incomplete(parentChild(Wim, Jan), parentChild(Wim, Jan)));
+            hasIncomplete(parentChild(Wim, Jan), parentChild(Wim, Jan), parentChild(Wim, Jan));
             isIncomplete(parentChild(Wim, Jan));
         });
     }

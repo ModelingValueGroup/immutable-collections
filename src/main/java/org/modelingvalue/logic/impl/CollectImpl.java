@@ -50,12 +50,12 @@ public final class CollectImpl extends PredicateImpl {
     }
 
     @SuppressWarnings("rawtypes")
-    public final PredicateImpl pred() {
+    public final PredicateImpl collector() {
         return (PredicateImpl) get(1);
     }
 
     @SuppressWarnings("rawtypes")
-    public final PredicateImpl accum() {
+    public final PredicateImpl accumulator() {
         return (PredicateImpl) get(2);
     }
 
@@ -65,9 +65,9 @@ public final class CollectImpl extends PredicateImpl {
     @SuppressWarnings("rawtypes")
     protected Map<VariableImpl, Object> localVariables() {
         if (localVariables == null) {
-            Map<VariableImpl, Object> predVars = pred().variables();
-            Map<VariableImpl, Object> accumVars = accum().variables();
-            localVariables = predVars.retainAll(accumVars::contains);
+            Map<VariableImpl, Object> collVars = collector().variables();
+            Map<VariableImpl, Object> accumVars = accumulator().variables();
+            localVariables = collVars.retainAll(accumVars::contains);
         }
         return localVariables;
     }
@@ -79,9 +79,9 @@ public final class CollectImpl extends PredicateImpl {
     @Override
     public Map<VariableImpl, Object> variables() {
         if (variables == null) {
-            Map<VariableImpl, Object> predVars = pred().variables();
-            Map<VariableImpl, Object> accumVars = accum().variables();
-            variables = predVars.removeAll(accumVars::contains).addAll(accumVars.removeAll(predVars::contains));
+            Map<VariableImpl, Object> collVars = collector().variables();
+            Map<VariableImpl, Object> accumVars = accumulator().variables();
+            variables = collVars.removeAll(accumVars::contains).addAll(accumVars.removeAll(collVars::contains));
         }
         return variables;
     }
@@ -91,7 +91,7 @@ public final class CollectImpl extends PredicateImpl {
     @SuppressWarnings("rawtypes")
     private int identityIndex() {
         if (identityIndex < 0) {
-            PredicateImpl accum = accum();
+            PredicateImpl accum = accumulator();
             for (int i = 1; i < accum.length(); i++) {
                 Object v = accum.get(i);
                 if (!(v instanceof VariableImpl) && v instanceof StructureImpl) {
@@ -110,7 +110,7 @@ public final class CollectImpl extends PredicateImpl {
     @SuppressWarnings("rawtypes")
     private int resultIndex() {
         if (resultIndex < 0) {
-            PredicateImpl accum = accum();
+            PredicateImpl accum = accumulator();
             for (int i = 1; i < accum.length(); i++) {
                 Object v = accum.get(i);
                 if (v instanceof VariableImpl && !localVariables().containsKey((VariableImpl) v)) {
@@ -124,39 +124,37 @@ public final class CollectImpl extends PredicateImpl {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, DatabaseImpl database) {
-        Map<VariableImpl, Object> localVars = ((CollectImpl) decl).localVariables();
-        int ii = ((CollectImpl) decl).identityIndex();
-        int ri = ((CollectImpl) decl).resultIndex();
-        PredicateImpl goalPred = ((CollectImpl) decl).pred();
-        PredicateImpl goalAccum = ((CollectImpl) decl).accum();
-        PredicateImpl accum = accum();
-        StructureImpl id = accum.getStruct(ii);
-        Set<StructureImpl> rs = Set.of(id);
-        Set<PredicateImpl> inc = Set.of();
-        for (PredicateImpl pm : goalPred.setBinding(pred(), localVars).match(goalPred, stack, rec, database)) {
-            if (pm.isIncomplete()) {
-                inc = inc.add(pm);
-            } else {
-                Map<VariableImpl, Object> b = goalPred.getBinding(pm, Map.of());
-                Set<StructureImpl> irs = Set.of();
-                for (StructureImpl r : rs) {
-                    PredicateImpl s = goalAccum.setBinding(accum, b).set(ii, r);
-                    for (PredicateImpl am : s.match(goalAccum, stack, rec, database)) {
-                        if (am.isIncomplete()) {
-                            inc = inc.add(am);
-                        } else {
-                            irs = irs.add(am.getStruct(ri));
-                        }
-                    }
+    public Match match(PredicateImpl declaration, Context context) {
+        Map<VariableImpl, Object> localVars = ((CollectImpl) declaration).localVariables();
+        int identityIndex = ((CollectImpl) declaration).identityIndex();
+        int resultIndex = ((CollectImpl) declaration).resultIndex();
+        PredicateImpl goalColl = ((CollectImpl) declaration).collector();
+        PredicateImpl goalAccum = ((CollectImpl) declaration).accumulator();
+        PredicateImpl accum = accumulator();
+        StructureImpl identity = accum.getStruct(identityIndex);
+        Set<StructureImpl> result = Set.of(identity);
+        Match match = goalColl.setBinding(collector(), localVars).match(goalColl, context);
+        if (match.hasStackOverflow()) {
+            return match;
+        }
+        Set<List<PredicateImpl>> incomplete = match.incomplete();
+        for (PredicateImpl element : match.positive()) {
+            Map<VariableImpl, Object> binding = goalColl.getBinding(element, Map.of());
+            Set<StructureImpl> res = Set.of();
+            for (StructureImpl r : result) {
+                PredicateImpl s = goalAccum.setBinding(accum, binding).set(identityIndex, r);
+                match = s.match(goalAccum, context);
+                if (match.hasStackOverflow()) {
+                    return match;
                 }
-                rs = irs;
+                for (PredicateImpl am : match.positive()) {
+                    res = res.add(am.getStruct(resultIndex));
+                }
+                incomplete = incomplete.addAll(match.incomplete());
             }
+            result = res;
         }
-        for (StructureImpl t : rs) {
-            inc = inc.add(set(2, accum.set(ri, t)));
-        }
-        return inc;
+        return Match.of(result.replaceAll(r -> set(2, accum.set(resultIndex, r))), incomplete);
     }
 
     @SuppressWarnings("rawtypes")

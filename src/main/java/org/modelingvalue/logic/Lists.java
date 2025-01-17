@@ -31,6 +31,7 @@ import org.modelingvalue.logic.Logic.Predicate;
 import org.modelingvalue.logic.Logic.Structure;
 import org.modelingvalue.logic.impl.FunctorImpl;
 import org.modelingvalue.logic.impl.ListImpl;
+import org.modelingvalue.logic.impl.PredicateImpl.Match;
 import org.modelingvalue.logic.impl.StructureImpl;
 
 public final class Lists {
@@ -91,25 +92,25 @@ public final class Lists {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static final FunctorImpl<Predicate> ADD_FUNCTOR       = FunctorImpl.<Predicate, Structure, ListCons, ListCons> of(Lists::add, (LogicLambda) t -> {
-                                                                      StructureImpl<Structure> e = t.getStruct(1);
-                                                                      ListImpl<Structure> i = t.getStruct(2);
-                                                                      ListImpl<Structure> o = t.getStruct(3);
-                                                                      org.modelingvalue.collections.List<StructureImpl<Structure>> il = i != null ? i.list() : null;
-                                                                      org.modelingvalue.collections.List<StructureImpl<Structure>> ol = o != null ? o.list() : null;
-                                                                      if (e != null && il != null && ol != null) {
-                                                                          return addOrdered(il, e).equals(ol) ? Set.of(t) : Set.of();
-                                                                      } else if (e != null && il != null && ol == null) {
-                                                                          return Set.of(t.set(3, ListImpl.of(addOrdered(il, e))));
-                                                                      } else if (e != null && il == null && ol != null) {
-                                                                          return Set.of(t.set(2, permRemove(ol, e).replaceAll(l -> (StructureImpl) t.set(2, ListImpl.of(l)))));
-                                                                      } else if (e == null && il != null && ol != null) {
-                                                                          if (il.anyMatch(ol::notContains)) {
-                                                                              return Set.of();
+    private static final FunctorImpl<Predicate> ADD_FUNCTOR       = FunctorImpl.<Predicate, Structure, ListCons, ListCons> of(Lists::add, (LogicLambda) predicate -> {
+                                                                      StructureImpl<Structure> element = predicate.getStruct(1);
+                                                                      ListImpl<Structure> sub = predicate.getStruct(2);
+                                                                      ListImpl<Structure> sup = predicate.getStruct(3);
+                                                                      org.modelingvalue.collections.List<StructureImpl<Structure>> sublist = sub != null ? sub.list() : null;
+                                                                      org.modelingvalue.collections.List<StructureImpl<Structure>> superlist = sup != null ? sup.list() : null;
+                                                                      if (element != null && sublist != null && superlist != null) {
+                                                                          return Match.EMPTY.positive(addOrdered(sublist, element).equals(superlist) ? Set.of(predicate) : Set.of());
+                                                                      } else if (element != null && sublist != null && superlist == null) {
+                                                                          return Match.EMPTY.positive(Set.of(predicate.set(3, ListImpl.of(addOrdered(sublist, element)))));
+                                                                      } else if (element != null && sublist == null && superlist != null) {
+                                                                          return Match.EMPTY.positive(Set.of(predicate.set(2, permRemove(superlist, element).replaceAll(l -> (StructureImpl) predicate.set(2, ListImpl.of(l))))));
+                                                                      } else if (element == null && sublist != null && superlist != null) {
+                                                                          if (sublist.anyMatch(superlist::notContains)) {
+                                                                              return Match.EMPTY;
                                                                           }
-                                                                          return Set.of(t.set(1, ol.asSet().removeAll(il).replaceAll(r -> (StructureImpl) t.set(1, r))));
+                                                                          return Match.EMPTY.positive(Set.of(predicate.set(1, superlist.asSet().removeAll(sublist).replaceAll(r -> (StructureImpl) predicate.set(1, r)))));
                                                                       } else {
-                                                                          return t.incomplete();
+                                                                          return predicate.incomplete();
                                                                       }
                                                                   });
     @SuppressWarnings("rawtypes")

@@ -29,6 +29,7 @@ import java.math.BigInteger;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Integers.IntegerCons;
 import org.modelingvalue.logic.Logic.*;
+import org.modelingvalue.logic.impl.PredicateImpl.Match;
 import org.modelingvalue.logic.impl.StructureImpl;
 
 public final class Rationals {
@@ -87,10 +88,10 @@ public final class Rationals {
     // Predicates
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> compare = Logic.<Predicate, RationalCons, RationalCons, IntegerCons> functor(Rationals::compare, (LogicLambda) t -> {
-        StructureImpl<RationalCons> at = t.getStruct(1);
-        StructureImpl<RationalCons> bt = t.getStruct(2);
-        StructureImpl<IntegerCons> ct = t.getStruct(3);
+    private static Functor<Predicate> compare = Logic.<Predicate, RationalCons, RationalCons, IntegerCons> functor(Rationals::compare, (LogicLambda) predicate -> {
+        StructureImpl<RationalCons> at = predicate.getStruct(1);
+        StructureImpl<RationalCons> bt = predicate.getStruct(2);
+        StructureImpl<IntegerCons> ct = predicate.getStruct(3);
         BigInteger ci = ct != null ? ct.getVal(1) : null;
         if (at != null && bt != null) {
             BigInteger ax = at.getVal(1);
@@ -101,18 +102,18 @@ public final class Rationals {
             BigInteger b = bx.multiply(ay);
             BigInteger r = BigInteger.valueOf(a.compareTo(b));
             if (ci != null) {
-                return ci.equals(r) ? Set.of(t) : Set.of();
+                return Match.EMPTY.positive(ci.equals(r) ? Set.of(predicate) : Set.of());
             } else {
-                return Set.of(t.set(3, at.set(1, r)));
+                return Match.EMPTY.positive(Set.of(predicate.set(3, at.set(1, r))));
             }
         } else if (BigInteger.ZERO.equals(ci)) {
             if (at != null) {
-                return Set.of(t.set(2, at));
+                return Match.EMPTY.positive(Set.of(predicate.set(2, at)));
             } else if (bt != null) {
-                return Set.of(t.set(1, bt));
+                return Match.EMPTY.positive(Set.of(predicate.set(1, bt)));
             }
         }
-        return t.incomplete();
+        return predicate.incomplete();
     });
 
     public static Predicate compare(RationalCons a, RationalCons b, IntegerCons c) {
@@ -120,10 +121,10 @@ public final class Rationals {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> plusPred = Logic.<Predicate, RationalCons, RationalCons, RationalCons> functor(Rationals::plus, (LogicLambda) t -> {
-        StructureImpl<RationalCons> at = t.getStruct(1);
-        StructureImpl<RationalCons> bt = t.getStruct(2);
-        StructureImpl<RationalCons> ct = t.getStruct(3);
+    private static Functor<Predicate> plusPred = Logic.<Predicate, RationalCons, RationalCons, RationalCons> functor(Rationals::plus, (LogicLambda) predicate -> {
+        StructureImpl<RationalCons> at = predicate.getStruct(1);
+        StructureImpl<RationalCons> bt = predicate.getStruct(2);
+        StructureImpl<RationalCons> ct = predicate.getStruct(3);
         BigInteger ax = at != null ? at.getVal(1) : null;
         BigInteger bx = bt != null ? bt.getVal(1) : null;
         BigInteger cx = ct != null ? ct.getVal(1) : null;
@@ -134,21 +135,21 @@ public final class Rationals {
             BigInteger a = ax.multiply(by);
             BigInteger b = bx.multiply(ay);
             StructureImpl<RationalCons> pt = at.set(1, a.add(b), by.multiply(ay));
-            return pt.equals(ct) ? Set.of(t) : Set.of();
+            return Match.EMPTY.positive(pt.equals(ct) ? Set.of(predicate) : Set.of());
         } else if (at != null && bt != null && ct == null) {
             BigInteger a = ax.multiply(by);
             BigInteger b = bx.multiply(ay);
-            return Set.of(t.set(3, at.set(1, a.add(b), by.multiply(ay))));
+            return Match.EMPTY.positive(Set.of(predicate.set(3, at.set(1, a.add(b), by.multiply(ay)))));
         } else if (at != null && bt == null && ct != null) {
             BigInteger a = ax.multiply(cy);
             BigInteger c = cx.multiply(ay);
-            return Set.of(t.set(2, at.set(1, c.subtract(a), cy.multiply(ay))));
+            return Match.EMPTY.positive(Set.of(predicate.set(2, at.set(1, c.subtract(a), cy.multiply(ay)))));
         } else if (at == null && bt != null && ct != null) {
             BigInteger b = bx.multiply(cy);
             BigInteger c = cx.multiply(by);
-            return Set.of(t.set(1, bt.set(1, c.subtract(b), cy.multiply(by))));
+            return Match.EMPTY.positive(Set.of(predicate.set(1, bt.set(1, c.subtract(b), cy.multiply(by)))));
         } else {
-            return t.incomplete();
+            return predicate.incomplete();
         }
     });
 
@@ -157,10 +158,10 @@ public final class Rationals {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> multiplyPred = Logic.<Predicate, RationalCons, RationalCons, RationalCons> functor(Rationals::multiply, (LogicLambda) t -> {
-        StructureImpl<RationalCons> at = t.getStruct(1);
-        StructureImpl<RationalCons> bt = t.getStruct(2);
-        StructureImpl<RationalCons> ct = t.getStruct(3);
+    private static Functor<Predicate> multiplyPred = Logic.<Predicate, RationalCons, RationalCons, RationalCons> functor(Rationals::multiply, (LogicLambda) predicate -> {
+        StructureImpl<RationalCons> at = predicate.getStruct(1);
+        StructureImpl<RationalCons> bt = predicate.getStruct(2);
+        StructureImpl<RationalCons> ct = predicate.getStruct(3);
         BigInteger ax = at != null ? at.getVal(1) : null;
         BigInteger bx = bt != null ? bt.getVal(1) : null;
         BigInteger cx = ct != null ? ct.getVal(1) : null;
@@ -169,15 +170,15 @@ public final class Rationals {
         BigInteger cy = ct != null ? ct.getVal(2) : null;
         if (at != null && bt != null && ct != null) {
             StructureImpl<RationalCons> mt = at.set(1, ax.multiply(bx), ay.multiply(by));
-            return mt.equals(ct) ? Set.of(t) : Set.of();
+            return Match.EMPTY.positive(mt.equals(ct) ? Set.of(predicate) : Set.of());
         } else if (at != null && bt != null && ct == null) {
-            return Set.of(t.set(3, at.set(1, ax.multiply(bx), ay.multiply(by))));
+            return Match.EMPTY.positive(Set.of(predicate.set(3, at.set(1, ax.multiply(bx), ay.multiply(by)))));
         } else if (at != null && bt == null && ct != null) {
-            return Set.of(t.set(2, at.set(1, cx.multiply(ay), cy.multiply(ax))));
+            return Match.EMPTY.positive(Set.of(predicate.set(2, at.set(1, cx.multiply(ay), cy.multiply(ax)))));
         } else if (at == null && bt != null && ct != null) {
-            return Set.of(t.set(1, bt.set(1, cx.multiply(by), cy.multiply(bx))));
+            return Match.EMPTY.positive(Set.of(predicate.set(1, bt.set(1, cx.multiply(by), cy.multiply(bx)))));
         } else {
-            return t.incomplete();
+            return predicate.incomplete();
         }
     });
 
@@ -186,24 +187,24 @@ public final class Rationals {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> squarePred = Logic.<Predicate, RationalCons, RationalCons> functor(Rationals::square, (LogicLambda) t -> {
-        StructureImpl<RationalCons> at = t.getStruct(1);
-        StructureImpl<RationalCons> bt = t.getStruct(2);
+    private static Functor<Predicate> squarePred = Logic.<Predicate, RationalCons, RationalCons> functor(Rationals::square, (LogicLambda) predicate -> {
+        StructureImpl<RationalCons> at = predicate.getStruct(1);
+        StructureImpl<RationalCons> bt = predicate.getStruct(2);
         BigInteger ax = at != null ? at.getVal(1) : null;
         BigInteger ay = at != null ? at.getVal(2) : null;
         if (at != null && bt != null) {
             StructureImpl<RationalCons> mt = at.set(1, ax.multiply(ax), ay.multiply(ay));
-            return mt.equals(bt) ? Set.of(t) : Set.of();
+            return Match.EMPTY.positive(mt.equals(bt) ? Set.of(predicate) : Set.of());
         } else if (at != null && bt == null) {
-            return Set.of(t.set(2, at.set(1, ax.multiply(ax), ay.multiply(ay))));
+            return Match.EMPTY.positive(Set.of(predicate.set(2, at.set(1, ax.multiply(ax), ay.multiply(ay)))));
         } else if (at == null && bt != null) {
             BigInteger bx = bt.getVal(1);
             BigInteger by = bt.getVal(2);
             BigInteger sqrt = bx.multiply(by).sqrt();
             bt = bt.set(2, by.abs());
-            return Set.of(t.set(1, bt.set(1, sqrt)), t.set(1, bt.set(1, sqrt.negate())));
+            return Match.EMPTY.positive(Set.of(predicate.set(1, bt.set(1, sqrt)), predicate.set(1, bt.set(1, sqrt.negate()))));
         } else {
-            return t.incomplete();
+            return predicate.incomplete();
         }
     });
 

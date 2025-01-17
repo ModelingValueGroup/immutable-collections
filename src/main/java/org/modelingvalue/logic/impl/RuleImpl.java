@@ -28,6 +28,8 @@ import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.Predicate;
 import org.modelingvalue.logic.Logic.Relation;
 import org.modelingvalue.logic.Logic.Rule;
+import org.modelingvalue.logic.impl.PredicateImpl.Context;
+import org.modelingvalue.logic.impl.PredicateImpl.Match;
 
 public final class RuleImpl extends StructureImpl<Rule> {
     private static final long              serialVersionUID   = -4602043866952049391L;
@@ -62,32 +64,43 @@ public final class RuleImpl extends StructureImpl<Rule> {
     }
 
     @SuppressWarnings("rawtypes")
-    public final PredicateImpl cons() {
+    public final PredicateImpl consequence() {
         return (PredicateImpl) get(1);
     }
 
     @SuppressWarnings("rawtypes")
-    public final PredicateImpl cond() {
+    public final PredicateImpl condition() {
         return (PredicateImpl) get(2);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    protected Set<PredicateImpl> eval(PredicateImpl pred, List<PredicateImpl> der, Map<PredicateImpl, Set<PredicateImpl>> rec, DatabaseImpl database) {
-        PredicateImpl cons = cons();
-        Map<VariableImpl, Object> binding = cons.getBinding(pred, Map.of());
+    protected Match eval(PredicateImpl declaration, Context context) {
+        PredicateImpl consequence = consequence();
+        Map<VariableImpl, Object> binding = consequence.getBinding(declaration, Map.of());
         if (binding == null) {
-            return Set.of();
+            return Match.EMPTY;
         }
         if (TRACE_LOGIC) {
-            System.err.println("LOGIC " + "  ".repeat(der.size()) + this + " " + binding.toString().substring(3));
+            System.err.println("LOGIC " + "  ".repeat(context.stack().size()) + this + " " + binding.toString().substring(3));
         }
-        PredicateImpl cond = cond();
-        Set<PredicateImpl> match = cond.setBinding(cond, cond.variables().putAll(binding)).match(cond, der, rec, database);
-        return match.replaceAll(t -> t.isIncomplete() ? t : cons.setBinding(pred, cond.getBinding(t, Map.of())));
+        PredicateImpl condition = condition();
+        Match match = condition.setBinding(condition, variables().putAll(binding)).match(condition, context);
+        Set<PredicateImpl> positive = match.positive().replaceAll(i -> consequence.setBinding(declaration, condition.getBinding(i, Map.of())));
+        return new Match() {
+            @Override
+            public Set<PredicateImpl> positive() {
+                return positive;
+            }
+
+            @Override
+            public Set<List<PredicateImpl>> incomplete() {
+                return match.incomplete();
+            }
+        };
     }
 
     public int rulePrio() {
-        return cond().nrOfVariables();
+        return condition().nrOfVariables();
     }
 
     @Override

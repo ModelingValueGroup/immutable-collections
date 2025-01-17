@@ -20,7 +20,6 @@
 
 package org.modelingvalue.logic.impl;
 
-import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Logic;
@@ -31,7 +30,7 @@ public final class TrueImpl extends PredicateImpl {
 
     private static final FunctorImpl<Predicate> TRUE_FUNCTOR     = FunctorImpl.<Predicate> of(Logic::T);
 
-    private final Set<PredicateImpl>            TRUE             = Set.of(this);
+    private final Match                         TRUE             = Match.EMPTY.positive(Set.of(TrueImpl.this));
 
     public TrueImpl() {
         super(TRUE_FUNCTOR);
@@ -55,7 +54,7 @@ public final class TrueImpl extends PredicateImpl {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, DatabaseImpl database) {
+    public Match match(PredicateImpl declaration, Context context) {
         return TRUE;
     }
 

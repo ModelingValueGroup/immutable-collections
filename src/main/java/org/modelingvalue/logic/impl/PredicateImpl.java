@@ -27,9 +27,7 @@ import java.util.function.UnaryOperator;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
-import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.Functor;
-import org.modelingvalue.logic.Logic.Incomplete;
 import org.modelingvalue.logic.Logic.LogicLambda;
 import org.modelingvalue.logic.Logic.Predicate;
 
@@ -54,33 +52,95 @@ public class PredicateImpl extends StructureImpl<Predicate> {
                                                                        return r;
                                                                    };
 
-    public static final FunctorImpl<Incomplete> INCOMPLETE_FUNCTOR = FunctorImpl.<Incomplete, List<Predicate>> of(Logic::incomplete);
-
     public interface Match {
-
         Match EMPTY = new Match() {
+            @Override
+            public Set<PredicateImpl> positive() {
+                return Set.of();
+            }
+
+            @Override
+            public Set<List<PredicateImpl>> incomplete() {
+                return Set.of();
+            }
         };
 
-        default Set<Predicate> pos() {
-            return Set.of();
+        Set<PredicateImpl> positive();
+
+        Set<List<PredicateImpl>> incomplete();
+
+        static Match of(Set<PredicateImpl> positive, Set<List<PredicateImpl>> incomplete) {
+            return new Match() {
+                @Override
+                public Set<PredicateImpl> positive() {
+                    return positive;
+                }
+
+                @Override
+                public Set<List<PredicateImpl>> incomplete() {
+                    return incomplete;
+                }
+            };
         }
 
-        default Set<List<Predicate>> inc() {
-            return Set.of();
+        default Match positive(Set<PredicateImpl> positive) {
+            return of(positive, incomplete());
+        }
+
+        default Match incomplete(Set<List<PredicateImpl>> incomplete) {
+            return of(positive(), incomplete);
+        }
+
+        default Match add(Match match) {
+            return of(positive().addAll(match.positive()), incomplete().addAll(match.incomplete()));
+        }
+
+        default boolean hasCycleWith(PredicateImpl predicate) {
+            return incomplete().anyMatch(l -> l.last().equals(predicate));
+        }
+
+        default Optional<List<PredicateImpl>> stackOverflow() {
+            return incomplete().findAny(l -> l.size() >= MAX_LOGIC_DEPTH);
+        }
+
+        default boolean hasStackOverflow() {
+            return incomplete().anyMatch(l -> l.size() >= MAX_LOGIC_DEPTH);
         }
     }
 
     public interface Context {
-
-        default List<PredicateImpl> stack() {
-            return List.of();
-        }
-
-        default Map<PredicateImpl, Set<PredicateImpl>> rec() {
-            return Map.of();
-        }
-
         DatabaseImpl database();
+
+        List<PredicateImpl> stack();
+
+        Map<PredicateImpl, Match> cyclic();
+
+        static Context of(DatabaseImpl database, List<PredicateImpl> stack, Map<PredicateImpl, Match> cyclic) {
+            return new Context() {
+                @Override
+                public DatabaseImpl database() {
+                    return database;
+                }
+
+                @Override
+                public List<PredicateImpl> stack() {
+                    return stack;
+                }
+
+                @Override
+                public Map<PredicateImpl, Match> cyclic() {
+                    return cyclic;
+                }
+            };
+        }
+
+        default Context stack(PredicateImpl predicate) {
+            return of(database(), stack().append(predicate), cyclic());
+        }
+
+        default Context cycle(PredicateImpl predicate, Set<PredicateImpl> found) {
+            return of(database(), stack(), cyclic().put(predicate, Match.EMPTY.positive(found)));
+        }
     }
 
     public PredicateImpl(Functor<Predicate> functor, Object... args) {
@@ -111,31 +171,12 @@ public class PredicateImpl extends StructureImpl<Predicate> {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public Set<PredicateImpl> incomplete() {
-        return Set.of(PredicateImpl.of(INCOMPLETE_FUNCTOR, List.of(this)));
+    public Match incomplete() {
+        return Match.EMPTY.incomplete(Set.of(List.of(this)));
     }
 
-    private Set<PredicateImpl> incomplete(List<PredicateImpl> stack) {
-        return Set.of(PredicateImpl.of(INCOMPLETE_FUNCTOR, stack.append(this)));
-    }
-
-    public boolean isIncomplete() {
-        return INCOMPLETE_FUNCTOR.equals(functor());
-    }
-
-    @SuppressWarnings("rawtypes")
-    protected boolean equalFunctor(PredicateImpl other) {
-        return get(0).equals(other.get(0));
-    }
-
-    @SuppressWarnings("rawtypes")
-    protected boolean isIncomplete(PredicateImpl other) {
-        return other.isIncomplete() && ((List) other.get(1)).last().equals(this);
-    }
-
-    @SuppressWarnings("rawtypes")
-    protected boolean isToDepthIcomplete() {
-        return isIncomplete() && ((List) get(1)).size() >= MAX_LOGIC_DEPTH;
+    private Match incomplete(Context context) {
+        return Match.EMPTY.incomplete(Set.of(context.stack().append(this)));
     }
 
     @SuppressWarnings("rawtypes")
@@ -166,96 +207,103 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         return v instanceof Class ? (Class) v : v instanceof StructureImpl ? ((StructureImpl) v).type() : null;
     }
 
-    public Match match(PredicateImpl decl, Context ctx) {
+    public Match match(PredicateImpl declaration, Context context) {
         FunctorImpl<Predicate> functor = functor();
         LogicLambda logic = functor.logic();
         if (logic != null) {
             return logic.apply((PredicateImpl) this);
         }
-        int nou = nrOfUnbound();
-        if (nou > 1 || (nou == 1 && functor.args().size() == 1)) {
-            return incomplete(stack);
+        int nrOfUnbound = nrOfUnbound();
+        if (nrOfUnbound > 1 || (nrOfUnbound == 1 && functor.args().size() == 1)) {
+            return incomplete(context);
         }
-        Set<PredicateImpl> facts = database.getFacts(this);
-        if (facts != null) {
-            return facts;
+        DatabaseImpl database = context.database();
+        Match match = database.getFacts(this);
+        if (match != null) {
+            return match;
         }
         List<RuleImpl> rules = database.getRules(this);
         if (rules != null) {
-            facts = rec.get(this);
-            if (facts != null) {
-                return facts;
+            match = context.cyclic().get(this);
+            if (match != null) {
+                return match;
             }
-            facts = database.getMemoiz(this);
-            if (facts != null) {
-                return facts;
+            match = database.getMemoiz(this);
+            if (match != null) {
+                return match;
             }
+            List<PredicateImpl> stack = context.stack();
             if (stack.size() >= MAX_LOGIC_DEPTH || stack.lastIndexOf(this) >= 0) {
-                return incomplete(stack);
+                return incomplete(context);
             }
-            facts = fixpoint(rules, stack.append(this), rec, database);
+            match = fixpoint(rules, context.stack(this));
             if (stack.size() >= MAX_LOGIC_DEPTH_D2) {
-                Optional<PredicateImpl> ic = facts.findAny(PredicateImpl::isToDepthIcomplete);
-                if (ic.isPresent()) {
+                Optional<List<PredicateImpl>> overflow = match.stackOverflow();
+                if (overflow.isPresent()) {
                     if (stack.size() == MAX_LOGIC_DEPTH_D2) {
-                        return flatten(facts, ic, stack, rec, database);
+                        return flatten(match, overflow, context);
                     }
-                    return facts;
+                    return match;
                 }
             }
-            database.memoization(this, facts);
-            return facts;
+            database.memoization(this, match);
+            return match;
         }
         return Match.EMPTY;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static Set<PredicateImpl> flatten(Set<PredicateImpl> facts, Optional<PredicateImpl> ic, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, DatabaseImpl database) {
-        List<PredicateImpl> list = (List) ic.get().get(1), todo = list.sublist(stack.size(), list.size());
+    private static Match flatten(Match match, Optional<List<PredicateImpl>> overflow, Context context) {
+        List<PredicateImpl> list = overflow.get(), stack = context.stack(), todo = list.sublist(stack.size(), list.size());
+        DatabaseImpl database = context.database();
         while (todo.size() > 0) {
-            PredicateImpl p = todo.last();
-            facts = p.fixpoint(database.getRules(p), stack.append(p), rec, database);
-            ic = facts.findAny(PredicateImpl::isToDepthIcomplete);
-            if (ic.isPresent()) {
-                list = (List) ic.get().get(1);
+            PredicateImpl predicate = todo.last();
+            match = predicate.fixpoint(database.getRules(predicate), context.stack(predicate));
+            overflow = match.stackOverflow();
+            if (overflow.isPresent()) {
+                list = overflow.get();
                 todo = todo.appendList(list.sublist(stack.size(), list.size()));
             } else {
-                database.memoization(p, facts);
+                database.memoization(predicate, match);
                 todo = todo.removeLast();
             }
         }
-        return facts;
+        return match;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private Set<PredicateImpl> fixpoint(List<RuleImpl> rules, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, DatabaseImpl database) {
-        Set<PredicateImpl> facts = Set.of(), added = Set.of(), found = Set.of();
-        boolean incomplete = false;
+    private Match fixpoint(List<RuleImpl> rules, Context context) {
+        Match match = Match.EMPTY, next;
+        Set<PredicateImpl> added = Set.of();
+        boolean cycle = false;
         do {
-            added = evalRules(rules, stack, found.isEmpty() ? rec : rec.put(this, found), database).removeAll(facts);
-            found = (Set) added.retainAll(this::equalFunctor);
-            incomplete |= found.size() < added.size();
-            if (incomplete && facts.isEmpty() && !found.isEmpty()) {
-                facts = facts.addAll(found);
-            } else {
-                facts = facts.addAll(added);
+            next = evalRules(rules, added.isEmpty() ? context : context.cycle(this, added));
+            if (next.hasStackOverflow()) {
+                return next;
             }
-        } while (incomplete && !found.isEmpty());
-        return facts;
+            added = next.positive().removeAll(match.positive());
+            cycle |= match == Match.EMPTY && !added.isEmpty() && next.hasCycleWith(this);
+            if (cycle && match == Match.EMPTY) {
+                match = match.positive(added);
+            } else {
+                match = match.add(next);
+            }
+        } while (cycle && !added.isEmpty());
+        return match;
     }
 
     @SuppressWarnings("rawtypes")
-    private Set<PredicateImpl> evalRules(List<RuleImpl> rules, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, DatabaseImpl database) {
-        Set<PredicateImpl> facts = Set.of(), eval;
+    private Match evalRules(List<RuleImpl> rules, Context context) {
+        Match match = Match.EMPTY, eval;
         for (RuleImpl rule : rules) {
-            eval = rule.eval(this, stack, rec, database);
-            if (eval.anyMatch(PredicateImpl::isToDepthIcomplete)) {
+            eval = rule.eval(this, context);
+            if (eval.hasStackOverflow()) {
                 return eval;
             } else {
-                facts = facts.addAll(eval);
+                match = match.add(eval);
             }
         }
-        return facts;
+        return match;
     }
 
     @SuppressWarnings("rawtypes")

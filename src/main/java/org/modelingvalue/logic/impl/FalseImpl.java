@@ -20,7 +20,6 @@
 
 package org.modelingvalue.logic.impl;
 
-import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Logic;
@@ -30,6 +29,8 @@ public final class FalseImpl extends PredicateImpl {
     private static final long                  serialVersionUID = -8515171118744898263L;
 
     public static final FunctorImpl<Predicate> FALSE_FUNCTOR    = FunctorImpl.<Predicate> of(Logic::F);
+
+    private final Match                        FALSE            = Match.EMPTY.positive(Set.of());
 
     public FalseImpl() {
         super(FALSE_FUNCTOR);
@@ -53,8 +54,8 @@ public final class FalseImpl extends PredicateImpl {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, DatabaseImpl database) {
-        return Set.of();
+    public Match match(PredicateImpl declaration, Context context) {
+        return FALSE;
     }
 
     @SuppressWarnings("rawtypes")

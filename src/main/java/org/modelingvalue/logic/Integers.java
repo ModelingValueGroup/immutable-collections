@@ -32,6 +32,7 @@ import org.modelingvalue.logic.Logic.LogicLambda;
 import org.modelingvalue.logic.Logic.Predicate;
 import org.modelingvalue.logic.Logic.Relation;
 import org.modelingvalue.logic.Logic.Structure;
+import org.modelingvalue.logic.impl.PredicateImpl.Match;
 import org.modelingvalue.logic.impl.StructureImpl;
 
 public final class Integers {
@@ -73,28 +74,28 @@ public final class Integers {
     // Predicates
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> compare = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::compare, (LogicLambda) t -> {
-        StructureImpl<IntegerCons> at = t.getStruct(1);
-        StructureImpl<IntegerCons> bt = t.getStruct(2);
-        StructureImpl<IntegerCons> ct = t.getStruct(3);
+    private static Functor<Predicate> compare = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::compare, (LogicLambda) predicate -> {
+        StructureImpl<IntegerCons> at = predicate.getStruct(1);
+        StructureImpl<IntegerCons> bt = predicate.getStruct(2);
+        StructureImpl<IntegerCons> ct = predicate.getStruct(3);
         BigInteger ai = at != null ? at.getVal(1) : null;
         BigInteger bi = bt != null ? bt.getVal(1) : null;
         BigInteger ci = ct != null ? ct.getVal(1) : null;
         if (ai != null && bi != null) {
             BigInteger r = BigInteger.valueOf(ai.compareTo(bi));
             if (ci != null) {
-                return ci.equals(r) ? Set.of(t) : Set.of();
+                return Match.EMPTY.positive(ci.equals(r) ? Set.of(predicate) : Set.of());
             } else {
-                return Set.of(t.set(3, at.set(1, r)));
+                return Match.EMPTY.positive(Set.of(predicate.set(3, at.set(1, r))));
             }
         } else if (BigInteger.ZERO.equals(ci)) {
             if (ai != null) {
-                return Set.of(t.set(2, at));
+                return Match.EMPTY.positive(Set.of(predicate.set(2, at)));
             } else if (bi != null) {
-                return Set.of(t.set(1, bt));
+                return Match.EMPTY.positive(Set.of(predicate.set(1, bt)));
             }
         }
-        return t.incomplete();
+        return predicate.incomplete();
     });
 
     public static Predicate compare(IntegerCons a, IntegerCons b, IntegerCons c) {
@@ -102,23 +103,23 @@ public final class Integers {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> plusPred = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::plus, (LogicLambda) t -> {
-        StructureImpl<IntegerCons> at = t.getStruct(1);
-        StructureImpl<IntegerCons> bt = t.getStruct(2);
-        StructureImpl<IntegerCons> ct = t.getStruct(3);
+    private static Functor<Predicate> plusPred = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::plus, (LogicLambda) predicate -> {
+        StructureImpl<IntegerCons> at = predicate.getStruct(1);
+        StructureImpl<IntegerCons> bt = predicate.getStruct(2);
+        StructureImpl<IntegerCons> ct = predicate.getStruct(3);
         BigInteger ai = at != null ? at.getVal(1) : null;
         BigInteger bi = bt != null ? bt.getVal(1) : null;
         BigInteger ci = ct != null ? ct.getVal(1) : null;
         if (ai != null && bi != null && ci != null) {
-            return ai.add(bi).equals(ci) ? Set.of(t) : Set.of();
+            return Match.EMPTY.positive(ai.add(bi).equals(ci) ? Set.of(predicate) : Set.of());
         } else if (ai != null && bi != null && ci == null) {
-            return Set.of(t.set(3, at.set(1, ai.add(bi))));
+            return Match.EMPTY.positive(Set.of(predicate.set(3, at.set(1, ai.add(bi)))));
         } else if (ai != null && bi == null && ci != null) {
-            return Set.of(t.set(2, at.set(1, ci.subtract(ai))));
+            return Match.EMPTY.positive(Set.of(predicate.set(2, at.set(1, ci.subtract(ai)))));
         } else if (ai == null && bi != null && ci != null) {
-            return Set.of(t.set(1, bt.set(1, ci.subtract(bi))));
+            return Match.EMPTY.positive(Set.of(predicate.set(1, bt.set(1, ci.subtract(bi)))));
         } else {
-            return t.incomplete();
+            return predicate.incomplete();
         }
     });
 
@@ -127,23 +128,23 @@ public final class Integers {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> multiplyPred = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::multiply, (LogicLambda) t -> {
-        StructureImpl<IntegerCons> at = t.getStruct(1);
-        StructureImpl<IntegerCons> bt = t.getStruct(2);
-        StructureImpl<IntegerCons> ct = t.getStruct(3);
+    private static Functor<Predicate> multiplyPred = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::multiply, (LogicLambda) predicate -> {
+        StructureImpl<IntegerCons> at = predicate.getStruct(1);
+        StructureImpl<IntegerCons> bt = predicate.getStruct(2);
+        StructureImpl<IntegerCons> ct = predicate.getStruct(3);
         BigInteger ai = at != null ? at.getVal(1) : null;
         BigInteger bi = bt != null ? bt.getVal(1) : null;
         BigInteger ci = ct != null ? ct.getVal(1) : null;
         if (ai != null && bi != null && ci != null) {
-            return ai.multiply(bi).equals(ci) ? Set.of(t) : Set.of();
+            return Match.EMPTY.positive(ai.multiply(bi).equals(ci) ? Set.of(predicate) : Set.of());
         } else if (ai != null && bi != null && ci == null) {
-            return Set.of(t.set(3, at.set(1, ai.multiply(bi))));
+            return Match.EMPTY.positive(Set.of(predicate.set(3, at.set(1, ai.multiply(bi)))));
         } else if (ai != null && bi == null && ci != null) {
-            return Set.of(t.set(2, at.set(1, ci.divide(ai))));
+            return Match.EMPTY.positive(Set.of(predicate.set(2, at.set(1, ci.divide(ai)))));
         } else if (ai == null && bi != null && ci != null) {
-            return Set.of(t.set(1, bt.set(1, ci.divide(bi))));
+            return Match.EMPTY.positive(Set.of(predicate.set(1, bt.set(1, ci.divide(bi)))));
         } else {
-            return t.incomplete();
+            return predicate.incomplete();
         }
     });
 
@@ -152,20 +153,20 @@ public final class Integers {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> squarePred = Logic.<Predicate, IntegerCons, IntegerCons> functor(Integers::square, (LogicLambda) t -> {
-        StructureImpl<IntegerCons> at = t.getStruct(1);
-        StructureImpl<IntegerCons> bt = t.getStruct(2);
+    private static Functor<Predicate> squarePred = Logic.<Predicate, IntegerCons, IntegerCons> functor(Integers::square, (LogicLambda) predicate -> {
+        StructureImpl<IntegerCons> at = predicate.getStruct(1);
+        StructureImpl<IntegerCons> bt = predicate.getStruct(2);
         BigInteger ai = at != null ? at.getVal(1) : null;
         BigInteger bi = bt != null ? bt.getVal(1) : null;
         if (ai != null && bi != null) {
-            return ai.multiply(ai).equals(bi) ? Set.of(t) : Set.of();
+            return Match.EMPTY.positive(ai.multiply(ai).equals(bi) ? Set.of(predicate) : Set.of());
         } else if (ai != null && bi == null) {
-            return Set.of(t.set(2, at.set(1, ai.multiply(ai))));
+            return Match.EMPTY.positive(Set.of(predicate.set(2, at.set(1, ai.multiply(ai)))));
         } else if (ai == null && bi != null) {
             BigInteger sqrt = bi.sqrt();
-            return Set.of(t.set(1, bt.set(1, sqrt)), t.set(1, bt.set(1, sqrt.negate())));
+            return Match.EMPTY.positive(Set.of(predicate.set(1, bt.set(1, sqrt)), predicate.set(1, bt.set(1, sqrt.negate()))));
         } else {
-            return t.incomplete();
+            return predicate.incomplete();
         }
     });
 

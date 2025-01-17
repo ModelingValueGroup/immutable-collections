@@ -36,8 +36,8 @@ public final class AndImpl extends PredicateImpl {
 
     private List<int[]> idxList;
 
-    public AndImpl(PredicateImpl pred1, PredicateImpl pred2) {
-        super(AND_FUNCTOR, pred1, pred2);
+    public AndImpl(PredicateImpl predicate1, PredicateImpl predicate2) {
+        super(AND_FUNCTOR, predicate1, predicate2);
     }
 
     private AndImpl(Object[] args) {
@@ -54,15 +54,15 @@ public final class AndImpl extends PredicateImpl {
     private List<int[]> idxList() {
         if (idxList == null) {
             List<int[]> l = List.of();
-            PredicateImpl p1 = pred1();
-            if (p1 instanceof AndImpl) {
-                l = l.prependList(((AndImpl) p1).idxList().replaceAll(ADD_ONE));
+            PredicateImpl predicate1 = predicate1();
+            if (predicate1 instanceof AndImpl) {
+                l = l.prependList(((AndImpl) predicate1).idxList().replaceAll(ADD_ONE));
             } else {
                 l = l.append(ONE_ARRAY);
             }
-            PredicateImpl p2 = pred2();
-            if (p2 instanceof AndImpl) {
-                l = l.appendList(((AndImpl) p2).idxList().replaceAll(ADD_TWO));
+            PredicateImpl predicate2 = predicate2();
+            if (predicate2 instanceof AndImpl) {
+                l = l.appendList(((AndImpl) predicate2).idxList().replaceAll(ADD_TWO));
             } else {
                 l = l.append(TWO_ARRAY);
             }
@@ -72,21 +72,22 @@ public final class AndImpl extends PredicateImpl {
     }
 
     @SuppressWarnings("rawtypes")
-    public final PredicateImpl pred1() {
+    public final PredicateImpl predicate1() {
         return (PredicateImpl) get(1);
     }
 
     @SuppressWarnings("rawtypes")
-    public final PredicateImpl pred2() {
+    public final PredicateImpl predicate2() {
         return (PredicateImpl) get(2);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, DatabaseImpl database) {
-        Set<PredicateImpl> facts = Set.of(), match, incom, allIncom;
+    public Match match(PredicateImpl declaration, Context context) {
+        idxList = ((AndImpl) declaration).idxList();
+        Set<PredicateImpl> positive = Set.of();
+        Set<List<PredicateImpl>> incomplete = Set.of(), tmpIncomplete;
         Set<AndImpl> ands1 = Set.of(this), ands2;
-        idxList = ((AndImpl) decl).idxList();
         do {
             ands2 = ands1;
             ands1 = Set.of();
@@ -94,34 +95,34 @@ public final class AndImpl extends PredicateImpl {
             for (AndImpl and : ands2) {
                 List<int[]> idxl = and.idxList;
                 if (idxl.isEmpty()) {
-                    facts = facts.add(and);
+                    positive = positive.add(and);
                 } else {
-                    allIncom = Set.of();
+                    tmpIncomplete = Set.of();
                     for (int ii = 0; ii < idxl.size(); ii++) {
                         int[] i = idxl.get(ii);
-                        PredicateImpl dcl = decl.getPred(i);
-                        match = and.getPred(i).match(dcl, stack, rec, database);
-                        incom = match.retainAll(PredicateImpl::isIncomplete);
-                        if (incom.isEmpty()) {
+                        PredicateImpl declPred = declaration.getPred(i);
+                        Match match = and.getPred(i).match(declPred, context);
+                        if (match.hasStackOverflow()) {
+                            return match;
+                        }
+                        if (match.incomplete().isEmpty()) {
                             List<int[]> iil = idxl.removeIndex(ii);
-                            ands1 = ands1.addAll(match.replaceAll(m -> {
-                                AndImpl a = (AndImpl) decl.setBinding(and, dcl.getBinding(m, Map.of()));
+                            ands1 = ands1.addAll(match.positive().replaceAll(p -> {
+                                AndImpl a = (AndImpl) declaration.setBinding(and, declPred.getBinding(p, Map.of()));
                                 a.idxList = iil;
                                 return a;
                             }));
                             continue outer;
-                        } else if (incom.anyMatch(PredicateImpl::isToDepthIcomplete)) {
-                            return incom;
                         } else {
-                            allIncom = allIncom.addAll(incom);
+                            tmpIncomplete = tmpIncomplete.addAll(match.incomplete());
                         }
                     }
-                    facts = facts.addAll(allIncom);
+                    incomplete = incomplete.addAll(tmpIncomplete);
                 }
 
             }
         } while (!ands1.isEmpty());
-        return facts;
+        return Match.of(positive, incomplete);
     }
 
     @Override

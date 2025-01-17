@@ -32,12 +32,12 @@ public final class OrImpl extends PredicateImpl {
 
     private List<int[]>                         idxList;
 
-    private static Predicate or(Predicate p1, Predicate p2) {
-        return new OrImpl(StructureImpl.unproxy(p1), StructureImpl.unproxy(p2)).proxy();
+    private static Predicate or(Predicate predicate1, Predicate predicate2) {
+        return new OrImpl(StructureImpl.unproxy(predicate1), StructureImpl.unproxy(predicate2)).proxy();
     }
 
-    public OrImpl(PredicateImpl pred1, PredicateImpl pred2) {
-        super(OR_FUNCTOR, pred1, pred2);
+    public OrImpl(PredicateImpl predicate1, PredicateImpl predicate2) {
+        super(OR_FUNCTOR, predicate1, predicate2);
     }
 
     private OrImpl(Object[] args) {
@@ -54,15 +54,15 @@ public final class OrImpl extends PredicateImpl {
     private List<int[]> idxList() {
         if (idxList == null) {
             List<int[]> l = List.of();
-            PredicateImpl p1 = pred1();
-            if (p1 instanceof OrImpl) {
-                l = l.prependList(((OrImpl) p1).idxList().replaceAll(ADD_ONE));
+            PredicateImpl predicate1 = predicate1();
+            if (predicate1 instanceof OrImpl) {
+                l = l.prependList(((OrImpl) predicate1).idxList().replaceAll(ADD_ONE));
             } else {
                 l = l.append(ONE_ARRAY);
             }
-            PredicateImpl p2 = pred2();
-            if (p2 instanceof OrImpl) {
-                l = l.appendList(((OrImpl) p2).idxList().replaceAll(ADD_TWO));
+            PredicateImpl predicate2 = predicate2();
+            if (predicate2 instanceof OrImpl) {
+                l = l.appendList(((OrImpl) predicate2).idxList().replaceAll(ADD_TWO));
             } else {
                 l = l.append(TWO_ARRAY);
             }
@@ -72,29 +72,31 @@ public final class OrImpl extends PredicateImpl {
     }
 
     @SuppressWarnings("rawtypes")
-    public final PredicateImpl pred1() {
+    public final PredicateImpl predicate1() {
         return (PredicateImpl) get(1);
     }
 
     @SuppressWarnings("rawtypes")
-    public final PredicateImpl pred2() {
+    public final PredicateImpl predicate2() {
         return (PredicateImpl) get(2);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, DatabaseImpl database) {
-        Set<PredicateImpl> facts = Set.of(), match;
-        for (int[] i : ((OrImpl) decl).idxList()) {
-            PredicateImpl dcl = decl.getPred(i);
-            match = getPred(i).match(dcl, stack, rec, database);
-            if (match.anyMatch(PredicateImpl::isToDepthIcomplete)) {
+    public Match match(PredicateImpl declaration, Context context) {
+        Set<PredicateImpl> positive = Set.of();
+        Set<List<PredicateImpl>> incomplete = Set.of();
+        for (int[] i : ((OrImpl) declaration).idxList()) {
+            PredicateImpl declPred = declaration.getPred(i);
+            Match match = getPred(i).match(declPred, context);
+            if (match.hasStackOverflow()) {
                 return match;
             } else {
-                facts = facts.addAll(match.replaceAll(t -> t.isIncomplete() ? t : decl.setBinding(this, dcl.getBinding(t, Map.of()))));
+                positive = positive.addAll(match.positive().replaceAll(p -> declaration.setBinding(this, declPred.getBinding(p, Map.of()))));
+                incomplete = incomplete.addAll(match.incomplete());
             }
         }
-        return facts;
+        return Match.of(positive, incomplete);
     }
 
     @Override
@@ -105,6 +107,6 @@ public final class OrImpl extends PredicateImpl {
     @Override
     @SuppressWarnings("rawtypes")
     public boolean contains(PredicateImpl cond) {
-        return super.contains(cond) || pred1().contains(cond) || pred2().contains(cond);
+        return super.contains(cond) || predicate1().contains(cond) || predicate2().contains(cond);
     }
 }

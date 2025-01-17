@@ -40,61 +40,62 @@ import org.modelingvalue.logic.Logic.Predicate;
 import org.modelingvalue.logic.Logic.Relation;
 import org.modelingvalue.logic.Logic.Rule;
 import org.modelingvalue.logic.Logic.Structure;
+import org.modelingvalue.logic.impl.PredicateImpl.Match;
 
 @SuppressWarnings("rawtypes")
 public final class DatabaseImpl implements Database {
 
-    public static final Context<DatabaseImpl>                                              CURRENT             = Context.of();
+    public static final Context<DatabaseImpl>                                 CURRENT             = Context.of();
 
-    private static final ContextPool                                                       POOL                = ContextThread.createPool();
+    private static final ContextPool                                          POOL                = ContextThread.createPool();
     @SuppressWarnings("rawtypes")
-    private static final AtomicReference<Map<Class, Set<Class>>>                           SPECIALIZATIONS     = new AtomicReference<>(Map.of());
+    private static final AtomicReference<Map<Class, Set<Class>>>              SPECIALIZATIONS     = new AtomicReference<>(Map.of());
     @SuppressWarnings("rawtypes")
-    private static final QualifiedSet<PredicateImpl, Memoization>                          EMPTY_MEMOIZ        = QualifiedSet.of(Memoization::pred);
-    private static final int                                                               MAX_LOGIC_MEMOIZ    = Integer.getInteger("MAX_LOGIC_MEMOIZ", 512);
-    private static final int                                                               MAX_LOGIC_MEMOIZ_D4 = DatabaseImpl.MAX_LOGIC_MEMOIZ / 4;
-    private static final int                                                               INITIAL_USAGE_COUNT = Integer.getInteger("INITIAL_USAGE_COUNT", 4);
+    private static final QualifiedSet<PredicateImpl, Memoization>             EMPTY_MEMOIZ        = QualifiedSet.of(Memoization::predicate);
+    private static final int                                                  MAX_LOGIC_MEMOIZ    = Integer.getInteger("MAX_LOGIC_MEMOIZ", 512);
+    private static final int                                                  MAX_LOGIC_MEMOIZ_D4 = DatabaseImpl.MAX_LOGIC_MEMOIZ / 4;
+    private static final int                                                  INITIAL_USAGE_COUNT = Integer.getInteger("INITIAL_USAGE_COUNT", 4);
     @SuppressWarnings("rawtypes")
-    private static final BiFunction<Set<PredicateImpl>, PredicateImpl, Set<PredicateImpl>> ADD_FACT            = (s, e) -> s == null ? Set.of(e) : s.add(e);
+    private static final BiFunction<Match, PredicateImpl, Match>              ADD_FACT            = (s, p) -> {
+                                                                                                      Match m = Match.EMPTY.positive(Set.of(p));
+                                                                                                      return s == null ? m : s.add(m);
+                                                                                                  };
     @SuppressWarnings("unchecked")
-    private static final BiFunction<List<RuleImpl>, RuleImpl, List<RuleImpl>>              ADD_RULE            = (l, e) -> {
-                                                                                                                   if (l == null) {
-                                                                                                                       return List.of(e);
-                                                                                                                   } else {
-                                                                                                                       int p = e.rulePrio();
-                                                                                                                       for (int i = 0; i < l.size(); i++) {
-                                                                                                                           RuleImpl r = l.get(i);
-                                                                                                                           if (r.equals(e)) {
-                                                                                                                               return l;
-                                                                                                                           } else if (r.cons().equals(e.cons())) {
-                                                                                                                               if (r.cond().contains(e.cond())) {
-                                                                                                                                   return l;
-                                                                                                                               } else {
-                                                                                                                                   return l.replace(i, r.set(2, new OrImpl(r.cond(), e.cond())));
-                                                                                                                               }
-                                                                                                                           } else if (r.rulePrio() > p) {
-                                                                                                                               return l.insert(i, e);
-                                                                                                                           }
-                                                                                                                       }
-                                                                                                                       return l.append(e);
-                                                                                                                   }
-                                                                                                               };
+    private static final BiFunction<List<RuleImpl>, RuleImpl, List<RuleImpl>> ADD_RULE            = (l, e) -> {
+                                                                                                      if (l == null) {
+                                                                                                          return List.of(e);
+                                                                                                      } else {
+                                                                                                          int p = e.rulePrio();
+                                                                                                          for (int i = 0; i < l.size(); i++) {
+                                                                                                              RuleImpl r = l.get(i);
+                                                                                                              if (r.equals(e)) {
+                                                                                                                  return l;
+                                                                                                              } else if (r.consequence().equals(e.consequence()) &&   //
+                                                                                                                      r.condition().contains(e.condition())) {
+                                                                                                                  return l;
+                                                                                                              } else if (r.rulePrio() > p) {
+                                                                                                                  return l.insert(i, e);
+                                                                                                              }
+                                                                                                          }
+                                                                                                          return l.append(e);
+                                                                                                      }
+                                                                                                  };
 
     @SuppressWarnings("rawtypes")
-    private static class Memoization extends Struct2Impl<PredicateImpl, Set<PredicateImpl>> {
+    private static class Memoization extends Struct2Impl<PredicateImpl, Match> {
         private static final long serialVersionUID = 1531759272582548244L;
 
         public int                count            = INITIAL_USAGE_COUNT;
 
-        public Memoization(PredicateImpl t, Set<PredicateImpl> s) {
-            super(t, s);
+        public Memoization(PredicateImpl predicate, Match match) {
+            super(predicate, match);
         }
 
-        public PredicateImpl pred() {
+        public PredicateImpl predicate() {
             return get0();
         }
 
-        public Set<PredicateImpl> match() {
+        public Match match() {
             return get1();
         }
 
@@ -129,6 +130,7 @@ public final class DatabaseImpl implements Database {
             database.stopped = true;
             return true;
         }
+
     }
 
     public static final DatabaseImpl run(Runnable runnable, DatabaseImpl init) {
@@ -159,16 +161,10 @@ public final class DatabaseImpl implements Database {
         return specs;
     }
 
-    private final AtomicReference<Map<PredicateImpl, Set<PredicateImpl>>>     facts;
+    private final AtomicReference<Map<PredicateImpl, Match>>                  facts;
     private final AtomicReference<Map<PredicateImpl, List<RuleImpl>>>         rules;
     private final AtomicReference<QualifiedSet<PredicateImpl, Memoization>[]> memoization;
-    private final PredicateImpl.Context                                       context = new PredicateImpl.Context() {
-                                                                                          @Override
-                                                                                          public DatabaseImpl database() {
-                                                                                              return DatabaseImpl.this;
-                                                                                          }
-                                                                                      };
-
+    private final PredicateImpl.Context                                       context = PredicateImpl.Context.of(DatabaseImpl.this, List.of(), Map.of());
     private boolean                                                           stopped;
 
     @SuppressWarnings("unchecked")
@@ -178,7 +174,7 @@ public final class DatabaseImpl implements Database {
         memoization = new AtomicReference<>(init != null ? init.memoization.get() : new QualifiedSet[]{EMPTY_MEMOIZ, EMPTY_MEMOIZ, EMPTY_MEMOIZ});
     }
 
-    public Set<PredicateImpl> getFacts(PredicateImpl pred) {
+    public Match getFacts(PredicateImpl pred) {
         return facts.get().get(pred);
     }
 
@@ -186,7 +182,7 @@ public final class DatabaseImpl implements Database {
         return rules.get().get(pred.signature());
     }
 
-    public Set<PredicateImpl> getMemoiz(PredicateImpl pred) {
+    public Match getMemoiz(PredicateImpl pred) {
         for (QualifiedSet<PredicateImpl, Memoization> m : memoization.get()) {
             Memoization memoiz = m.get(pred);
             if (memoiz != null) {
@@ -210,39 +206,38 @@ public final class DatabaseImpl implements Database {
     public Map<Relation, Set<Relation>> facts() {
         return facts.get().replaceAll(e -> {
             Relation k = (Relation) e.getKey().proxy();
-            Set<Relation> v = e.getValue().replaceAll(p -> (Relation) p.proxy());
+            Set<Relation> v = e.getValue().positive().replaceAll(p -> (Relation) p.proxy());
             return Entry.of(k, v);
         });
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void memoization(PredicateImpl pred, Set<PredicateImpl> match) {
-        if (match.noneMatch(PredicateImpl::isIncomplete)) {
-            FunctorImpl<Predicate> functor = pred.functor();
-            Set<PredicateImpl> set = (Set) match;
+    public void memoization(PredicateImpl predicate, Match match) {
+        if (!match.incomplete().isEmpty()) {
+            FunctorImpl<Predicate> functor = predicate.functor();
             if (functor.factual()) {
-                facts.updateAndGet(m -> {
-                    m = m.put(pred, set);
-                    for (PredicateImpl e : set) {
-                        m = m.put(e, Set.of(e));
+                facts.updateAndGet(map -> {
+                    map = map.put(predicate, match);
+                    for (PredicateImpl p : match.positive()) {
+                        map = map.put(p, ADD_FACT.apply(map.get(p), p));
                     }
-                    return m;
+                    return map;
                 });
             } else if (!functor.derived()) {
-                QualifiedSet<PredicateImpl, Memoization>[] mem = memoization.updateAndGet(a -> {
-                    a = a.clone();
-                    if (a[0].size() >= MAX_LOGIC_MEMOIZ_D4) {
-                        a[2] = a[2].putAll(a[1]);
-                        a[1] = a[0];
-                        a[0] = EMPTY_MEMOIZ;
+                QualifiedSet<PredicateImpl, Memoization>[] mem = memoization.updateAndGet(array -> {
+                    array = array.clone();
+                    array[0] = array[0].put(new Memoization(predicate, match));
+                    for (PredicateImpl p : match.positive()) {
+                        array[0] = array[0].put(new Memoization(p, Match.EMPTY.positive(Set.of(p))));
                     }
-                    a[0] = a[0].put(new Memoization(pred, set));
-                    for (PredicateImpl e : set) {
-                        a[0] = a[0].put(new Memoization(e, Set.of(e)));
+                    if (array[0].size() >= MAX_LOGIC_MEMOIZ_D4) {
+                        array[2] = array[2].putAll(array[1]);
+                        array[1] = array[0];
+                        array[0] = EMPTY_MEMOIZ;
                     }
-                    return a;
+                    return array;
                 });
-                if (mem[2].size() > MAX_LOGIC_MEMOIZ && mem[0].size() == set.size() + 1) {
+                if (mem[2].size() > MAX_LOGIC_MEMOIZ) {
                     POOL.execute(this::cleanup);
                 }
             }
@@ -258,10 +253,10 @@ public final class DatabaseImpl implements Database {
                 }
                 Memoization m = mem[2].get(i);
                 if (!m.keep()) {
-                    mem = memoization.updateAndGet(a -> {
-                        a = a.clone();
-                        a[2] = a[2].removeKey(m.pred());
-                        return a;
+                    mem = memoization.updateAndGet(array -> {
+                        array = array.clone();
+                        array[2] = array[2].removeKey(m.predicate());
+                        return array;
                     });
                     i--;
                 }
@@ -271,8 +266,8 @@ public final class DatabaseImpl implements Database {
 
     public void addRule(RuleImpl ruleImpl) {
         Map<Class, Set<Class>> specs = SPECIALIZATIONS.get();
-        PredicateImpl consImpl = ruleImpl.cons();
-        rules.updateAndGet(m -> addRule(consImpl.signature(), ruleImpl, m, specs));
+        PredicateImpl consequence = ruleImpl.consequence();
+        rules.updateAndGet(m -> addRule(consequence.signature(), ruleImpl, m, specs));
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -291,41 +286,41 @@ public final class DatabaseImpl implements Database {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public final void addFact(PredicateImpl pred) {
-        FunctorImpl<Predicate> functor = pred.functor();
+    public final void addFact(PredicateImpl predicate) {
+        FunctorImpl<Predicate> functor = predicate.functor();
         if (functor.logic() != null) {
             throw new IllegalArgumentException("No facts of a functor with a logic lambda allowed. " + this);
         }
-        if (getFacts(pred.signature()) != null) {
+        if (getRules(predicate.signature()) != null) {
             throw new IllegalArgumentException("No facts of a functor with rules allowed. " + this);
         }
-        facts.updateAndGet(m -> {
+        facts.updateAndGet(map -> {
             List<Class> args = functor.args();
-            m = m.put(pred, ADD_FACT.apply(m.get(pred), pred));
-            for (int i = 1; i < pred.length(); i++) {
-                m = addFact(m, pred, pred.set(i, pred.getType(i)), i, args.get(i - 1));
+            map = map.put(predicate, ADD_FACT.apply(map.get(predicate), predicate));
+            for (int i = 1; i < predicate.length(); i++) {
+                map = addFact(map, predicate, predicate.set(i, predicate.getType(i)), i, args.get(i - 1));
             }
-            return m;
+            return map;
         });
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static Map<PredicateImpl, Set<PredicateImpl>> addFact(Map<PredicateImpl, Set<PredicateImpl>> m, PredicateImpl pred, PredicateImpl ptrn, int i, Class a) {
-        Class t = ptrn.getType(i);
-        if (a.isAssignableFrom(t)) {
-            m = m.put(ptrn, ADD_FACT.apply(m.get(ptrn), pred));
-            if (!a.equals(t)) {
-                for (Type g : t.getGenericInterfaces()) {
-                    while (g instanceof ParameterizedType) {
-                        g = ((ParameterizedType) g).getRawType();
+    private static Map<PredicateImpl, Match> addFact(Map<PredicateImpl, Match> map, PredicateImpl predicate, PredicateImpl pattern, int i, Class cls) {
+        Class type = pattern.getType(i);
+        if (cls.isAssignableFrom(type)) {
+            map = map.put(pattern, ADD_FACT.apply(map.get(pattern), predicate));
+            if (!cls.equals(type)) {
+                for (Type gen : type.getGenericInterfaces()) {
+                    while (gen instanceof ParameterizedType) {
+                        gen = ((ParameterizedType) gen).getRawType();
                     }
-                    if (g instanceof Class) {
-                        m = addFact(m, pred, ptrn.set(i, g), i, a);
+                    if (gen instanceof Class) {
+                        map = addFact(map, predicate, pattern.set(i, gen), i, cls);
                     }
                 }
             }
         }
-        return m;
+        return map;
     }
 
     public PredicateImpl.Context context() {

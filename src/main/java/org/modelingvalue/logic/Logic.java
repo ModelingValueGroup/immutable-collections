@@ -106,7 +106,7 @@ public final class Logic {
 
     @SuppressWarnings("rawtypes")
     @FunctionalInterface
-    public interface LogicLambda extends java.util.function.Function<PredicateImpl, Set<PredicateImpl>>, LambdaReflection, FunctorModifier {
+    public interface LogicLambda extends java.util.function.Function<PredicateImpl, Match>, LambdaReflection, FunctorModifier {
 
         @Override
         default LogicLambdaImpl of() {
@@ -122,8 +122,8 @@ public final class Logic {
 
             @SuppressWarnings("unchecked")
             @Override
-            public final Set<PredicateImpl> apply(PredicateImpl t) {
-                return f.apply(t);
+            public final Match apply(PredicateImpl predicate) {
+                return f.apply(predicate);
             }
 
         }
@@ -147,8 +147,8 @@ public final class Logic {
 
             @SuppressWarnings("unchecked")
             @Override
-            public final StructureImpl<Structure> apply(StructureImpl<Structure> t) {
-                return f.apply(t);
+            public final StructureImpl<Structure> apply(StructureImpl<Structure> structure) {
+                return f.apply(structure);
             }
         }
     }
@@ -173,25 +173,37 @@ public final class Logic {
 
     public static boolean isTrue(Predicate pred) {
         Match match = match(pred);
-        return !match.pos().isEmpty();
+        return !match.positive().isEmpty();
     }
 
     public static boolean isFalse(Predicate pred) {
         Match match = match(pred);
-        return match.pos().isEmpty() && match.inc().isEmpty();
+        return match.positive().isEmpty() && match.incomplete().isEmpty();
     }
 
     public static boolean isIncomplete(Predicate pred) {
         Match match = match(pred);
-        return !match.inc().isEmpty();
+        return !match.incomplete().isEmpty();
+    }
+
+    public static Set<Predicate> getInstances(Predicate pred) {
+        return match(pred).positive().addAll(null).replaceAll(StructureImpl::proxy);
+    }
+
+    public static Set<List<Predicate>> getIncomplete(Predicate pred) {
+        return match(pred).incomplete().replaceAll(l -> l.replaceAll(StructureImpl::proxy));
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static Set<Map<Variable, Object>> getBindings(Predicate pred) {
         PredicateImpl impl = StructureImpl.<Predicate, PredicateImpl> unproxy(pred);
-        PredicateImpl.Match match = match(impl);
-        Set<Map<VariableImpl, Object>> bindings = match.replaceAll(m -> m.isIncomplete() ? Map.of(Entry.of(INCOMPLETE_VAR, m)) : impl.getBinding(m, Map.of()));
+        PredicateImpl.Match match = match(pred);
+        Set<Map<VariableImpl, Object>> bindings = match.positive().replaceAll(m -> impl.getBinding(m, Map.of()));
         return bindings.replaceAll(m -> m.replaceAll(e -> Entry.of((Variable) e.getKey().proxy(), proxy(e.getValue()))));
+    }
+
+    public static <T extends Structure> Map<Variable, Object> binding(T var, Constant<T> val) {
+        return Map.of(Entry.of((Variable) var, val));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -282,41 +294,11 @@ public final class Logic {
         return ruleImpl.proxy();
     }
 
-    // Incomplete
-
-    public interface Incomplete extends Predicate {
-    }
-
-    @SuppressWarnings("rawtypes")
-    private static final Functor<Incomplete>      INCOMPLETE_FUNCTOR_PROXY = PredicateImpl.INCOMPLETE_FUNCTOR.proxy();
-    private static final VariableImpl<Incomplete> INCOMPLETE_VAR           = new VariableImpl<Incomplete>(Incomplete.class, "I");
-    private static final Incomplete               INCOMPLETE_VAR_PROXY     = INCOMPLETE_VAR.proxy();
-
-    @SuppressWarnings("unchecked")
-    public static Incomplete incompleteVar() {
-        return INCOMPLETE_VAR_PROXY;
-    }
-
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public static Incomplete incomplete(List<Predicate> stack) {
-        return pred(INCOMPLETE_FUNCTOR_PROXY, stack);
-    }
-
     // Facts
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static void fact(Relation pred) {
         DatabaseImpl.CURRENT.get().addFact(StructureImpl.<Predicate, PredicateImpl> unproxy(pred));
-    }
-
-    // Bindings
-
-    public static Map<Variable, Object> incomplete(Predicate... stack) {
-        return Map.of(Entry.of((Variable) incompleteVar(), incomplete(List.of(stack))));
-    }
-
-    public static <T extends Structure> Map<Variable, Object> binding(T var, Constant<T> val) {
-        return Map.of(Entry.of((Variable) var, val));
     }
 
     // Equals
@@ -325,18 +307,18 @@ public final class Logic {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> EQ = Logic.<Predicate, Constant, Constant> functor(Logic::eq, (LogicLambda) t -> {
-        StructureImpl at = t.getStruct(1);
-        StructureImpl bt = t.getStruct(2);
-        if (at == null && bt == null) {
-            return t.incomplete();
-        } else if (at == null) {
-            return Set.of(t.set(1, bt));
-        } else if (bt == null) {
-            return Set.of(t.set(2, at));
+    private static Functor<Predicate> EQ = Logic.<Predicate, Constant, Constant> functor(Logic::eq, (LogicLambda) predicate -> {
+        StructureImpl constant1 = predicate.getStruct(1);
+        StructureImpl constant2 = predicate.getStruct(2);
+        if (constant1 == null && constant2 == null) {
+            return predicate.incomplete();
+        } else if (constant1 == null) {
+            return Match.EMPTY.positive(Set.of(predicate.set(1, constant2)));
+        } else if (constant2 == null) {
+            return Match.EMPTY.positive(Set.of(predicate.set(2, constant1)));
         } else {
-            StructureImpl eq = at.eq(bt);
-            return eq == null ? Set.of() : Set.of(t.set(1, eq).set(2, eq));
+            StructureImpl eq = constant1.eq(constant2);
+            return eq == null ? Match.EMPTY : Match.EMPTY.positive(Set.of(predicate.set(1, eq, eq)));
         }
     });
 

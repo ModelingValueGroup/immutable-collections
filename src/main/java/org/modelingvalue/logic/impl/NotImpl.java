@@ -20,7 +20,6 @@
 
 package org.modelingvalue.logic.impl;
 
-import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Logic;
@@ -48,18 +47,18 @@ public final class NotImpl extends PredicateImpl {
     }
 
     @SuppressWarnings("rawtypes")
-    public final PredicateImpl pred() {
+    public final PredicateImpl predicate() {
         return (PredicateImpl) get(1);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Set<PredicateImpl> match(PredicateImpl decl, List<PredicateImpl> stack, Map<PredicateImpl, Set<PredicateImpl>> rec, DatabaseImpl database) {
+    public Match match(PredicateImpl declaration, Context context) {
         if (nrOfUnbound() > 0) {
             return incomplete();
         }
-        Set<PredicateImpl> r = pred().match(((NotImpl) decl).pred(), stack, rec, database);
-        return r.isEmpty() ? Set.of(this) : r.retainAll(PredicateImpl::isIncomplete);
+        Match match = predicate().match(((NotImpl) declaration).predicate(), context);
+        return match.positive().isEmpty() ? match.positive(Set.of(this)) : match.positive(Set.of());
     }
 
     @SuppressWarnings("rawtypes")
