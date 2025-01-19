@@ -1,7 +1,5 @@
 package org.modelingvalue.logic.impl;
 
-import java.util.Optional;
-
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Set;
 
@@ -52,8 +50,8 @@ public interface Conclusion {
         return incomplete().anyMatch(l -> l.last().equals(predicate));
     }
 
-    default Optional<List<PredicateImpl>> stackOverflow() {
-        return incomplete().findAny(l -> l.size() >= PredicateImpl.MAX_LOGIC_DEPTH);
+    default List<PredicateImpl> stackOverflow() {
+        return incomplete().findAny(l -> l.size() >= PredicateImpl.MAX_LOGIC_DEPTH).orElse(null);
     }
 
     default boolean hasStackOverflow() {

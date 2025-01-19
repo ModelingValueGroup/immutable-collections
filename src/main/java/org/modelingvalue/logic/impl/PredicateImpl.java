@@ -21,7 +21,6 @@
 package org.modelingvalue.logic.impl;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.UnaryOperator;
 
 import org.modelingvalue.collections.List;
@@ -147,8 +146,8 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             }
             conclusion = fixpoint(rules, context.stack(this));
             if (stack.size() >= MAX_LOGIC_DEPTH_D2) {
-                Optional<List<PredicateImpl>> overflow = conclusion.stackOverflow();
-                if (overflow.isPresent()) {
+                List<PredicateImpl> overflow = conclusion.stackOverflow();
+                if (overflow != null) {
                     if (stack.size() == MAX_LOGIC_DEPTH_D2) {
                         return flatten(conclusion, overflow, context);
                     }
@@ -162,16 +161,16 @@ public class PredicateImpl extends StructureImpl<Predicate> {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static Conclusion flatten(Conclusion conclusion, Optional<List<PredicateImpl>> overflow, InferContext context) {
-        List<PredicateImpl> list = overflow.get(), stack = context.stack(), todo = list.sublist(stack.size(), list.size());
+    private static Conclusion flatten(Conclusion conclusion, List<PredicateImpl> overflow, InferContext context) {
+        int stackSize = context.stack().size();
+        List<PredicateImpl> todo = overflow.sublist(stackSize, overflow.size());
         KnowledgeBaseImpl knowledgebase = context.knowledgebase();
         while (todo.size() > 0) {
             PredicateImpl predicate = todo.last();
             conclusion = predicate.fixpoint(knowledgebase.getRules(predicate), context.stack(predicate));
             overflow = conclusion.stackOverflow();
-            if (overflow.isPresent()) {
-                list = overflow.get();
-                todo = todo.appendList(list.sublist(stack.size(), list.size()));
+            if (overflow != null) {
+                todo = todo.appendList(overflow.sublist(stackSize, overflow.size()));
             } else {
                 knowledgebase.memoization(predicate, conclusion);
                 todo = todo.removeLast();
@@ -186,7 +185,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         Set<PredicateImpl> added = Set.of();
         boolean cycle = false;
         do {
-            next = evalRules(rules, added.isEmpty() ? context : context.cycle(this, added));
+            next = inferRules(rules, added.isEmpty() ? context : context.cycle(this, added));
             if (next.hasStackOverflow()) {
                 return next;
             }
@@ -202,10 +201,10 @@ public class PredicateImpl extends StructureImpl<Predicate> {
     }
 
     @SuppressWarnings("rawtypes")
-    private Conclusion evalRules(List<RuleImpl> rules, InferContext context) {
+    private Conclusion inferRules(List<RuleImpl> rules, InferContext context) {
         Conclusion conclusion = Conclusion.EMPTY, eval;
         for (RuleImpl rule : rules) {
-            eval = rule.eval(this, context);
+            eval = rule.infer(this, context);
             if (eval.hasStackOverflow()) {
                 return eval;
             } else {

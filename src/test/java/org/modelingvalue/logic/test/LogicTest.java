@@ -49,10 +49,10 @@ import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.SerializableBiFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
-import org.modelingvalue.logic.KnowledgeBase;
 import org.modelingvalue.logic.Integers.Integer;
 import org.modelingvalue.logic.Integers.IntegerCons;
 import org.modelingvalue.logic.Integers.IntegerFunc;
+import org.modelingvalue.logic.KnowledgeBase;
 import org.modelingvalue.logic.Lists.ListCons;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.*;
@@ -494,6 +494,7 @@ public class LogicTest {
         run(() -> {
             fibonacciRules();
 
+            hasBindings(is(fib(i(7)), P), binding(P, i(13)));
             hasBindings(is(fib(i(21)), P), binding(P, i(10946)));
             hasBindings(is(fib(i(1000)), P), binding(P, i("18nrvsuayughau0blk8aylvbyaqwiaqba77rdsgscn5hzwgbgaws8i8svp4xdmoo82plxiyogd5iaj1cspez8zfeio92a76t9n1frssxklr92wyyxm8r903o1ofgncikuggcwnf", Character.MAX_RADIX)));
         });

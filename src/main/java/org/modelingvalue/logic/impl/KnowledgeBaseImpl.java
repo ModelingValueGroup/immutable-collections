@@ -44,41 +44,41 @@ import org.modelingvalue.logic.Logic.Structure;
 @SuppressWarnings("rawtypes")
 public final class KnowledgeBaseImpl implements KnowledgeBase {
 
-    public static final Context<KnowledgeBaseImpl>                                 CURRENT             = Context.of();
+    public static final Context<KnowledgeBaseImpl>                            CURRENT             = Context.of();
 
-    private static final ContextPool                                               POOL                = ContextThread.createPool();
+    private static final ContextPool                                          POOL                = ContextThread.createPool();
     @SuppressWarnings("rawtypes")
-    private static final AtomicReference<Map<Class, Set<Class>>>                   SPECIALIZATIONS     = new AtomicReference<>(Map.of());
+    private static final AtomicReference<Map<Class, Set<Class>>>              SPECIALIZATIONS     = new AtomicReference<>(Map.of());
     @SuppressWarnings("rawtypes")
-    private static final QualifiedSet<PredicateImpl, Inference>                    EMPTY_MEMOIZ        = QualifiedSet.of(Inference::premise);
-    private static final int                                                       MAX_LOGIC_MEMOIZ    = Integer.getInteger("MAX_LOGIC_MEMOIZ", 512);
-    private static final int                                                       MAX_LOGIC_MEMOIZ_D4 = KnowledgeBaseImpl.MAX_LOGIC_MEMOIZ / 4;
-    private static final int                                                       INITIAL_USAGE_COUNT = Integer.getInteger("INITIAL_USAGE_COUNT", 4);
+    private static final QualifiedSet<PredicateImpl, Inference>               EMPTY_MEMOIZ        = QualifiedSet.of(Inference::premise);
+    private static final int                                                  MAX_LOGIC_MEMOIZ    = Integer.getInteger("MAX_LOGIC_MEMOIZ", 512);
+    private static final int                                                  MAX_LOGIC_MEMOIZ_D4 = KnowledgeBaseImpl.MAX_LOGIC_MEMOIZ / 4;
+    private static final int                                                  INITIAL_USAGE_COUNT = Integer.getInteger("INITIAL_USAGE_COUNT", 4);
     @SuppressWarnings("rawtypes")
-    private static final BiFunction<Conclusion, PredicateImpl, Conclusion> ADD_FACT            = (s, p) -> {
-                                                                                                           Conclusion m = Conclusion.EMPTY.positive(Set.of(p));
-                                                                                                           return s == null ? m : s.add(m);
-                                                                                                       };
+    private static final BiFunction<Conclusion, PredicateImpl, Conclusion>    ADD_FACT            = (s, p) -> {
+                                                                                                      Conclusion m = Conclusion.EMPTY.positive(Set.of(p));
+                                                                                                      return s == null ? m : s.add(m);
+                                                                                                  };
     @SuppressWarnings("unchecked")
-    private static final BiFunction<List<RuleImpl>, RuleImpl, List<RuleImpl>>      ADD_RULE            = (l, e) -> {
-                                                                                                           if (l == null) {
-                                                                                                               return List.of(e);
-                                                                                                           } else {
-                                                                                                               int p = e.rulePrio();
-                                                                                                               for (int i = 0; i < l.size(); i++) {
-                                                                                                                   RuleImpl r = l.get(i);
-                                                                                                                   if (r.equals(e)) {
-                                                                                                                       return l;
-                                                                                                                   } else if (r.consequence().equals(e.consequence()) &&   //
-                                                                                                                           r.condition().contains(e.condition())) {
-                                                                                                                       return l;
-                                                                                                                   } else if (r.rulePrio() > p) {
-                                                                                                                       return l.insert(i, e);
-                                                                                                                   }
-                                                                                                               }
-                                                                                                               return l.append(e);
-                                                                                                           }
-                                                                                                       };
+    private static final BiFunction<List<RuleImpl>, RuleImpl, List<RuleImpl>> ADD_RULE            = (l, e) -> {
+                                                                                                      if (l == null) {
+                                                                                                          return List.of(e);
+                                                                                                      } else {
+                                                                                                          int p = e.rulePrio();
+                                                                                                          for (int i = 0; i < l.size(); i++) {
+                                                                                                              RuleImpl r = l.get(i);
+                                                                                                              if (r.equals(e)) {
+                                                                                                                  return l;
+                                                                                                              } else if (r.consequence().equals(e.consequence()) &&   //
+                                                                                                                      r.condition().contains(e.condition())) {
+                                                                                                                  return l;
+                                                                                                              } else if (r.rulePrio() > p) {
+                                                                                                                  return l.insert(i, e);
+                                                                                                              }
+                                                                                                          }
+                                                                                                          return l.append(e);
+                                                                                                      }
+                                                                                                  };
 
     @SuppressWarnings("rawtypes")
     private static class Inference extends Struct2Impl<PredicateImpl, Conclusion> {
@@ -160,7 +160,7 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
         return specs;
     }
 
-    private final AtomicReference<Map<PredicateImpl, Conclusion>>       facts;
+    private final AtomicReference<Map<PredicateImpl, Conclusion>>           facts;
     private final AtomicReference<Map<PredicateImpl, List<RuleImpl>>>       rules;
     private final AtomicReference<QualifiedSet<PredicateImpl, Inference>[]> memoization;
     private final InferContext                                              context = InferContext.of(KnowledgeBaseImpl.this, List.of(), Map.of());
@@ -212,7 +212,7 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void memoization(PredicateImpl predicate, Conclusion conclusion) {
-        if (!conclusion.incomplete().isEmpty()) {
+        if (conclusion.incomplete().isEmpty()) {
             FunctorImpl<Predicate> functor = predicate.functor();
             if (functor.factual()) {
                 facts.updateAndGet(map -> {

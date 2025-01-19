@@ -20,7 +20,6 @@
 
 package org.modelingvalue.logic.impl;
 
-import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Logic;
@@ -72,7 +71,7 @@ public final class RuleImpl extends StructureImpl<Rule> {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    protected Conclusion eval(PredicateImpl declaration, InferContext context) {
+    protected Conclusion infer(PredicateImpl declaration, InferContext context) {
         PredicateImpl consequence = consequence();
         Map<VariableImpl, Object> binding = consequence.getBinding(declaration, Map.of());
         if (binding == null) {
@@ -84,17 +83,7 @@ public final class RuleImpl extends StructureImpl<Rule> {
         PredicateImpl condition = condition();
         Conclusion conclusion = condition.setBinding(condition, variables().putAll(binding)).infer(condition, context);
         Set<PredicateImpl> positive = conclusion.positive().replaceAll(i -> consequence.setBinding(declaration, condition.getBinding(i, Map.of())));
-        return new Conclusion() {
-            @Override
-            public Set<PredicateImpl> positive() {
-                return positive;
-            }
-
-            @Override
-            public Set<List<PredicateImpl>> incomplete() {
-                return conclusion.incomplete();
-            }
-        };
+        return Conclusion.of(positive, conclusion.incomplete());
     }
 
     public int rulePrio() {
