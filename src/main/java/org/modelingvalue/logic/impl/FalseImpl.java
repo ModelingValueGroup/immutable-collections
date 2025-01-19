@@ -30,7 +30,7 @@ public final class FalseImpl extends PredicateImpl {
 
     public static final FunctorImpl<Predicate> FALSE_FUNCTOR    = FunctorImpl.<Predicate> of(Logic::F);
 
-    private final Conclusion               FALSE            = Conclusion.EMPTY.positive(Set.of());
+    private final Conclusion                   FALSE            = Conclusion.of(Set.of());
 
     public FalseImpl() {
         super(FALSE_FUNCTOR);

@@ -4,6 +4,11 @@ import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Set;
 
 public interface Conclusion {
+
+    Set<PredicateImpl> positive();
+
+    Set<List<PredicateImpl>> incomplete();
+
     Conclusion EMPTY = new Conclusion() {
         @Override
         public Set<PredicateImpl> positive() {
@@ -15,10 +20,6 @@ public interface Conclusion {
             return Set.of();
         }
     };
-
-    Set<PredicateImpl> positive();
-
-    Set<List<PredicateImpl>> incomplete();
 
     static Conclusion of(Set<PredicateImpl> positive, Set<List<PredicateImpl>> incomplete) {
         return new Conclusion() {
@@ -34,12 +35,18 @@ public interface Conclusion {
         };
     }
 
-    default Conclusion positive(Set<PredicateImpl> positive) {
-        return of(positive, incomplete());
-    }
+    static Conclusion of(Set<PredicateImpl> positive) {
+        return new Conclusion() {
+            @Override
+            public Set<PredicateImpl> positive() {
+                return positive;
+            }
 
-    default Conclusion incomplete(Set<List<PredicateImpl>> incomplete) {
-        return of(positive(), incomplete);
+            @Override
+            public Set<List<PredicateImpl>> incomplete() {
+                return Set.of();
+            }
+        };
     }
 
     default Conclusion add(Conclusion conclusion) {

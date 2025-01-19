@@ -35,6 +35,6 @@ public interface InferContext {
     }
 
     default InferContext cycle(PredicateImpl predicate, Set<PredicateImpl> facts) {
-        return of(knowledgebase(), stack(), cyclic().put(predicate, Conclusion.EMPTY.positive(facts)));
+        return of(knowledgebase(), stack(), cyclic().put(predicate, Conclusion.of(facts)));
     }
 }

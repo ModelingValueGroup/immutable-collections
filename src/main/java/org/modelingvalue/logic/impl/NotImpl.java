@@ -58,7 +58,7 @@ public final class NotImpl extends PredicateImpl {
             return incomplete();
         }
         Conclusion conclusion = predicate().infer(((NotImpl) declaration).predicate(), context);
-        return conclusion.positive().isEmpty() ? conclusion.positive(Set.of(this)) : conclusion.positive(Set.of());
+        return Conclusion.of(conclusion.positive().isEmpty() ? Set.of(this) : Set.of(), conclusion.incomplete());
     }
 
     @SuppressWarnings("rawtypes")

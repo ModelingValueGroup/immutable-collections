@@ -30,7 +30,7 @@ public final class TrueImpl extends PredicateImpl {
 
     private static final FunctorImpl<Predicate> TRUE_FUNCTOR     = FunctorImpl.<Predicate> of(Logic::T);
 
-    private final Conclusion                TRUE             = Conclusion.EMPTY.positive(Set.of(TrueImpl.this));
+    private final Conclusion                TRUE             = Conclusion.of(Set.of(TrueImpl.this));
 
     public TrueImpl() {
         super(TRUE_FUNCTOR);

@@ -99,16 +99,16 @@ public final class Lists {
                                                                       org.modelingvalue.collections.List<StructureImpl<Structure>> sublist = sub != null ? sub.list() : null;
                                                                       org.modelingvalue.collections.List<StructureImpl<Structure>> superlist = sup != null ? sup.list() : null;
                                                                       if (element != null && sublist != null && superlist != null) {
-                                                                          return Conclusion.EMPTY.positive(addOrdered(sublist, element).equals(superlist) ? Set.of(predicate) : Set.of());
+                                                                          return Conclusion.of(addOrdered(sublist, element).equals(superlist) ? Set.of(predicate) : Set.of());
                                                                       } else if (element != null && sublist != null && superlist == null) {
-                                                                          return Conclusion.EMPTY.positive(Set.of(predicate.set(3, ListImpl.of(addOrdered(sublist, element)))));
+                                                                          return Conclusion.of(Set.of(predicate.set(3, ListImpl.of(addOrdered(sublist, element)))));
                                                                       } else if (element != null && sublist == null && superlist != null) {
-                                                                          return Conclusion.EMPTY.positive(Set.of(predicate.set(2, permRemove(superlist, element).replaceAll(l -> (StructureImpl) predicate.set(2, ListImpl.of(l))))));
+                                                                          return Conclusion.of(Set.of(predicate.set(2, permRemove(superlist, element).replaceAll(l -> (StructureImpl) predicate.set(2, ListImpl.of(l))))));
                                                                       } else if (element == null && sublist != null && superlist != null) {
                                                                           if (sublist.anyMatch(superlist::notContains)) {
                                                                               return Conclusion.EMPTY;
                                                                           }
-                                                                          return Conclusion.EMPTY.positive(Set.of(predicate.set(1, superlist.asSet().removeAll(sublist).replaceAll(r -> (StructureImpl) predicate.set(1, r)))));
+                                                                          return Conclusion.of(Set.of(predicate.set(1, superlist.asSet().removeAll(sublist).replaceAll(r -> (StructureImpl) predicate.set(1, r)))));
                                                                       } else {
                                                                           return predicate.incomplete();
                                                                       }

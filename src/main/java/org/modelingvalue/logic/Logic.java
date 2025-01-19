@@ -312,12 +312,12 @@ public final class Logic {
         if (constant1 == null && constant2 == null) {
             return predicate.incomplete();
         } else if (constant1 == null) {
-            return Conclusion.EMPTY.positive(Set.of(predicate.set(1, constant2)));
+            return Conclusion.of(Set.of(predicate.set(1, constant2)));
         } else if (constant2 == null) {
-            return Conclusion.EMPTY.positive(Set.of(predicate.set(2, constant1)));
+            return Conclusion.of(Set.of(predicate.set(2, constant1)));
         } else {
             StructureImpl eq = constant1.eq(constant2);
-            return eq == null ? Conclusion.EMPTY : Conclusion.EMPTY.positive(Set.of(predicate.set(1, eq, eq)));
+            return eq == null ? Conclusion.EMPTY : Conclusion.of(Set.of(predicate.set(1, eq, eq)));
         }
     });
 

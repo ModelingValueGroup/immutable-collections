@@ -80,11 +80,11 @@ public class PredicateImpl extends StructureImpl<Predicate> {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public Conclusion incomplete() {
-        return Conclusion.EMPTY.incomplete(Set.of(List.of(this)));
+        return Conclusion.of(Set.of(), Set.of(List.of(this)));
     }
 
     private Conclusion incomplete(InferContext context) {
-        return Conclusion.EMPTY.incomplete(Set.of(context.stack().append(this)));
+        return Conclusion.of(Set.of(), Set.of(context.stack().append(this)));
     }
 
     @SuppressWarnings("rawtypes")
@@ -192,7 +192,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             added = next.positive().removeAll(conclusion.positive());
             cycle |= conclusion == Conclusion.EMPTY && !added.isEmpty() && next.hasCycleWith(this);
             if (cycle && conclusion == Conclusion.EMPTY) {
-                conclusion = conclusion.positive(added);
+                conclusion = Conclusion.of(added);
             } else {
                 conclusion = conclusion.add(next);
             }

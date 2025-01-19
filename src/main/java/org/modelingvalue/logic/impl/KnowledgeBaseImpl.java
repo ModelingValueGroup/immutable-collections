@@ -56,7 +56,7 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
     private static final int                                                  INITIAL_USAGE_COUNT = Integer.getInteger("INITIAL_USAGE_COUNT", 4);
     @SuppressWarnings("rawtypes")
     private static final BiFunction<Conclusion, PredicateImpl, Conclusion>    ADD_FACT            = (s, p) -> {
-                                                                                                      Conclusion m = Conclusion.EMPTY.positive(Set.of(p));
+                                                                                                      Conclusion m = Conclusion.of(Set.of(p));
                                                                                                       return s == null ? m : s.add(m);
                                                                                                   };
     @SuppressWarnings("unchecked")
@@ -227,7 +227,7 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
                     array = array.clone();
                     array[0] = array[0].put(new Inference(predicate, conclusion));
                     for (PredicateImpl p : conclusion.positive()) {
-                        array[0] = array[0].put(new Inference(p, Conclusion.EMPTY.positive(Set.of(p))));
+                        array[0] = array[0].put(new Inference(p, Conclusion.of(Set.of(p))));
                     }
                     if (array[0].size() >= MAX_LOGIC_MEMOIZ_D4) {
                         array[2] = array[2].putAll(array[1]);
