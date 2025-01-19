@@ -131,7 +131,7 @@ public final class CollectImpl extends PredicateImpl {
         PredicateImpl goalColl = ((CollectImpl) declaration).collector();
         PredicateImpl goalAccum = ((CollectImpl) declaration).accumulator();
         PredicateImpl accum = accumulator();
-        StructureImpl identity = accum.getStruct(identityIndex);
+        StructureImpl identity = accum.getVal(identityIndex);
         Set<StructureImpl> result = Set.of(identity);
         Conclusion conclusion = goalColl.setBinding(collector(), localVars).infer(goalColl, context);
         if (conclusion.hasStackOverflow()) {
@@ -148,7 +148,7 @@ public final class CollectImpl extends PredicateImpl {
                     return conclusion;
                 }
                 for (PredicateImpl am : conclusion.positive()) {
-                    res = res.add(am.getStruct(resultIndex));
+                    res = res.add(am.getVal(resultIndex));
                 }
                 incomplete = incomplete.addAll(conclusion.incomplete());
             }

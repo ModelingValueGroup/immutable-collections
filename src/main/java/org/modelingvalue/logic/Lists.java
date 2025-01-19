@@ -93,22 +93,22 @@ public final class Lists {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static final FunctorImpl<Predicate> ADD_FUNCTOR       = FunctorImpl.<Predicate, Structure, ListCons, ListCons> of(Lists::add, (LogicLambda) predicate -> {
-                                                                      StructureImpl<Structure> element = predicate.getStruct(1);
-                                                                      ListImpl<Structure> sub = predicate.getStruct(2);
-                                                                      ListImpl<Structure> sup = predicate.getStruct(3);
-                                                                      org.modelingvalue.collections.List<StructureImpl<Structure>> sublist = sub != null ? sub.list() : null;
-                                                                      org.modelingvalue.collections.List<StructureImpl<Structure>> superlist = sup != null ? sup.list() : null;
+                                                                      StructureImpl<Structure> element = predicate.getVal(1);
+                                                                      ListImpl<Structure> subListImpl = predicate.getVal(2);
+                                                                      ListImpl<Structure> superListImpl = predicate.getVal(3);
+                                                                      org.modelingvalue.collections.List<StructureImpl<Structure>> sublist = subListImpl != null ? subListImpl.list() : null;
+                                                                      org.modelingvalue.collections.List<StructureImpl<Structure>> superlist = superListImpl != null ? superListImpl.list() : null;
                                                                       if (element != null && sublist != null && superlist != null) {
                                                                           return Conclusion.of(addOrdered(sublist, element).equals(superlist) ? Set.of(predicate) : Set.of());
                                                                       } else if (element != null && sublist != null && superlist == null) {
                                                                           return Conclusion.of(Set.of(predicate.set(3, ListImpl.of(addOrdered(sublist, element)))));
                                                                       } else if (element != null && sublist == null && superlist != null) {
-                                                                          return Conclusion.of(Set.of(predicate.set(2, permRemove(superlist, element).replaceAll(l -> (StructureImpl) predicate.set(2, ListImpl.of(l))))));
+                                                                          return Conclusion.of(permRemove(superlist, element).replaceAll(l -> predicate.set(2, ListImpl.of(l))));
                                                                       } else if (element == null && sublist != null && superlist != null) {
                                                                           if (sublist.anyMatch(superlist::notContains)) {
                                                                               return Conclusion.EMPTY;
                                                                           }
-                                                                          return Conclusion.of(Set.of(predicate.set(1, superlist.asSet().removeAll(sublist).replaceAll(r -> (StructureImpl) predicate.set(1, r)))));
+                                                                          return Conclusion.of(superlist.asSet().removeAll(sublist).replaceAll(r -> predicate.set(1, r)));
                                                                       } else {
                                                                           return predicate.incomplete();
                                                                       }

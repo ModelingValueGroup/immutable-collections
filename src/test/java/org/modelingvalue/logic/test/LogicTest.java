@@ -109,11 +109,11 @@ public class LogicTest {
     }
 
     static RootCons rootAtomVar(String name) {
-        return var(RootCons.class, name);
+        return variable(RootCons.class, name);
     }
 
     static Root rootVar(String name) {
-        return var(Root.class, name);
+        return variable(Root.class, name);
     }
 
     static Functor<Relation> rootPerson = functor(LogicTest::rootPerson);
@@ -156,11 +156,11 @@ public class LogicTest {
     }
 
     static PersonCons personAtomVar(String name) {
-        return var(PersonCons.class, name);
+        return variable(PersonCons.class, name);
     }
 
     static Person personVar(String name) {
-        return var(Person.class, name);
+        return variable(Person.class, name);
     }
 
     static Functor<Relation> parentChild = functor(LogicTest::parentChild);
@@ -201,14 +201,14 @@ public class LogicTest {
 
     // Variables
 
-    IntegerCons              P      = iav("P");
-    IntegerCons              Q      = iav("Q");
+    IntegerCons              P      = iVarCons("P");
+    IntegerCons              Q      = iVarCons("Q");
 
-    Integer                  R      = iv("R");
-    Integer                  S      = iv("S");
+    Integer                  R      = iVar("R");
+    Integer                  S      = iVar("S");
 
-    RationalCons             T      = rav("T");
-    RationalCons             U      = rav("U");
+    RationalCons             T      = rVarCons("T");
+    RationalCons             U      = rVarCons("U");
 
     PersonCons               A      = personAtomVar("A");
     PersonCons               B      = personAtomVar("B");
@@ -222,7 +222,7 @@ public class LogicTest {
     Root                     W      = rootVar("W");
 
     @SuppressWarnings("unchecked")
-    ListCons<Person>         PL     = var(ListCons.class, "PL");
+    ListCons<Person>         PL     = variable(ListCons.class, "PL");
 
     // Terms
 

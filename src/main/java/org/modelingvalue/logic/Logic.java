@@ -158,7 +158,7 @@ public final class Logic {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <F extends Structure> F var(Class<F> type, String id) {
+    public static <F extends Structure> F variable(Class<F> type, String id) {
         return new VariableImpl<F>(type, id).proxy();
     }
 
@@ -307,8 +307,8 @@ public final class Logic {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Functor<Predicate> EQ = Logic.<Predicate, Constant, Constant> functor(Logic::eq, (LogicLambda) predicate -> {
-        StructureImpl constant1 = predicate.getStruct(1);
-        StructureImpl constant2 = predicate.getStruct(2);
+        StructureImpl constant1 = predicate.getVal(1);
+        StructureImpl constant2 = predicate.getVal(2);
         if (constant1 == null && constant2 == null) {
             return predicate.incomplete();
         } else if (constant1 == null) {
@@ -350,10 +350,10 @@ public final class Logic {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static void isRules() {
-        Constant A1 = var(Constant.class, "A1");
-        Constant A2 = var(Constant.class, "A2");
-        Function F1 = var(Function.class, "F1");
-        Function F2 = var(Function.class, "F2");
+        Constant A1 = variable(Constant.class, "A1");
+        Constant A2 = variable(Constant.class, "A2");
+        Function F1 = variable(Function.class, "F1");
+        Function F2 = variable(Function.class, "F2");
 
         rule(is((Structure) A1, (Structure) A2), eq(A1, A2));
         rule(is(F1, F2), and(is(F2, A2), is(F1, A2)));

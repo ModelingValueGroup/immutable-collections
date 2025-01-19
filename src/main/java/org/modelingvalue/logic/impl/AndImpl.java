@@ -100,8 +100,9 @@ public final class AndImpl extends PredicateImpl {
                     tmpIncomplete = Set.of();
                     for (int ii = 0; ii < idxl.size(); ii++) {
                         int[] i = idxl.get(ii);
-                        PredicateImpl declPred = declaration.getPred(i);
-                        Conclusion conclusion = and.getPred(i).infer(declPred, context);
+                        PredicateImpl declPred = declaration.getVal(i);
+                        PredicateImpl pred = and.getVal(i);
+                        Conclusion conclusion = pred.infer(declPred, context);
                         if (conclusion.hasStackOverflow()) {
                             return conclusion;
                         }

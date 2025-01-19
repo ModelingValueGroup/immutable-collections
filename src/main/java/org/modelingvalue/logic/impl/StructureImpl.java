@@ -237,16 +237,16 @@ public class StructureImpl<F extends Structure> extends org.modelingvalue.collec
         return vars;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public <V extends Structure, T extends StructureImpl<V>> T getStruct(int i) {
-        Object v = get(i);
-        return v instanceof StructureImpl ? (T) v : null;
-    }
-
     @SuppressWarnings("unchecked")
-    public <V> V getVal(int i) {
-        Object v = get(i);
-        return v instanceof Class || v instanceof StructureImpl ? null : (V) v;
+    public <V> V getVal(int... is) {
+        Object v = this;
+        for (int i : is) {
+            v = ((StructureImpl<?>) v).get(i);
+            if (v instanceof Class || v instanceof VariableImpl) {
+                return null;
+            }
+        }
+        return (V) v;
     }
 
     public StructureImpl<F> set(int f, Object... a) {

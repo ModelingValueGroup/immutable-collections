@@ -87,8 +87,9 @@ public final class OrImpl extends PredicateImpl {
         Set<PredicateImpl> positive = Set.of();
         Set<List<PredicateImpl>> incomplete = Set.of();
         for (int[] i : ((OrImpl) declaration).idxList()) {
-            PredicateImpl declPred = declaration.getPred(i);
-            Conclusion conclusion = getPred(i).infer(declPred, context);
+            PredicateImpl declPred = declaration.getVal(i);
+            PredicateImpl pred = getVal(i);
+            Conclusion conclusion = pred.infer(declPred, context);
             if (conclusion.hasStackOverflow()) {
                 return conclusion;
             } else {

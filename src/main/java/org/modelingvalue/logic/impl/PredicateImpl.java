@@ -69,15 +69,6 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         return new PredicateImpl(array);
     }
 
-    @SuppressWarnings("rawtypes")
-    protected PredicateImpl getPred(int[] ii) {
-        PredicateImpl r = this;
-        for (int i = 0; i < ii.length; i++) {
-            r = (PredicateImpl) r.get(ii[i]);
-        }
-        return r;
-    }
-
     @SuppressWarnings({"rawtypes", "unchecked"})
     public Conclusion incomplete() {
         return Conclusion.of(Set.of(), Set.of(List.of(this)));

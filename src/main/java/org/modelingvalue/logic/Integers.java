@@ -33,6 +33,7 @@ import org.modelingvalue.logic.Logic.Predicate;
 import org.modelingvalue.logic.Logic.Relation;
 import org.modelingvalue.logic.Logic.Structure;
 import org.modelingvalue.logic.impl.Conclusion;
+import org.modelingvalue.logic.impl.FunctorImpl;
 import org.modelingvalue.logic.impl.StructureImpl;
 
 public final class Integers {
@@ -49,50 +50,56 @@ public final class Integers {
     public interface IntegerFunc extends Integer, Function<Integer> {
     }
 
-    private static Functor<IntegerCons> i = Logic.<IntegerCons, BigInteger> functor(Integers::i);
+    private static FunctorImpl<IntegerCons> iImpl = FunctorImpl.<IntegerCons, BigInteger> of(Integers::i);
+    private static Functor<IntegerCons>     i     = iImpl.proxy();
 
-    public static IntegerCons i(BigInteger x) {
-        return constant(i, x);
+    public static IntegerCons i(BigInteger val) {
+        return constant(i, val);
     }
 
     public static IntegerCons i(String val, int radix) {
         return i(new BigInteger(val, radix));
     }
 
-    public static IntegerCons i(long x) {
-        return i(BigInteger.valueOf(x));
+    public static IntegerCons i(long val) {
+        return i(BigInteger.valueOf(val));
     }
 
-    public static IntegerCons iav(String name) {
-        return var(IntegerCons.class, name);
+    public static IntegerCons iVarCons(String name) {
+        return variable(IntegerCons.class, name);
     }
 
-    public static Integer iv(String name) {
-        return var(Integer.class, name);
+    public static Integer iVar(String name) {
+        return variable(Integer.class, name);
     }
 
     // Predicates
 
+    private static final StructureImpl<IntegerCons> ZERO_INT      = StructureImpl.unproxy(i(0));
+    private static final StructureImpl<IntegerCons> ONE_INT       = StructureImpl.unproxy(i(1));
+    private static final StructureImpl<IntegerCons> MINUS_ONE_INT = StructureImpl.unproxy(i(-1));
+
+    private static StructureImpl<IntegerCons> struct(BigInteger i) {
+        return ZERO_INT.set(1, i);
+    }
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Functor<Predicate> compare = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::compare, (LogicLambda) predicate -> {
-        StructureImpl<IntegerCons> at = predicate.getStruct(1);
-        StructureImpl<IntegerCons> bt = predicate.getStruct(2);
-        StructureImpl<IntegerCons> ct = predicate.getStruct(3);
-        BigInteger ai = at != null ? at.getVal(1) : null;
-        BigInteger bi = bt != null ? bt.getVal(1) : null;
-        BigInteger ci = ct != null ? ct.getVal(1) : null;
-        if (ai != null && bi != null) {
-            BigInteger r = BigInteger.valueOf(ai.compareTo(bi));
-            if (ci != null) {
-                return Conclusion.of(ci.equals(r) ? Set.of(predicate) : Set.of());
+        BigInteger compared1 = predicate.getVal(1, 1);
+        BigInteger compared2 = predicate.getVal(2, 1);
+        BigInteger result = predicate.getVal(3, 1);
+        if (compared1 != null && compared2 != null) {
+            int r = compared1.compareTo(compared2);
+            if (result != null) {
+                return Conclusion.of(r == result.intValue() ? Set.of(predicate) : Set.of());
             } else {
-                return Conclusion.of(Set.of(predicate.set(3, at.set(1, r))));
+                return Conclusion.of(Set.of(predicate.set(3, r == 0 ? ZERO_INT : r == 1 ? ONE_INT : MINUS_ONE_INT)));
             }
-        } else if (BigInteger.ZERO.equals(ci)) {
-            if (ai != null) {
-                return Conclusion.of(Set.of(predicate.set(2, at)));
-            } else if (bi != null) {
-                return Conclusion.of(Set.of(predicate.set(1, bt)));
+        } else if (BigInteger.ZERO.equals(result)) {
+            if (compared1 != null) {
+                return Conclusion.of(Set.of(predicate.set(2, predicate.getVal(1))));
+            } else if (compared2 != null) {
+                return Conclusion.of(Set.of(predicate.set(1, predicate.getVal(2))));
             }
         }
         return predicate.incomplete();
@@ -104,20 +111,20 @@ public final class Integers {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Functor<Predicate> plusPred = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::plus, (LogicLambda) predicate -> {
-        StructureImpl<IntegerCons> at = predicate.getStruct(1);
-        StructureImpl<IntegerCons> bt = predicate.getStruct(2);
-        StructureImpl<IntegerCons> ct = predicate.getStruct(3);
-        BigInteger ai = at != null ? at.getVal(1) : null;
-        BigInteger bi = bt != null ? bt.getVal(1) : null;
-        BigInteger ci = ct != null ? ct.getVal(1) : null;
-        if (ai != null && bi != null && ci != null) {
-            return Conclusion.of(ai.add(bi).equals(ci) ? Set.of(predicate) : Set.of());
-        } else if (ai != null && bi != null && ci == null) {
-            return Conclusion.of(Set.of(predicate.set(3, at.set(1, ai.add(bi)))));
-        } else if (ai != null && bi == null && ci != null) {
-            return Conclusion.of(Set.of(predicate.set(2, at.set(1, ci.subtract(ai)))));
-        } else if (ai == null && bi != null && ci != null) {
-            return Conclusion.of(Set.of(predicate.set(1, bt.set(1, ci.subtract(bi)))));
+        BigInteger addend1 = predicate.getVal(1, 1);
+        BigInteger addend2 = predicate.getVal(2, 1);
+        BigInteger sum = predicate.getVal(3, 1);
+        if (addend1 != null && addend2 != null) {
+            BigInteger s = addend1.add(addend2);
+            if (sum != null) {
+                return Conclusion.of(s.equals(sum) ? Set.of(predicate) : Set.of());
+            } else {
+                return Conclusion.of(Set.of(predicate.set(3, struct(s))));
+            }
+        } else if (addend1 != null && sum != null) {
+            return Conclusion.of(Set.of(predicate.set(2, struct(sum.subtract(addend1)))));
+        } else if (addend2 != null && sum != null) {
+            return Conclusion.of(Set.of(predicate.set(1, struct(sum.subtract(addend2)))));
         } else {
             return predicate.incomplete();
         }
@@ -129,20 +136,20 @@ public final class Integers {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Functor<Predicate> multiplyPred = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::multiply, (LogicLambda) predicate -> {
-        StructureImpl<IntegerCons> at = predicate.getStruct(1);
-        StructureImpl<IntegerCons> bt = predicate.getStruct(2);
-        StructureImpl<IntegerCons> ct = predicate.getStruct(3);
-        BigInteger ai = at != null ? at.getVal(1) : null;
-        BigInteger bi = bt != null ? bt.getVal(1) : null;
-        BigInteger ci = ct != null ? ct.getVal(1) : null;
-        if (ai != null && bi != null && ci != null) {
-            return Conclusion.of(ai.multiply(bi).equals(ci) ? Set.of(predicate) : Set.of());
-        } else if (ai != null && bi != null && ci == null) {
-            return Conclusion.of(Set.of(predicate.set(3, at.set(1, ai.multiply(bi)))));
-        } else if (ai != null && bi == null && ci != null) {
-            return Conclusion.of(Set.of(predicate.set(2, at.set(1, ci.divide(ai)))));
-        } else if (ai == null && bi != null && ci != null) {
-            return Conclusion.of(Set.of(predicate.set(1, bt.set(1, ci.divide(bi)))));
+        BigInteger factor1 = predicate.getVal(1, 1);
+        BigInteger factor2 = predicate.getVal(2, 1);
+        BigInteger product = predicate.getVal(3, 1);
+        if (factor1 != null && factor2 != null) {
+            BigInteger p = factor1.multiply(factor2);
+            if (product != null) {
+                return Conclusion.of(p.equals(product) ? Set.of(predicate) : Set.of());
+            } else {
+                return Conclusion.of(Set.of(predicate.set(3, struct(p))));
+            }
+        } else if (factor1 != null && product != null) {
+            return Conclusion.of(Set.of(predicate.set(2, struct(product.divide(factor1)))));
+        } else if (factor2 != null && product != null) {
+            return Conclusion.of(Set.of(predicate.set(1, struct(product.divide(factor2)))));
         } else {
             return predicate.incomplete();
         }
@@ -154,17 +161,15 @@ public final class Integers {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Functor<Predicate> squarePred = Logic.<Predicate, IntegerCons, IntegerCons> functor(Integers::square, (LogicLambda) predicate -> {
-        StructureImpl<IntegerCons> at = predicate.getStruct(1);
-        StructureImpl<IntegerCons> bt = predicate.getStruct(2);
-        BigInteger ai = at != null ? at.getVal(1) : null;
-        BigInteger bi = bt != null ? bt.getVal(1) : null;
-        if (ai != null && bi != null) {
-            return Conclusion.of(ai.multiply(ai).equals(bi) ? Set.of(predicate) : Set.of());
-        } else if (ai != null && bi == null) {
-            return Conclusion.of(Set.of(predicate.set(2, at.set(1, ai.multiply(ai)))));
-        } else if (ai == null && bi != null) {
-            BigInteger sqrt = bi.sqrt();
-            return Conclusion.of(Set.of(predicate.set(1, bt.set(1, sqrt)), predicate.set(1, bt.set(1, sqrt.negate()))));
+        BigInteger root = predicate.getVal(1, 1);
+        BigInteger square = predicate.getVal(2, 1);
+        if (root != null && square != null) {
+            return Conclusion.of(root.multiply(root).equals(square) ? Set.of(predicate) : Set.of());
+        } else if (root != null && square == null) {
+            return Conclusion.of(Set.of(predicate.set(2, struct(root.multiply(root)))));
+        } else if (root == null && square != null) {
+            BigInteger sqrt = square.sqrt();
+            return Conclusion.of(Set.of(predicate.set(1, struct(sqrt)), predicate.set(1, struct(sqrt.negate()))));
         } else {
             return predicate.incomplete();
         }
@@ -241,12 +246,12 @@ public final class Integers {
     public static void integerRules() {
         isRules();
 
-        IntegerCons P = iav("PL");
-        IntegerCons Q = iav("QL");
-        IntegerCons R = iav("RL");
+        IntegerCons P = iVarCons("PL");
+        IntegerCons Q = iVarCons("QL");
+        IntegerCons R = iVarCons("RL");
 
-        Integer X = iv("X");
-        Integer Y = iv("Y");
+        Integer X = iVar("X");
+        Integer Y = iVar("Y");
 
         rule(gt(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, i(1))));
         rule(lt(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, i(-1))));
