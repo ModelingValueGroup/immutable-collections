@@ -83,7 +83,7 @@ public final class AndImpl extends PredicateImpl {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Match match(PredicateImpl declaration, Context context) {
+    public Conclusion infer(PredicateImpl declaration, InferContext context) {
         idxList = ((AndImpl) declaration).idxList();
         Set<PredicateImpl> positive = Set.of();
         Set<List<PredicateImpl>> incomplete = Set.of(), tmpIncomplete;
@@ -101,20 +101,20 @@ public final class AndImpl extends PredicateImpl {
                     for (int ii = 0; ii < idxl.size(); ii++) {
                         int[] i = idxl.get(ii);
                         PredicateImpl declPred = declaration.getPred(i);
-                        Match match = and.getPred(i).match(declPred, context);
-                        if (match.hasStackOverflow()) {
-                            return match;
+                        Conclusion conclusion = and.getPred(i).infer(declPred, context);
+                        if (conclusion.hasStackOverflow()) {
+                            return conclusion;
                         }
-                        if (match.incomplete().isEmpty()) {
+                        if (conclusion.incomplete().isEmpty()) {
                             List<int[]> iil = idxl.removeIndex(ii);
-                            ands1 = ands1.addAll(match.positive().replaceAll(p -> {
+                            ands1 = ands1.addAll(conclusion.positive().replaceAll(p -> {
                                 AndImpl a = (AndImpl) declaration.setBinding(and, declPred.getBinding(p, Map.of()));
                                 a.idxList = iil;
                                 return a;
                             }));
                             continue outer;
                         } else {
-                            tmpIncomplete = tmpIncomplete.addAll(match.incomplete());
+                            tmpIncomplete = tmpIncomplete.addAll(conclusion.incomplete());
                         }
                     }
                     incomplete = incomplete.addAll(tmpIncomplete);
@@ -122,7 +122,7 @@ public final class AndImpl extends PredicateImpl {
 
             }
         } while (!ands1.isEmpty());
-        return Match.of(positive, incomplete);
+        return Conclusion.of(positive, incomplete);
     }
 
     @Override

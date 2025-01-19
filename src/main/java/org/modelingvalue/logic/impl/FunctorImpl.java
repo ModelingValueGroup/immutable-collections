@@ -49,9 +49,9 @@ public final class FunctorImpl<T extends Structure> extends StructureImpl<Functo
     @SuppressWarnings({"unchecked", "rawtypes"})
     public FunctorImpl(Class<T> type, String name, List<Class<?>> args, FunctorModifier... modifiers) {
         super((Class) Functor.class, type, name, args);
-        DatabaseImpl.updateSpecializations(type);
+        KnowledgeBaseImpl.updateSpecializations(type);
         for (Class arg : args) {
-            DatabaseImpl.updateSpecializations(arg);
+            KnowledgeBaseImpl.updateSpecializations(arg);
         }
         this.logic = logic(modifiers);
         this.normal = normal(modifiers);

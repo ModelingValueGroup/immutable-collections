@@ -35,67 +35,66 @@ import org.modelingvalue.collections.struct.impl.Struct2Impl;
 import org.modelingvalue.collections.util.Context;
 import org.modelingvalue.collections.util.ContextPool;
 import org.modelingvalue.collections.util.ContextThread;
-import org.modelingvalue.logic.Database;
+import org.modelingvalue.logic.KnowledgeBase;
 import org.modelingvalue.logic.Logic.Predicate;
 import org.modelingvalue.logic.Logic.Relation;
 import org.modelingvalue.logic.Logic.Rule;
 import org.modelingvalue.logic.Logic.Structure;
-import org.modelingvalue.logic.impl.PredicateImpl.Match;
 
 @SuppressWarnings("rawtypes")
-public final class DatabaseImpl implements Database {
+public final class KnowledgeBaseImpl implements KnowledgeBase {
 
-    public static final Context<DatabaseImpl>                                 CURRENT             = Context.of();
+    public static final Context<KnowledgeBaseImpl>                                 CURRENT             = Context.of();
 
-    private static final ContextPool                                          POOL                = ContextThread.createPool();
+    private static final ContextPool                                               POOL                = ContextThread.createPool();
     @SuppressWarnings("rawtypes")
-    private static final AtomicReference<Map<Class, Set<Class>>>              SPECIALIZATIONS     = new AtomicReference<>(Map.of());
+    private static final AtomicReference<Map<Class, Set<Class>>>                   SPECIALIZATIONS     = new AtomicReference<>(Map.of());
     @SuppressWarnings("rawtypes")
-    private static final QualifiedSet<PredicateImpl, Memoization>             EMPTY_MEMOIZ        = QualifiedSet.of(Memoization::predicate);
-    private static final int                                                  MAX_LOGIC_MEMOIZ    = Integer.getInteger("MAX_LOGIC_MEMOIZ", 512);
-    private static final int                                                  MAX_LOGIC_MEMOIZ_D4 = DatabaseImpl.MAX_LOGIC_MEMOIZ / 4;
-    private static final int                                                  INITIAL_USAGE_COUNT = Integer.getInteger("INITIAL_USAGE_COUNT", 4);
+    private static final QualifiedSet<PredicateImpl, Inference>                    EMPTY_MEMOIZ        = QualifiedSet.of(Inference::premise);
+    private static final int                                                       MAX_LOGIC_MEMOIZ    = Integer.getInteger("MAX_LOGIC_MEMOIZ", 512);
+    private static final int                                                       MAX_LOGIC_MEMOIZ_D4 = KnowledgeBaseImpl.MAX_LOGIC_MEMOIZ / 4;
+    private static final int                                                       INITIAL_USAGE_COUNT = Integer.getInteger("INITIAL_USAGE_COUNT", 4);
     @SuppressWarnings("rawtypes")
-    private static final BiFunction<Match, PredicateImpl, Match>              ADD_FACT            = (s, p) -> {
-                                                                                                      Match m = Match.EMPTY.positive(Set.of(p));
-                                                                                                      return s == null ? m : s.add(m);
-                                                                                                  };
+    private static final BiFunction<Conclusion, PredicateImpl, Conclusion> ADD_FACT            = (s, p) -> {
+                                                                                                           Conclusion m = Conclusion.EMPTY.positive(Set.of(p));
+                                                                                                           return s == null ? m : s.add(m);
+                                                                                                       };
     @SuppressWarnings("unchecked")
-    private static final BiFunction<List<RuleImpl>, RuleImpl, List<RuleImpl>> ADD_RULE            = (l, e) -> {
-                                                                                                      if (l == null) {
-                                                                                                          return List.of(e);
-                                                                                                      } else {
-                                                                                                          int p = e.rulePrio();
-                                                                                                          for (int i = 0; i < l.size(); i++) {
-                                                                                                              RuleImpl r = l.get(i);
-                                                                                                              if (r.equals(e)) {
-                                                                                                                  return l;
-                                                                                                              } else if (r.consequence().equals(e.consequence()) &&   //
-                                                                                                                      r.condition().contains(e.condition())) {
-                                                                                                                  return l;
-                                                                                                              } else if (r.rulePrio() > p) {
-                                                                                                                  return l.insert(i, e);
-                                                                                                              }
-                                                                                                          }
-                                                                                                          return l.append(e);
-                                                                                                      }
-                                                                                                  };
+    private static final BiFunction<List<RuleImpl>, RuleImpl, List<RuleImpl>>      ADD_RULE            = (l, e) -> {
+                                                                                                           if (l == null) {
+                                                                                                               return List.of(e);
+                                                                                                           } else {
+                                                                                                               int p = e.rulePrio();
+                                                                                                               for (int i = 0; i < l.size(); i++) {
+                                                                                                                   RuleImpl r = l.get(i);
+                                                                                                                   if (r.equals(e)) {
+                                                                                                                       return l;
+                                                                                                                   } else if (r.consequence().equals(e.consequence()) &&   //
+                                                                                                                           r.condition().contains(e.condition())) {
+                                                                                                                       return l;
+                                                                                                                   } else if (r.rulePrio() > p) {
+                                                                                                                       return l.insert(i, e);
+                                                                                                                   }
+                                                                                                               }
+                                                                                                               return l.append(e);
+                                                                                                           }
+                                                                                                       };
 
     @SuppressWarnings("rawtypes")
-    private static class Memoization extends Struct2Impl<PredicateImpl, Match> {
+    private static class Inference extends Struct2Impl<PredicateImpl, Conclusion> {
         private static final long serialVersionUID = 1531759272582548244L;
 
         public int                count            = INITIAL_USAGE_COUNT;
 
-        public Memoization(PredicateImpl predicate, Match match) {
-            super(predicate, match);
+        public Inference(PredicateImpl predicate, Conclusion conclusion) {
+            super(predicate, conclusion);
         }
 
-        public PredicateImpl predicate() {
+        public PredicateImpl premise() {
             return get0();
         }
 
-        public Match match() {
+        public Conclusion conclusion() {
             return get1();
         }
 
@@ -104,36 +103,36 @@ public final class DatabaseImpl implements Database {
         }
     }
 
-    private static final class LogicTask extends ForkJoinTask<DatabaseImpl> {
-        private static final long  serialVersionUID = -1375078574164947441L;
+    private static final class LogicTask extends ForkJoinTask<KnowledgeBaseImpl> {
+        private static final long       serialVersionUID = -1375078574164947441L;
 
-        private final Runnable     runnable;
-        private final DatabaseImpl database;
+        private final Runnable          runnable;
+        private final KnowledgeBaseImpl knowledgebase;
 
-        public LogicTask(Runnable runnable, DatabaseImpl init) {
+        public LogicTask(Runnable runnable, KnowledgeBaseImpl init) {
             this.runnable = runnable;
-            this.database = new DatabaseImpl(init);
+            this.knowledgebase = new KnowledgeBaseImpl(init);
         }
 
         @Override
-        public DatabaseImpl getRawResult() {
-            return database;
+        public KnowledgeBaseImpl getRawResult() {
+            return knowledgebase;
         }
 
         @Override
-        protected void setRawResult(DatabaseImpl database) {
+        protected void setRawResult(KnowledgeBaseImpl knowledgebase) {
         }
 
         @Override
         protected boolean exec() {
-            CURRENT.run(database, runnable);
-            database.stopped = true;
+            CURRENT.run(knowledgebase, runnable);
+            knowledgebase.stopped = true;
             return true;
         }
 
     }
 
-    public static final DatabaseImpl run(Runnable runnable, DatabaseImpl init) {
+    public static final KnowledgeBaseImpl run(Runnable runnable, KnowledgeBaseImpl init) {
         return POOL.invoke(new LogicTask(runnable, init));
     }
 
@@ -161,20 +160,20 @@ public final class DatabaseImpl implements Database {
         return specs;
     }
 
-    private final AtomicReference<Map<PredicateImpl, Match>>                  facts;
-    private final AtomicReference<Map<PredicateImpl, List<RuleImpl>>>         rules;
-    private final AtomicReference<QualifiedSet<PredicateImpl, Memoization>[]> memoization;
-    private final PredicateImpl.Context                                       context = PredicateImpl.Context.of(DatabaseImpl.this, List.of(), Map.of());
-    private boolean                                                           stopped;
+    private final AtomicReference<Map<PredicateImpl, Conclusion>>       facts;
+    private final AtomicReference<Map<PredicateImpl, List<RuleImpl>>>       rules;
+    private final AtomicReference<QualifiedSet<PredicateImpl, Inference>[]> memoization;
+    private final InferContext                                              context = InferContext.of(KnowledgeBaseImpl.this, List.of(), Map.of());
+    private boolean                                                         stopped;
 
     @SuppressWarnings("unchecked")
-    public DatabaseImpl(DatabaseImpl init) {
+    public KnowledgeBaseImpl(KnowledgeBaseImpl init) {
         facts = new AtomicReference<>(init != null ? init.facts.get() : Map.of());
         rules = new AtomicReference<>(init != null ? init.rules.get() : Map.of());
         memoization = new AtomicReference<>(init != null ? init.memoization.get() : new QualifiedSet[]{EMPTY_MEMOIZ, EMPTY_MEMOIZ, EMPTY_MEMOIZ});
     }
 
-    public Match getFacts(PredicateImpl pred) {
+    public Conclusion getFacts(PredicateImpl pred) {
         return facts.get().get(pred);
     }
 
@@ -182,12 +181,12 @@ public final class DatabaseImpl implements Database {
         return rules.get().get(pred.signature());
     }
 
-    public Match getMemoiz(PredicateImpl pred) {
-        for (QualifiedSet<PredicateImpl, Memoization> m : memoization.get()) {
-            Memoization memoiz = m.get(pred);
+    public Conclusion getMemoiz(PredicateImpl pred) {
+        for (QualifiedSet<PredicateImpl, Inference> m : memoization.get()) {
+            Inference memoiz = m.get(pred);
             if (memoiz != null) {
                 memoiz.count++;
-                return memoiz.match();
+                return memoiz.conclusion();
             }
         }
         return null;
@@ -212,23 +211,23 @@ public final class DatabaseImpl implements Database {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void memoization(PredicateImpl predicate, Match match) {
-        if (!match.incomplete().isEmpty()) {
+    public void memoization(PredicateImpl predicate, Conclusion conclusion) {
+        if (!conclusion.incomplete().isEmpty()) {
             FunctorImpl<Predicate> functor = predicate.functor();
             if (functor.factual()) {
                 facts.updateAndGet(map -> {
-                    map = map.put(predicate, match);
-                    for (PredicateImpl p : match.positive()) {
+                    map = map.put(predicate, conclusion);
+                    for (PredicateImpl p : conclusion.positive()) {
                         map = map.put(p, ADD_FACT.apply(map.get(p), p));
                     }
                     return map;
                 });
             } else if (!functor.derived()) {
-                QualifiedSet<PredicateImpl, Memoization>[] mem = memoization.updateAndGet(array -> {
+                QualifiedSet<PredicateImpl, Inference>[] mem = memoization.updateAndGet(array -> {
                     array = array.clone();
-                    array[0] = array[0].put(new Memoization(predicate, match));
-                    for (PredicateImpl p : match.positive()) {
-                        array[0] = array[0].put(new Memoization(p, Match.EMPTY.positive(Set.of(p))));
+                    array[0] = array[0].put(new Inference(predicate, conclusion));
+                    for (PredicateImpl p : conclusion.positive()) {
+                        array[0] = array[0].put(new Inference(p, Conclusion.EMPTY.positive(Set.of(p))));
                     }
                     if (array[0].size() >= MAX_LOGIC_MEMOIZ_D4) {
                         array[2] = array[2].putAll(array[1]);
@@ -245,17 +244,17 @@ public final class DatabaseImpl implements Database {
     }
 
     private void cleanup() {
-        QualifiedSet<PredicateImpl, Memoization>[] mem = memoization.get();
+        QualifiedSet<PredicateImpl, Inference>[] mem = memoization.get();
         while (mem[2].size() > MAX_LOGIC_MEMOIZ) {
             for (int i = 0; i < mem[2].size(); i++) {
                 if (stopped) {
                     return;
                 }
-                Memoization m = mem[2].get(i);
+                Inference m = mem[2].get(i);
                 if (!m.keep()) {
                     mem = memoization.updateAndGet(array -> {
                         array = array.clone();
-                        array[2] = array[2].removeKey(m.predicate());
+                        array[2] = array[2].removeKey(m.premise());
                         return array;
                     });
                     i--;
@@ -305,7 +304,7 @@ public final class DatabaseImpl implements Database {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static Map<PredicateImpl, Match> addFact(Map<PredicateImpl, Match> map, PredicateImpl predicate, PredicateImpl pattern, int i, Class cls) {
+    private static Map<PredicateImpl, Conclusion> addFact(Map<PredicateImpl, Conclusion> map, PredicateImpl predicate, PredicateImpl pattern, int i, Class cls) {
         Class type = pattern.getType(i);
         if (cls.isAssignableFrom(type)) {
             map = map.put(pattern, ADD_FACT.apply(map.get(pattern), predicate));
@@ -323,7 +322,7 @@ public final class DatabaseImpl implements Database {
         return map;
     }
 
-    public PredicateImpl.Context context() {
+    public InferContext context() {
         return context;
     }
 }

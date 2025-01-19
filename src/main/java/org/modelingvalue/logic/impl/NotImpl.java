@@ -53,12 +53,12 @@ public final class NotImpl extends PredicateImpl {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Match match(PredicateImpl declaration, Context context) {
+    public Conclusion infer(PredicateImpl declaration, InferContext context) {
         if (nrOfUnbound() > 0) {
             return incomplete();
         }
-        Match match = predicate().match(((NotImpl) declaration).predicate(), context);
-        return match.positive().isEmpty() ? match.positive(Set.of(this)) : match.positive(Set.of());
+        Conclusion conclusion = predicate().infer(((NotImpl) declaration).predicate(), context);
+        return conclusion.positive().isEmpty() ? conclusion.positive(Set.of(this)) : conclusion.positive(Set.of());
     }
 
     @SuppressWarnings("rawtypes")

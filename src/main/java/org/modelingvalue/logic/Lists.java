@@ -29,9 +29,9 @@ import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.LogicLambda;
 import org.modelingvalue.logic.Logic.Predicate;
 import org.modelingvalue.logic.Logic.Structure;
+import org.modelingvalue.logic.impl.Conclusion;
 import org.modelingvalue.logic.impl.FunctorImpl;
 import org.modelingvalue.logic.impl.ListImpl;
-import org.modelingvalue.logic.impl.PredicateImpl.Match;
 import org.modelingvalue.logic.impl.StructureImpl;
 
 public final class Lists {
@@ -99,16 +99,16 @@ public final class Lists {
                                                                       org.modelingvalue.collections.List<StructureImpl<Structure>> sublist = sub != null ? sub.list() : null;
                                                                       org.modelingvalue.collections.List<StructureImpl<Structure>> superlist = sup != null ? sup.list() : null;
                                                                       if (element != null && sublist != null && superlist != null) {
-                                                                          return Match.EMPTY.positive(addOrdered(sublist, element).equals(superlist) ? Set.of(predicate) : Set.of());
+                                                                          return Conclusion.EMPTY.positive(addOrdered(sublist, element).equals(superlist) ? Set.of(predicate) : Set.of());
                                                                       } else if (element != null && sublist != null && superlist == null) {
-                                                                          return Match.EMPTY.positive(Set.of(predicate.set(3, ListImpl.of(addOrdered(sublist, element)))));
+                                                                          return Conclusion.EMPTY.positive(Set.of(predicate.set(3, ListImpl.of(addOrdered(sublist, element)))));
                                                                       } else if (element != null && sublist == null && superlist != null) {
-                                                                          return Match.EMPTY.positive(Set.of(predicate.set(2, permRemove(superlist, element).replaceAll(l -> (StructureImpl) predicate.set(2, ListImpl.of(l))))));
+                                                                          return Conclusion.EMPTY.positive(Set.of(predicate.set(2, permRemove(superlist, element).replaceAll(l -> (StructureImpl) predicate.set(2, ListImpl.of(l))))));
                                                                       } else if (element == null && sublist != null && superlist != null) {
                                                                           if (sublist.anyMatch(superlist::notContains)) {
-                                                                              return Match.EMPTY;
+                                                                              return Conclusion.EMPTY;
                                                                           }
-                                                                          return Match.EMPTY.positive(Set.of(predicate.set(1, superlist.asSet().removeAll(sublist).replaceAll(r -> (StructureImpl) predicate.set(1, r)))));
+                                                                          return Conclusion.EMPTY.positive(Set.of(predicate.set(1, superlist.asSet().removeAll(sublist).replaceAll(r -> (StructureImpl) predicate.set(1, r)))));
                                                                       } else {
                                                                           return predicate.incomplete();
                                                                       }

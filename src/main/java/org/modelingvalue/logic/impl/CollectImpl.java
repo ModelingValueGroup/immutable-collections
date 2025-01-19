@@ -124,7 +124,7 @@ public final class CollectImpl extends PredicateImpl {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Match match(PredicateImpl declaration, Context context) {
+    public Conclusion infer(PredicateImpl declaration, InferContext context) {
         Map<VariableImpl, Object> localVars = ((CollectImpl) declaration).localVariables();
         int identityIndex = ((CollectImpl) declaration).identityIndex();
         int resultIndex = ((CollectImpl) declaration).resultIndex();
@@ -133,28 +133,28 @@ public final class CollectImpl extends PredicateImpl {
         PredicateImpl accum = accumulator();
         StructureImpl identity = accum.getStruct(identityIndex);
         Set<StructureImpl> result = Set.of(identity);
-        Match match = goalColl.setBinding(collector(), localVars).match(goalColl, context);
-        if (match.hasStackOverflow()) {
-            return match;
+        Conclusion conclusion = goalColl.setBinding(collector(), localVars).infer(goalColl, context);
+        if (conclusion.hasStackOverflow()) {
+            return conclusion;
         }
-        Set<List<PredicateImpl>> incomplete = match.incomplete();
-        for (PredicateImpl element : match.positive()) {
+        Set<List<PredicateImpl>> incomplete = conclusion.incomplete();
+        for (PredicateImpl element : conclusion.positive()) {
             Map<VariableImpl, Object> binding = goalColl.getBinding(element, Map.of());
             Set<StructureImpl> res = Set.of();
             for (StructureImpl r : result) {
                 PredicateImpl s = goalAccum.setBinding(accum, binding).set(identityIndex, r);
-                match = s.match(goalAccum, context);
-                if (match.hasStackOverflow()) {
-                    return match;
+                conclusion = s.infer(goalAccum, context);
+                if (conclusion.hasStackOverflow()) {
+                    return conclusion;
                 }
-                for (PredicateImpl am : match.positive()) {
+                for (PredicateImpl am : conclusion.positive()) {
                     res = res.add(am.getStruct(resultIndex));
                 }
-                incomplete = incomplete.addAll(match.incomplete());
+                incomplete = incomplete.addAll(conclusion.incomplete());
             }
             result = res;
         }
-        return Match.of(result.replaceAll(r -> set(2, accum.set(resultIndex, r))), incomplete);
+        return Conclusion.of(result.replaceAll(r -> set(2, accum.set(resultIndex, r))), incomplete);
     }
 
     @SuppressWarnings("rawtypes")

@@ -32,7 +32,7 @@ import org.modelingvalue.logic.Logic.LogicLambda;
 import org.modelingvalue.logic.Logic.Predicate;
 import org.modelingvalue.logic.Logic.Relation;
 import org.modelingvalue.logic.Logic.Structure;
-import org.modelingvalue.logic.impl.PredicateImpl.Match;
+import org.modelingvalue.logic.impl.Conclusion;
 import org.modelingvalue.logic.impl.StructureImpl;
 
 public final class Integers {
@@ -84,15 +84,15 @@ public final class Integers {
         if (ai != null && bi != null) {
             BigInteger r = BigInteger.valueOf(ai.compareTo(bi));
             if (ci != null) {
-                return Match.EMPTY.positive(ci.equals(r) ? Set.of(predicate) : Set.of());
+                return Conclusion.EMPTY.positive(ci.equals(r) ? Set.of(predicate) : Set.of());
             } else {
-                return Match.EMPTY.positive(Set.of(predicate.set(3, at.set(1, r))));
+                return Conclusion.EMPTY.positive(Set.of(predicate.set(3, at.set(1, r))));
             }
         } else if (BigInteger.ZERO.equals(ci)) {
             if (ai != null) {
-                return Match.EMPTY.positive(Set.of(predicate.set(2, at)));
+                return Conclusion.EMPTY.positive(Set.of(predicate.set(2, at)));
             } else if (bi != null) {
-                return Match.EMPTY.positive(Set.of(predicate.set(1, bt)));
+                return Conclusion.EMPTY.positive(Set.of(predicate.set(1, bt)));
             }
         }
         return predicate.incomplete();
@@ -111,13 +111,13 @@ public final class Integers {
         BigInteger bi = bt != null ? bt.getVal(1) : null;
         BigInteger ci = ct != null ? ct.getVal(1) : null;
         if (ai != null && bi != null && ci != null) {
-            return Match.EMPTY.positive(ai.add(bi).equals(ci) ? Set.of(predicate) : Set.of());
+            return Conclusion.EMPTY.positive(ai.add(bi).equals(ci) ? Set.of(predicate) : Set.of());
         } else if (ai != null && bi != null && ci == null) {
-            return Match.EMPTY.positive(Set.of(predicate.set(3, at.set(1, ai.add(bi)))));
+            return Conclusion.EMPTY.positive(Set.of(predicate.set(3, at.set(1, ai.add(bi)))));
         } else if (ai != null && bi == null && ci != null) {
-            return Match.EMPTY.positive(Set.of(predicate.set(2, at.set(1, ci.subtract(ai)))));
+            return Conclusion.EMPTY.positive(Set.of(predicate.set(2, at.set(1, ci.subtract(ai)))));
         } else if (ai == null && bi != null && ci != null) {
-            return Match.EMPTY.positive(Set.of(predicate.set(1, bt.set(1, ci.subtract(bi)))));
+            return Conclusion.EMPTY.positive(Set.of(predicate.set(1, bt.set(1, ci.subtract(bi)))));
         } else {
             return predicate.incomplete();
         }
@@ -136,13 +136,13 @@ public final class Integers {
         BigInteger bi = bt != null ? bt.getVal(1) : null;
         BigInteger ci = ct != null ? ct.getVal(1) : null;
         if (ai != null && bi != null && ci != null) {
-            return Match.EMPTY.positive(ai.multiply(bi).equals(ci) ? Set.of(predicate) : Set.of());
+            return Conclusion.EMPTY.positive(ai.multiply(bi).equals(ci) ? Set.of(predicate) : Set.of());
         } else if (ai != null && bi != null && ci == null) {
-            return Match.EMPTY.positive(Set.of(predicate.set(3, at.set(1, ai.multiply(bi)))));
+            return Conclusion.EMPTY.positive(Set.of(predicate.set(3, at.set(1, ai.multiply(bi)))));
         } else if (ai != null && bi == null && ci != null) {
-            return Match.EMPTY.positive(Set.of(predicate.set(2, at.set(1, ci.divide(ai)))));
+            return Conclusion.EMPTY.positive(Set.of(predicate.set(2, at.set(1, ci.divide(ai)))));
         } else if (ai == null && bi != null && ci != null) {
-            return Match.EMPTY.positive(Set.of(predicate.set(1, bt.set(1, ci.divide(bi)))));
+            return Conclusion.EMPTY.positive(Set.of(predicate.set(1, bt.set(1, ci.divide(bi)))));
         } else {
             return predicate.incomplete();
         }
@@ -159,12 +159,12 @@ public final class Integers {
         BigInteger ai = at != null ? at.getVal(1) : null;
         BigInteger bi = bt != null ? bt.getVal(1) : null;
         if (ai != null && bi != null) {
-            return Match.EMPTY.positive(ai.multiply(ai).equals(bi) ? Set.of(predicate) : Set.of());
+            return Conclusion.EMPTY.positive(ai.multiply(ai).equals(bi) ? Set.of(predicate) : Set.of());
         } else if (ai != null && bi == null) {
-            return Match.EMPTY.positive(Set.of(predicate.set(2, at.set(1, ai.multiply(ai)))));
+            return Conclusion.EMPTY.positive(Set.of(predicate.set(2, at.set(1, ai.multiply(ai)))));
         } else if (ai == null && bi != null) {
             BigInteger sqrt = bi.sqrt();
-            return Match.EMPTY.positive(Set.of(predicate.set(1, bt.set(1, sqrt)), predicate.set(1, bt.set(1, sqrt.negate()))));
+            return Conclusion.EMPTY.positive(Set.of(predicate.set(1, bt.set(1, sqrt)), predicate.set(1, bt.set(1, sqrt.negate()))));
         } else {
             return predicate.incomplete();
         }

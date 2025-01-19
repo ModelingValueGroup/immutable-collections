@@ -28,8 +28,6 @@ import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.Predicate;
 import org.modelingvalue.logic.Logic.Relation;
 import org.modelingvalue.logic.Logic.Rule;
-import org.modelingvalue.logic.impl.PredicateImpl.Context;
-import org.modelingvalue.logic.impl.PredicateImpl.Match;
 
 public final class RuleImpl extends StructureImpl<Rule> {
     private static final long              serialVersionUID   = -4602043866952049391L;
@@ -74,19 +72,19 @@ public final class RuleImpl extends StructureImpl<Rule> {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    protected Match eval(PredicateImpl declaration, Context context) {
+    protected Conclusion eval(PredicateImpl declaration, InferContext context) {
         PredicateImpl consequence = consequence();
         Map<VariableImpl, Object> binding = consequence.getBinding(declaration, Map.of());
         if (binding == null) {
-            return Match.EMPTY;
+            return Conclusion.EMPTY;
         }
         if (TRACE_LOGIC) {
             System.err.println("LOGIC " + "  ".repeat(context.stack().size()) + this + " " + binding.toString().substring(3));
         }
         PredicateImpl condition = condition();
-        Match match = condition.setBinding(condition, variables().putAll(binding)).match(condition, context);
-        Set<PredicateImpl> positive = match.positive().replaceAll(i -> consequence.setBinding(declaration, condition.getBinding(i, Map.of())));
-        return new Match() {
+        Conclusion conclusion = condition.setBinding(condition, variables().putAll(binding)).infer(condition, context);
+        Set<PredicateImpl> positive = conclusion.positive().replaceAll(i -> consequence.setBinding(declaration, condition.getBinding(i, Map.of())));
+        return new Conclusion() {
             @Override
             public Set<PredicateImpl> positive() {
                 return positive;
@@ -94,7 +92,7 @@ public final class RuleImpl extends StructureImpl<Rule> {
 
             @Override
             public Set<List<PredicateImpl>> incomplete() {
-                return match.incomplete();
+                return conclusion.incomplete();
             }
         };
     }

@@ -30,7 +30,7 @@ public final class VariableImpl<F extends Structure> extends StructureImpl<F> {
 
     public VariableImpl(Class<F> type, String name) {
         super(type, name);
-        DatabaseImpl.updateSpecializations(type);
+        KnowledgeBaseImpl.updateSpecializations(type);
     }
 
     private VariableImpl(Object[] args) {

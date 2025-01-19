@@ -49,7 +49,7 @@ import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.SerializableBiFunction;
 import org.modelingvalue.collections.util.SerializableFunction;
-import org.modelingvalue.logic.Database;
+import org.modelingvalue.logic.KnowledgeBase;
 import org.modelingvalue.logic.Integers.Integer;
 import org.modelingvalue.logic.Integers.IntegerCons;
 import org.modelingvalue.logic.Integers.IntegerFunc;
@@ -62,11 +62,11 @@ public class LogicTest {
 
     // Utilities
 
-    Database run(Runnable test) {
+    KnowledgeBase run(Runnable test) {
         return Logic.run(test);
     }
 
-    Database run(Runnable test, Database init) {
+    KnowledgeBase run(Runnable test, KnowledgeBase init) {
         return Logic.run(test, init);
     }
 
@@ -291,7 +291,7 @@ public class LogicTest {
     // @Test
     public void rulesTest() {
         @SuppressWarnings("unused")
-        Database db = run(() -> {
+        KnowledgeBase db = run(() -> {
             familyRules();
             fibonacciRules();
         });

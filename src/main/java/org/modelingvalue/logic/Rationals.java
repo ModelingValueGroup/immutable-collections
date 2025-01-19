@@ -29,7 +29,7 @@ import java.math.BigInteger;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Integers.IntegerCons;
 import org.modelingvalue.logic.Logic.*;
-import org.modelingvalue.logic.impl.PredicateImpl.Match;
+import org.modelingvalue.logic.impl.Conclusion;
 import org.modelingvalue.logic.impl.StructureImpl;
 
 public final class Rationals {
@@ -102,15 +102,15 @@ public final class Rationals {
             BigInteger b = bx.multiply(ay);
             BigInteger r = BigInteger.valueOf(a.compareTo(b));
             if (ci != null) {
-                return Match.EMPTY.positive(ci.equals(r) ? Set.of(predicate) : Set.of());
+                return Conclusion.EMPTY.positive(ci.equals(r) ? Set.of(predicate) : Set.of());
             } else {
-                return Match.EMPTY.positive(Set.of(predicate.set(3, at.set(1, r))));
+                return Conclusion.EMPTY.positive(Set.of(predicate.set(3, at.set(1, r))));
             }
         } else if (BigInteger.ZERO.equals(ci)) {
             if (at != null) {
-                return Match.EMPTY.positive(Set.of(predicate.set(2, at)));
+                return Conclusion.EMPTY.positive(Set.of(predicate.set(2, at)));
             } else if (bt != null) {
-                return Match.EMPTY.positive(Set.of(predicate.set(1, bt)));
+                return Conclusion.EMPTY.positive(Set.of(predicate.set(1, bt)));
             }
         }
         return predicate.incomplete();
@@ -135,19 +135,19 @@ public final class Rationals {
             BigInteger a = ax.multiply(by);
             BigInteger b = bx.multiply(ay);
             StructureImpl<RationalCons> pt = at.set(1, a.add(b), by.multiply(ay));
-            return Match.EMPTY.positive(pt.equals(ct) ? Set.of(predicate) : Set.of());
+            return Conclusion.EMPTY.positive(pt.equals(ct) ? Set.of(predicate) : Set.of());
         } else if (at != null && bt != null && ct == null) {
             BigInteger a = ax.multiply(by);
             BigInteger b = bx.multiply(ay);
-            return Match.EMPTY.positive(Set.of(predicate.set(3, at.set(1, a.add(b), by.multiply(ay)))));
+            return Conclusion.EMPTY.positive(Set.of(predicate.set(3, at.set(1, a.add(b), by.multiply(ay)))));
         } else if (at != null && bt == null && ct != null) {
             BigInteger a = ax.multiply(cy);
             BigInteger c = cx.multiply(ay);
-            return Match.EMPTY.positive(Set.of(predicate.set(2, at.set(1, c.subtract(a), cy.multiply(ay)))));
+            return Conclusion.EMPTY.positive(Set.of(predicate.set(2, at.set(1, c.subtract(a), cy.multiply(ay)))));
         } else if (at == null && bt != null && ct != null) {
             BigInteger b = bx.multiply(cy);
             BigInteger c = cx.multiply(by);
-            return Match.EMPTY.positive(Set.of(predicate.set(1, bt.set(1, c.subtract(b), cy.multiply(by)))));
+            return Conclusion.EMPTY.positive(Set.of(predicate.set(1, bt.set(1, c.subtract(b), cy.multiply(by)))));
         } else {
             return predicate.incomplete();
         }
@@ -170,13 +170,13 @@ public final class Rationals {
         BigInteger cy = ct != null ? ct.getVal(2) : null;
         if (at != null && bt != null && ct != null) {
             StructureImpl<RationalCons> mt = at.set(1, ax.multiply(bx), ay.multiply(by));
-            return Match.EMPTY.positive(mt.equals(ct) ? Set.of(predicate) : Set.of());
+            return Conclusion.EMPTY.positive(mt.equals(ct) ? Set.of(predicate) : Set.of());
         } else if (at != null && bt != null && ct == null) {
-            return Match.EMPTY.positive(Set.of(predicate.set(3, at.set(1, ax.multiply(bx), ay.multiply(by)))));
+            return Conclusion.EMPTY.positive(Set.of(predicate.set(3, at.set(1, ax.multiply(bx), ay.multiply(by)))));
         } else if (at != null && bt == null && ct != null) {
-            return Match.EMPTY.positive(Set.of(predicate.set(2, at.set(1, cx.multiply(ay), cy.multiply(ax)))));
+            return Conclusion.EMPTY.positive(Set.of(predicate.set(2, at.set(1, cx.multiply(ay), cy.multiply(ax)))));
         } else if (at == null && bt != null && ct != null) {
-            return Match.EMPTY.positive(Set.of(predicate.set(1, bt.set(1, cx.multiply(by), cy.multiply(bx)))));
+            return Conclusion.EMPTY.positive(Set.of(predicate.set(1, bt.set(1, cx.multiply(by), cy.multiply(bx)))));
         } else {
             return predicate.incomplete();
         }
@@ -194,15 +194,15 @@ public final class Rationals {
         BigInteger ay = at != null ? at.getVal(2) : null;
         if (at != null && bt != null) {
             StructureImpl<RationalCons> mt = at.set(1, ax.multiply(ax), ay.multiply(ay));
-            return Match.EMPTY.positive(mt.equals(bt) ? Set.of(predicate) : Set.of());
+            return Conclusion.EMPTY.positive(mt.equals(bt) ? Set.of(predicate) : Set.of());
         } else if (at != null && bt == null) {
-            return Match.EMPTY.positive(Set.of(predicate.set(2, at.set(1, ax.multiply(ax), ay.multiply(ay)))));
+            return Conclusion.EMPTY.positive(Set.of(predicate.set(2, at.set(1, ax.multiply(ax), ay.multiply(ay)))));
         } else if (at == null && bt != null) {
             BigInteger bx = bt.getVal(1);
             BigInteger by = bt.getVal(2);
             BigInteger sqrt = bx.multiply(by).sqrt();
             bt = bt.set(2, by.abs());
-            return Match.EMPTY.positive(Set.of(predicate.set(1, bt.set(1, sqrt)), predicate.set(1, bt.set(1, sqrt.negate()))));
+            return Conclusion.EMPTY.positive(Set.of(predicate.set(1, bt.set(1, sqrt)), predicate.set(1, bt.set(1, sqrt.negate()))));
         } else {
             return predicate.incomplete();
         }

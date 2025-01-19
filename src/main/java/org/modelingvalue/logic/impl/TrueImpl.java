@@ -30,7 +30,7 @@ public final class TrueImpl extends PredicateImpl {
 
     private static final FunctorImpl<Predicate> TRUE_FUNCTOR     = FunctorImpl.<Predicate> of(Logic::T);
 
-    private final Match                         TRUE             = Match.EMPTY.positive(Set.of(TrueImpl.this));
+    private final Conclusion                TRUE             = Conclusion.EMPTY.positive(Set.of(TrueImpl.this));
 
     public TrueImpl() {
         super(TRUE_FUNCTOR);
@@ -54,7 +54,7 @@ public final class TrueImpl extends PredicateImpl {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Match match(PredicateImpl declaration, Context context) {
+    public Conclusion infer(PredicateImpl declaration, InferContext context) {
         return TRUE;
     }
 

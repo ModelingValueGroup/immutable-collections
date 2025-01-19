@@ -34,7 +34,6 @@ import org.modelingvalue.collections.util.SerializableQuadFunction;
 import org.modelingvalue.collections.util.SerializableSupplier;
 import org.modelingvalue.collections.util.SerializableTriFunction;
 import org.modelingvalue.logic.impl.*;
-import org.modelingvalue.logic.impl.PredicateImpl.Match;
 
 public final class Logic {
 
@@ -43,12 +42,12 @@ public final class Logic {
 
     // Run
 
-    public static final Database run(Runnable runnable) {
-        return DatabaseImpl.run(runnable, null);
+    public static final KnowledgeBase run(Runnable runnable) {
+        return KnowledgeBaseImpl.run(runnable, null);
     }
 
-    public static final Database run(Runnable runnable, Database init) {
-        return DatabaseImpl.run(runnable, (DatabaseImpl) init);
+    public static final KnowledgeBase run(Runnable runnable, KnowledgeBase init) {
+        return KnowledgeBaseImpl.run(runnable, (KnowledgeBaseImpl) init);
     }
 
     // Structures
@@ -106,7 +105,7 @@ public final class Logic {
 
     @SuppressWarnings("rawtypes")
     @FunctionalInterface
-    public interface LogicLambda extends java.util.function.Function<PredicateImpl, Match>, LambdaReflection, FunctorModifier {
+    public interface LogicLambda extends java.util.function.Function<PredicateImpl, Conclusion>, LambdaReflection, FunctorModifier {
 
         @Override
         default LogicLambdaImpl of() {
@@ -122,7 +121,7 @@ public final class Logic {
 
             @SuppressWarnings("unchecked")
             @Override
-            public final Match apply(PredicateImpl predicate) {
+            public final Conclusion apply(PredicateImpl predicate) {
                 return f.apply(predicate);
             }
 
@@ -172,33 +171,33 @@ public final class Logic {
     }
 
     public static boolean isTrue(Predicate pred) {
-        Match match = match(pred);
-        return !match.positive().isEmpty();
+        Conclusion conclusion = infer(pred);
+        return !conclusion.positive().isEmpty();
     }
 
     public static boolean isFalse(Predicate pred) {
-        Match match = match(pred);
-        return match.positive().isEmpty() && match.incomplete().isEmpty();
+        Conclusion conclusion = infer(pred);
+        return conclusion.positive().isEmpty() && conclusion.incomplete().isEmpty();
     }
 
     public static boolean isIncomplete(Predicate pred) {
-        Match match = match(pred);
-        return !match.incomplete().isEmpty();
+        Conclusion conclusion = infer(pred);
+        return !conclusion.incomplete().isEmpty();
     }
 
     public static Set<Predicate> getInstances(Predicate pred) {
-        return match(pred).positive().addAll(null).replaceAll(StructureImpl::proxy);
+        return infer(pred).positive().addAll(null).replaceAll(StructureImpl::proxy);
     }
 
     public static Set<List<Predicate>> getIncomplete(Predicate pred) {
-        return match(pred).incomplete().replaceAll(l -> l.replaceAll(StructureImpl::proxy));
+        return infer(pred).incomplete().replaceAll(l -> l.replaceAll(StructureImpl::proxy));
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static Set<Map<Variable, Object>> getBindings(Predicate pred) {
         PredicateImpl impl = StructureImpl.<Predicate, PredicateImpl> unproxy(pred);
-        PredicateImpl.Match match = match(pred);
-        Set<Map<VariableImpl, Object>> bindings = match.positive().replaceAll(m -> impl.getBinding(m, Map.of()));
+        Conclusion conclusion = infer(pred);
+        Set<Map<VariableImpl, Object>> bindings = conclusion.positive().replaceAll(m -> impl.getBinding(m, Map.of()));
         return bindings.replaceAll(m -> m.replaceAll(e -> Entry.of((Variable) e.getKey().proxy(), proxy(e.getValue()))));
     }
 
@@ -207,13 +206,13 @@ public final class Logic {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static PredicateImpl.Match match(Predicate pred) {
-        return match(StructureImpl.<Predicate, PredicateImpl> unproxy(pred));
+    private static Conclusion infer(Predicate pred) {
+        return infer(StructureImpl.<Predicate, PredicateImpl> unproxy(pred));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static PredicateImpl.Match match(PredicateImpl impl) {
-        return impl.setBinding(impl, impl.variables()).match(impl, DatabaseImpl.CURRENT.get().context());
+    private static Conclusion infer(PredicateImpl impl) {
+        return impl.setBinding(impl, impl.variables()).infer(impl, KnowledgeBaseImpl.CURRENT.get().context());
     }
 
     @SuppressWarnings("rawtypes")
@@ -290,7 +289,7 @@ public final class Logic {
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static Rule rule(Relation consequence, Predicate condition) {
         RuleImpl ruleImpl = new RuleImpl(consequence, condition);
-        DatabaseImpl.CURRENT.get().addRule(ruleImpl);
+        KnowledgeBaseImpl.CURRENT.get().addRule(ruleImpl);
         return ruleImpl.proxy();
     }
 
@@ -298,7 +297,7 @@ public final class Logic {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static void fact(Relation pred) {
-        DatabaseImpl.CURRENT.get().addFact(StructureImpl.<Predicate, PredicateImpl> unproxy(pred));
+        KnowledgeBaseImpl.CURRENT.get().addFact(StructureImpl.<Predicate, PredicateImpl> unproxy(pred));
     }
 
     // Equals
@@ -313,12 +312,12 @@ public final class Logic {
         if (constant1 == null && constant2 == null) {
             return predicate.incomplete();
         } else if (constant1 == null) {
-            return Match.EMPTY.positive(Set.of(predicate.set(1, constant2)));
+            return Conclusion.EMPTY.positive(Set.of(predicate.set(1, constant2)));
         } else if (constant2 == null) {
-            return Match.EMPTY.positive(Set.of(predicate.set(2, constant1)));
+            return Conclusion.EMPTY.positive(Set.of(predicate.set(2, constant1)));
         } else {
             StructureImpl eq = constant1.eq(constant2);
-            return eq == null ? Match.EMPTY : Match.EMPTY.positive(Set.of(predicate.set(1, eq, eq)));
+            return eq == null ? Conclusion.EMPTY : Conclusion.EMPTY.positive(Set.of(predicate.set(1, eq, eq)));
         }
     });
 

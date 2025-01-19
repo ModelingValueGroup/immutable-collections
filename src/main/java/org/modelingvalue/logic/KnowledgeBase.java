@@ -26,7 +26,7 @@ import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Logic.Relation;
 import org.modelingvalue.logic.Logic.Rule;
 
-public interface Database {
+public interface KnowledgeBase {
 
     Map<Relation, List<Rule>> rules();
 
