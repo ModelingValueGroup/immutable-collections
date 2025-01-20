@@ -126,7 +126,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             if (stack.size() >= MAX_LOGIC_DEPTH || stack.lastIndexOf(this) >= 0) {
                 return context.incomplete(this);
             }
-            conclusion = fixpoint(rules, context.stack(this));
+            conclusion = fixpoint(rules, context.pushOnStack(this));
             if (stack.size() >= MAX_LOGIC_DEPTH_D2) {
                 List<PredicateImpl> overflow = conclusion.stackOverflow();
                 if (overflow != null) {
@@ -149,7 +149,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         KnowledgeBaseImpl knowledgebase = context.knowledgebase();
         while (todo.size() > 0) {
             PredicateImpl predicate = todo.last();
-            conclusion = predicate.fixpoint(knowledgebase.getRules(predicate), context.stack(predicate));
+            conclusion = predicate.fixpoint(knowledgebase.getRules(predicate), context.pushOnStack(predicate));
             overflow = conclusion.stackOverflow();
             if (overflow != null) {
                 todo = todo.appendList(overflow.sublist(stackSize, overflow.size()));
@@ -167,7 +167,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         Set<PredicateImpl> added = Set.of();
         boolean cycle = false;
         do {
-            next = inferRules(rules, added.isEmpty() ? context : context.cycleConclusion(this, added));
+            next = inferRules(rules, added.isEmpty() ? context : context.putCycleConclusion(this, added));
             if (next.hasStackOverflow()) {
                 return next;
             }

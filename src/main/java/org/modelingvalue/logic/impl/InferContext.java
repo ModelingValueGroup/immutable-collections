@@ -50,11 +50,11 @@ public interface InferContext {
         };
     }
 
-    default InferContext stack(PredicateImpl predicate) {
+    default InferContext pushOnStack(PredicateImpl predicate) {
         return of(knowledgebase(), stack().append(predicate), cycleConclusion());
     }
 
-    default InferContext cycleConclusion(PredicateImpl predicate, Set<PredicateImpl> facts) {
+    default InferContext putCycleConclusion(PredicateImpl predicate, Set<PredicateImpl> facts) {
         return of(knowledgebase(), stack(), cycleConclusion().put(predicate, Conclusion.of(facts)));
     }
 
