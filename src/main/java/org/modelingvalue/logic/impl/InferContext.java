@@ -29,7 +29,7 @@ public interface InferContext {
 
     List<PredicateImpl> stack();
 
-    Map<PredicateImpl, Conclusion> cyclic();
+    Map<PredicateImpl, Conclusion> cycleConclusion();
 
     static InferContext of(KnowledgeBaseImpl knowledgebase, List<PredicateImpl> stack, Map<PredicateImpl, Conclusion> cyclic) {
         return new InferContext() {
@@ -44,17 +44,22 @@ public interface InferContext {
             }
 
             @Override
-            public Map<PredicateImpl, Conclusion> cyclic() {
+            public Map<PredicateImpl, Conclusion> cycleConclusion() {
                 return cyclic;
             }
         };
     }
 
     default InferContext stack(PredicateImpl predicate) {
-        return of(knowledgebase(), stack().append(predicate), cyclic());
+        return of(knowledgebase(), stack().append(predicate), cycleConclusion());
     }
 
-    default InferContext cycle(PredicateImpl predicate, Set<PredicateImpl> facts) {
-        return of(knowledgebase(), stack(), cyclic().put(predicate, Conclusion.of(facts)));
+    default InferContext cycleConclusion(PredicateImpl predicate, Set<PredicateImpl> facts) {
+        return of(knowledgebase(), stack(), cycleConclusion().put(predicate, Conclusion.of(facts)));
     }
+
+    default Conclusion incomplete(PredicateImpl predicate) {
+        return Conclusion.of(stack().append(predicate));
+    }
+
 }

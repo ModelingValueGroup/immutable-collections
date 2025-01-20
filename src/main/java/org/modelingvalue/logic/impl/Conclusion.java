@@ -41,6 +41,20 @@ public interface Conclusion {
         }
     };
 
+    static Conclusion of(Set<PredicateImpl> positive) {
+        return new Conclusion() {
+            @Override
+            public Set<PredicateImpl> positive() {
+                return positive;
+            }
+
+            @Override
+            public Set<List<PredicateImpl>> incomplete() {
+                return Set.of();
+            }
+        };
+    }
+
     static Conclusion of(Set<PredicateImpl> positive, Set<List<PredicateImpl>> incomplete) {
         return new Conclusion() {
             @Override
@@ -55,16 +69,17 @@ public interface Conclusion {
         };
     }
 
-    static Conclusion of(Set<PredicateImpl> positive) {
+    static Conclusion of(List<PredicateImpl> incomplete) {
+        Set<List<PredicateImpl>> incompletes = Set.of(incomplete);
         return new Conclusion() {
             @Override
             public Set<PredicateImpl> positive() {
-                return positive;
+                return Set.of();
             }
 
             @Override
             public Set<List<PredicateImpl>> incomplete() {
-                return Set.of();
+                return incompletes;
             }
         };
     }

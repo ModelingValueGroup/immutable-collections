@@ -21,6 +21,7 @@
 package org.modelingvalue.logic;
 
 import java.lang.reflect.Proxy;
+import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 
 import org.modelingvalue.collections.Entry;
@@ -105,7 +106,7 @@ public final class Logic {
 
     @SuppressWarnings("rawtypes")
     @FunctionalInterface
-    public interface LogicLambda extends java.util.function.Function<PredicateImpl, Conclusion>, LambdaReflection, FunctorModifier {
+    public interface LogicLambda extends BiFunction<PredicateImpl, InferContext, Conclusion>, LambdaReflection, FunctorModifier {
 
         @Override
         default LogicLambdaImpl of() {
@@ -121,8 +122,8 @@ public final class Logic {
 
             @SuppressWarnings("unchecked")
             @Override
-            public final Conclusion apply(PredicateImpl predicate) {
-                return f.apply(predicate);
+            public final Conclusion apply(PredicateImpl predicate, InferContext context) {
+                return f.apply(predicate, context);
             }
 
         }
@@ -306,11 +307,11 @@ public final class Logic {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> EQ = Logic.<Predicate, Constant, Constant> functor(Logic::eq, (LogicLambda) predicate -> {
+    private static Functor<Predicate> EQ = Logic.<Predicate, Constant, Constant> functor(Logic::eq, (LogicLambda) (predicate, context) -> {
         StructureImpl constant1 = predicate.getVal(1);
         StructureImpl constant2 = predicate.getVal(2);
         if (constant1 == null && constant2 == null) {
-            return predicate.incomplete();
+            return context.incomplete(predicate);
         } else if (constant1 == null) {
             return Conclusion.of(Set.of(predicate.set(1, constant2)));
         } else if (constant2 == null) {

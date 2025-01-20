@@ -84,7 +84,7 @@ public final class Integers {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> compare = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::compare, (LogicLambda) predicate -> {
+    private static Functor<Predicate> compare = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::compare, (LogicLambda) (predicate, context) -> {
         BigInteger compared1 = predicate.getVal(1, 1);
         BigInteger compared2 = predicate.getVal(2, 1);
         BigInteger result = predicate.getVal(3, 1);
@@ -102,7 +102,7 @@ public final class Integers {
                 return Conclusion.of(Set.of(predicate.set(1, predicate.getVal(2))));
             }
         }
-        return predicate.incomplete();
+        return context.incomplete(predicate);
     });
 
     public static Predicate compare(IntegerCons a, IntegerCons b, IntegerCons c) {
@@ -110,7 +110,7 @@ public final class Integers {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> plusPred = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::plus, (LogicLambda) predicate -> {
+    private static Functor<Predicate> plusPred = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::plus, (LogicLambda) (predicate, context) -> {
         BigInteger addend1 = predicate.getVal(1, 1);
         BigInteger addend2 = predicate.getVal(2, 1);
         BigInteger sum = predicate.getVal(3, 1);
@@ -126,7 +126,7 @@ public final class Integers {
         } else if (addend2 != null && sum != null) {
             return Conclusion.of(Set.of(predicate.set(1, struct(sum.subtract(addend2)))));
         } else {
-            return predicate.incomplete();
+            return context.incomplete(predicate);
         }
     });
 
@@ -135,7 +135,7 @@ public final class Integers {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> multiplyPred = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::multiply, (LogicLambda) predicate -> {
+    private static Functor<Predicate> multiplyPred = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::multiply, (LogicLambda) (predicate, context) -> {
         BigInteger factor1 = predicate.getVal(1, 1);
         BigInteger factor2 = predicate.getVal(2, 1);
         BigInteger product = predicate.getVal(3, 1);
@@ -151,7 +151,7 @@ public final class Integers {
         } else if (factor2 != null && product != null) {
             return Conclusion.of(Set.of(predicate.set(1, struct(product.divide(factor2)))));
         } else {
-            return predicate.incomplete();
+            return context.incomplete(predicate);
         }
     });
 
@@ -160,7 +160,7 @@ public final class Integers {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> squarePred = Logic.<Predicate, IntegerCons, IntegerCons> functor(Integers::square, (LogicLambda) predicate -> {
+    private static Functor<Predicate> squarePred = Logic.<Predicate, IntegerCons, IntegerCons> functor(Integers::square, (LogicLambda) (predicate, context) -> {
         BigInteger root = predicate.getVal(1, 1);
         BigInteger square = predicate.getVal(2, 1);
         if (root != null && square != null) {
@@ -171,7 +171,7 @@ public final class Integers {
             BigInteger sqrt = square.sqrt();
             return Conclusion.of(Set.of(predicate.set(1, struct(sqrt)), predicate.set(1, struct(sqrt.negate()))));
         } else {
-            return predicate.incomplete();
+            return context.incomplete(predicate);
         }
     });
 

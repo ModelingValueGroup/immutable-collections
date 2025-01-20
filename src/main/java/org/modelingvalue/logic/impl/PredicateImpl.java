@@ -69,15 +69,6 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         return new PredicateImpl(array);
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    public Conclusion incomplete() {
-        return Conclusion.of(Set.of(), Set.of(List.of(this)));
-    }
-
-    private Conclusion incomplete(InferContext context) {
-        return Conclusion.of(Set.of(), Set.of(context.stack().append(this)));
-    }
-
     @SuppressWarnings("rawtypes")
     @Override
     public PredicateImpl setBinding(StructureImpl<Predicate> pred, Map<VariableImpl, Object> vars) {
@@ -110,11 +101,11 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         FunctorImpl<Predicate> functor = functor();
         LogicLambda logic = functor.logic();
         if (logic != null) {
-            return logic.apply((PredicateImpl) this);
+            return logic.apply((PredicateImpl) this, context);
         }
         int nrOfUnbound = nrOfUnbound();
         if (nrOfUnbound > 1 || (nrOfUnbound == 1 && functor.args().size() == 1)) {
-            return incomplete(context);
+            return context.incomplete(this);
         }
         KnowledgeBaseImpl knowledgebase = context.knowledgebase();
         Conclusion conclusion = knowledgebase.getFacts(this);
@@ -123,7 +114,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         }
         List<RuleImpl> rules = knowledgebase.getRules(this);
         if (rules != null) {
-            conclusion = context.cyclic().get(this);
+            conclusion = context.cycleConclusion().get(this);
             if (conclusion != null) {
                 return conclusion;
             }
@@ -133,7 +124,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             }
             List<PredicateImpl> stack = context.stack();
             if (stack.size() >= MAX_LOGIC_DEPTH || stack.lastIndexOf(this) >= 0) {
-                return incomplete(context);
+                return context.incomplete(this);
             }
             conclusion = fixpoint(rules, context.stack(this));
             if (stack.size() >= MAX_LOGIC_DEPTH_D2) {
@@ -176,7 +167,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         Set<PredicateImpl> added = Set.of();
         boolean cycle = false;
         do {
-            next = inferRules(rules, added.isEmpty() ? context : context.cycle(this, added));
+            next = inferRules(rules, added.isEmpty() ? context : context.cycleConclusion(this, added));
             if (next.hasStackOverflow()) {
                 return next;
             }

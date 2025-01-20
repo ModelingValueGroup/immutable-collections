@@ -55,7 +55,7 @@ public final class NotImpl extends PredicateImpl {
     @Override
     public Conclusion infer(PredicateImpl declaration, InferContext context) {
         if (nrOfUnbound() > 0) {
-            return incomplete();
+            return context.incomplete(this);
         }
         Conclusion conclusion = predicate().infer(((NotImpl) declaration).predicate(), context);
         return Conclusion.of(conclusion.positive().isEmpty() ? Set.of(this) : Set.of(), conclusion.incomplete());

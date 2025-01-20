@@ -92,7 +92,7 @@ public final class Lists {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static final FunctorImpl<Predicate> ADD_FUNCTOR       = FunctorImpl.<Predicate, Structure, ListCons, ListCons> of(Lists::add, (LogicLambda) predicate -> {
+    private static final FunctorImpl<Predicate> ADD_FUNCTOR       = FunctorImpl.<Predicate, Structure, ListCons, ListCons> of(Lists::add, (LogicLambda) (predicate, context) -> {
                                                                       StructureImpl<Structure> element = predicate.getVal(1);
                                                                       ListImpl<Structure> subListImpl = predicate.getVal(2);
                                                                       ListImpl<Structure> superListImpl = predicate.getVal(3);
@@ -110,7 +110,7 @@ public final class Lists {
                                                                           }
                                                                           return Conclusion.of(superlist.asSet().removeAll(sublist).replaceAll(r -> predicate.set(1, r)));
                                                                       } else {
-                                                                          return predicate.incomplete();
+                                                                          return context.incomplete(predicate);
                                                                       }
                                                                   });
     @SuppressWarnings("rawtypes")
