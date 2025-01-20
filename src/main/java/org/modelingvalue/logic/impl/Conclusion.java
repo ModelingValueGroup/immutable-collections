@@ -21,13 +21,18 @@
 package org.modelingvalue.logic.impl;
 
 import org.modelingvalue.collections.List;
+import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 
 public interface Conclusion {
 
     Set<PredicateImpl> facts();
 
+    Set<PredicateImpl> falsehoods();
+
     Set<List<PredicateImpl>> incomplete();
+
+    Set<List<PredicateImpl>> falseIncomplete();
 
     Conclusion EMPTY = new Conclusion() {
         @Override
@@ -36,26 +41,71 @@ public interface Conclusion {
         }
 
         @Override
+        public Set<PredicateImpl> falsehoods() {
+            return Set.of();
+        }
+
+        @Override
         public Set<List<PredicateImpl>> incomplete() {
+            return Set.of();
+        }
+
+        @Override
+        public Set<List<PredicateImpl>> falseIncomplete() {
             return Set.of();
         }
     };
 
-    static Conclusion of(Set<PredicateImpl> facts) {
+    static Conclusion of(Set<PredicateImpl> facts, Set<PredicateImpl> falsehoods) {
         return new Conclusion() {
             @Override
             public Set<PredicateImpl> facts() {
                 return facts;
+            }
+
+            @Override
+            public Set<PredicateImpl> falsehoods() {
+                return falsehoods;
             }
 
             @Override
             public Set<List<PredicateImpl>> incomplete() {
                 return Set.of();
             }
+
+            @Override
+            public Set<List<PredicateImpl>> falseIncomplete() {
+                return Set.of();
+            }
         };
     }
 
-    static Conclusion of(Set<PredicateImpl> facts, Set<List<PredicateImpl>> incomplete) {
+    static Conclusion of(Set<PredicateImpl> falsehoods, List<PredicateImpl> falseIncomplete) {
+        Set<List<PredicateImpl>> falseIncompletes = Set.of(falseIncomplete);
+        return new Conclusion() {
+            @Override
+            public Set<PredicateImpl> facts() {
+                return Set.of();
+            }
+
+            @Override
+            public Set<PredicateImpl> falsehoods() {
+                return falsehoods;
+            }
+
+            @Override
+            public Set<List<PredicateImpl>> incomplete() {
+                return Set.of();
+            }
+
+            @Override
+            public Set<List<PredicateImpl>> falseIncomplete() {
+                return falseIncompletes;
+            }
+        };
+    }
+
+    static Conclusion of(Set<PredicateImpl> facts, Set<PredicateImpl> falsehoods, Set<List<PredicateImpl>> incomplete, Set<List<PredicateImpl>> falseIncomplete) {
         return new Conclusion() {
             @Override
             public Set<PredicateImpl> facts() {
@@ -63,8 +113,18 @@ public interface Conclusion {
             }
 
             @Override
+            public Set<PredicateImpl> falsehoods() {
+                return falsehoods;
+            }
+
+            @Override
             public Set<List<PredicateImpl>> incomplete() {
                 return incomplete;
+            }
+
+            @Override
+            public Set<List<PredicateImpl>> falseIncomplete() {
+                return falseIncomplete;
             }
         };
     }
@@ -78,14 +138,35 @@ public interface Conclusion {
             }
 
             @Override
+            public Set<PredicateImpl> falsehoods() {
+                return Set.of();
+            }
+
+            @Override
             public Set<List<PredicateImpl>> incomplete() {
+                return incompletes;
+            }
+
+            @Override
+            public Set<List<PredicateImpl>> falseIncomplete() {
                 return incompletes;
             }
         };
     }
 
     default Conclusion add(Conclusion conclusion) {
-        return of(facts().addAll(conclusion.facts()), incomplete().addAll(conclusion.incomplete()));
+        return of(facts().addAll(conclusion.facts()), falsehoods().addAll(conclusion.falsehoods()), //
+                incomplete().addAll(conclusion.incomplete()), falseIncomplete().addAll(conclusion.falseIncomplete()));
+    }
+
+    default Conclusion bind(PredicateImpl fromDecl, PredicateImpl to, PredicateImpl toDecl) {
+        return of(facts().replaceAll(p -> toDecl.setBinding(to, fromDecl.getBinding(p, Map.of()))), //
+                falsehoods().replaceAll(p -> toDecl.setBinding(to, fromDecl.getBinding(p, Map.of()))), //
+                incomplete(), falseIncomplete());
+    }
+
+    default Conclusion not() {
+        return of(falsehoods(), facts(), falseIncomplete(), incomplete());
     }
 
     default boolean hasCycleWith(PredicateImpl predicate) {

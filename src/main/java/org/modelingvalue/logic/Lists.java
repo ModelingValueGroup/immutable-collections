@@ -31,7 +31,9 @@ import org.modelingvalue.logic.Logic.Predicate;
 import org.modelingvalue.logic.Logic.Structure;
 import org.modelingvalue.logic.impl.Conclusion;
 import org.modelingvalue.logic.impl.FunctorImpl;
+import org.modelingvalue.logic.impl.InferContext;
 import org.modelingvalue.logic.impl.ListImpl;
+import org.modelingvalue.logic.impl.PredicateImpl;
 import org.modelingvalue.logic.impl.StructureImpl;
 
 public final class Lists {
@@ -92,29 +94,34 @@ public final class Lists {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static final FunctorImpl<Predicate> ADD_FUNCTOR       = FunctorImpl.<Predicate, Structure, ListCons, ListCons> of(Lists::add, (LogicLambda) (predicate, context) -> {
-                                                                      StructureImpl<Structure> element = predicate.getVal(1);
-                                                                      ListImpl<Structure> subListImpl = predicate.getVal(2);
-                                                                      ListImpl<Structure> superListImpl = predicate.getVal(3);
-                                                                      org.modelingvalue.collections.List<StructureImpl<Structure>> sublist = subListImpl != null ? subListImpl.list() : null;
-                                                                      org.modelingvalue.collections.List<StructureImpl<Structure>> superlist = superListImpl != null ? superListImpl.list() : null;
-                                                                      if (element != null && sublist != null && superlist != null) {
-                                                                          return Conclusion.of(addOrdered(sublist, element).equals(superlist) ? Set.of(predicate) : Set.of());
-                                                                      } else if (element != null && sublist != null && superlist == null) {
-                                                                          return Conclusion.of(Set.of(predicate.set(3, ListImpl.of(addOrdered(sublist, element)))));
-                                                                      } else if (element != null && sublist == null && superlist != null) {
-                                                                          return Conclusion.of(permRemove(superlist, element).replaceAll(l -> predicate.set(2, ListImpl.of(l))));
-                                                                      } else if (element == null && sublist != null && superlist != null) {
-                                                                          if (sublist.anyMatch(superlist::notContains)) {
-                                                                              return Conclusion.EMPTY;
-                                                                          }
-                                                                          return Conclusion.of(superlist.asSet().removeAll(sublist).replaceAll(r -> predicate.set(1, r)));
-                                                                      } else {
-                                                                          return context.incomplete(predicate);
-                                                                      }
-                                                                  });
+    private static final FunctorImpl<Predicate> ADD_FUNCTOR = FunctorImpl.<Predicate, Structure, ListCons, ListCons> of(Lists::add, (LogicLambda) Lists::addLogic);
+
+    private static Conclusion addLogic(PredicateImpl predicate, InferContext context) {
+        StructureImpl<Structure> element = predicate.getVal(1);
+        ListImpl<Structure> subListImpl = predicate.getVal(2);
+        ListImpl<Structure> superListImpl = predicate.getVal(3);
+        org.modelingvalue.collections.List<StructureImpl<Structure>> sublist = subListImpl != null ? subListImpl.list() : null;
+        org.modelingvalue.collections.List<StructureImpl<Structure>> superlist = superListImpl != null ? superListImpl.list() : null;
+        if (element != null && sublist != null && superlist != null) {
+            boolean eq = addOrdered(sublist, element).equals(superlist);
+            return Conclusion.of(eq ? Set.of(predicate) : Set.of(), eq ? Set.of() : Set.of(predicate));
+        } else if (element != null && sublist != null && superlist == null) {
+            return Conclusion.of(Set.of(predicate.set(3, ListImpl.of(addOrdered(sublist, element)))), Set.of());
+        } else if (element != null && sublist == null && superlist != null) {
+            return Conclusion.of(permRemove(superlist, element).replaceAll(l -> predicate.set(2, ListImpl.of(l))), Set.of());
+        } else if (element == null && sublist != null && superlist != null) {
+            if (sublist.anyMatch(superlist::notContains)) {
+                return Conclusion.EMPTY;
+            } else {
+                return Conclusion.of(superlist.asSet().removeAll(sublist).replaceAll(r -> predicate.set(1, r)), Set.of());
+            }
+        } else {
+            return Conclusion.of(context.stack(predicate));
+        }
+    }
+
     @SuppressWarnings("rawtypes")
-    private static final Functor<Predicate>     ADD_FUNCTOR_PROXY = ADD_FUNCTOR.proxy();
+    private static final Functor<Predicate> ADD_FUNCTOR_PROXY = ADD_FUNCTOR.proxy();
 
     public static <E extends Structure> Predicate add(E e, ListCons<E> i, ListCons<E> o) {
         return pred(ADD_FUNCTOR_PROXY, e, i, o);

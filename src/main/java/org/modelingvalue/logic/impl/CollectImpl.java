@@ -132,12 +132,13 @@ public final class CollectImpl extends PredicateImpl {
         PredicateImpl goalAccum = ((CollectImpl) declaration).accumulator();
         PredicateImpl accum = accumulator();
         StructureImpl identity = accum.getVal(identityIndex);
-        Set<StructureImpl> result = Set.of(identity);
         Conclusion conclusion = goalColl.setBinding(collector(), localVars).infer(goalColl, context);
         if (conclusion.hasStackOverflow()) {
             return conclusion;
         }
         Set<List<PredicateImpl>> incomplete = conclusion.incomplete();
+        Set<List<PredicateImpl>> falseIncomplete = conclusion.falseIncomplete();
+        Set<StructureImpl> result = Set.of(identity);
         for (PredicateImpl element : conclusion.facts()) {
             Map<VariableImpl, Object> binding = goalColl.getBinding(element, Map.of());
             Set<StructureImpl> res = Set.of();
@@ -151,10 +152,11 @@ public final class CollectImpl extends PredicateImpl {
                     res = res.add(am.getVal(resultIndex));
                 }
                 incomplete = incomplete.addAll(conclusion.incomplete());
+                falseIncomplete = falseIncomplete.addAll(conclusion.falseIncomplete());
             }
             result = res;
         }
-        return Conclusion.of(result.replaceAll(r -> set(2, accum.set(resultIndex, r))), incomplete);
+        return Conclusion.of(result.replaceAll(r -> set(2, accum.set(resultIndex, r))), Set.of(), incomplete, falseIncomplete);
     }
 
     @SuppressWarnings("rawtypes")

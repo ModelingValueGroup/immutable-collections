@@ -21,7 +21,6 @@
 package org.modelingvalue.logic.impl;
 
 import org.modelingvalue.collections.Map;
-import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.Predicate;
@@ -71,19 +70,21 @@ public final class RuleImpl extends StructureImpl<Rule> {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    protected Conclusion infer(PredicateImpl declaration, InferContext context) {
-        PredicateImpl consequence = consequence();
-        Map<VariableImpl, Object> binding = consequence.getBinding(declaration, Map.of());
+    protected Conclusion infer(PredicateImpl consequence, InferContext context) {
+        PredicateImpl conseqDecl = consequence();
+        Map<VariableImpl, Object> binding = conseqDecl.getBinding(consequence, Map.of());
         if (binding == null) {
             return Conclusion.EMPTY;
         }
-        if (TRACE_LOGIC) {
-            System.err.println("LOGIC " + "  ".repeat(context.stack().size()) + this + " " + binding.toString().substring(3));
-        }
         PredicateImpl condition = condition();
         Conclusion conclusion = condition.setBinding(condition, variables().putAll(binding)).infer(condition, context);
-        Set<PredicateImpl> facts = conclusion.facts().replaceAll(i -> consequence.setBinding(declaration, condition.getBinding(i, Map.of())));
-        return Conclusion.of(facts, conclusion.incomplete());
+        conclusion = conclusion.bind(condition, consequence, conseqDecl);
+        if (TRACE_LOGIC) {
+            System.err.println("LOGIC " + "  ".repeat(context.stack().size()) + this + " " + //
+                    binding.toString().substring(3) + " -> " + //
+                    conclusion.facts().toString().substring(3));
+        }
+        return conclusion;
     }
 
     public int rulePrio() {

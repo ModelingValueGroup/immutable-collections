@@ -30,6 +30,8 @@ import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Integers.IntegerCons;
 import org.modelingvalue.logic.Logic.*;
 import org.modelingvalue.logic.impl.Conclusion;
+import org.modelingvalue.logic.impl.InferContext;
+import org.modelingvalue.logic.impl.PredicateImpl;
 import org.modelingvalue.logic.impl.StructureImpl;
 
 public final class Rationals {
@@ -46,11 +48,11 @@ public final class Rationals {
     public interface RationalFunc extends Rational, Function<Rational> {
     }
 
-    private static Functor<RationalCons> r = Logic.<RationalCons, BigInteger, BigInteger> functor(Rationals::r, (NormalizeLambda) t -> {
-        BigInteger numerator = t.getVal(1);
-        BigInteger denominator = t.getVal(2);
+    private static Functor<RationalCons> r = Logic.<RationalCons, BigInteger, BigInteger> functor(Rationals::r, (NormalizeLambda) r -> {
+        BigInteger numerator = r.getVal(1);
+        BigInteger denominator = r.getVal(2);
         BigInteger gcd = numerator.gcd(denominator);
-        return t.set(1, numerator.divide(gcd), denominator.divide(gcd));
+        return r.set(1, numerator.divide(gcd), denominator.divide(gcd));
     });
 
     public static RationalCons r(BigInteger numerator, BigInteger denominator) {
@@ -98,7 +100,10 @@ public final class Rationals {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> compare = Logic.<Predicate, RationalCons, RationalCons, IntegerCons> functor(Rationals::compare, (LogicLambda) (predicate, context) -> {
+    private static Functor<Predicate> compare = Logic.<Predicate, RationalCons, RationalCons, IntegerCons> functor(Rationals::compare, (LogicLambda) Rationals::compareLogic);
+
+    @SuppressWarnings("rawtypes")
+    private static Conclusion compareLogic(PredicateImpl predicate, InferContext context) {
         BigInteger numComp1 = predicate.getVal(1, 1);
         BigInteger denComp1 = predicate.getVal(1, 2);
         BigInteger numComp2 = predicate.getVal(2, 1);
@@ -107,26 +112,32 @@ public final class Rationals {
         if (numComp1 != null && numComp2 != null) {
             int r = numComp1.multiply(denComp2).compareTo(numComp2.multiply(denComp1));
             if (result != null) {
-                return Conclusion.of(r == result.intValue() ? Set.of(predicate) : Set.of());
+                boolean eq = r == result.intValue();
+                return Conclusion.of(eq ? Set.of(predicate) : Set.of(), eq ? Set.of() : Set.of(predicate));
             } else {
-                return Conclusion.of(Set.of(predicate.set(3, r == 0 ? ZERO_INT : r == 1 ? ONE_INT : MINUS_ONE_INT)));
+                return Conclusion.of(Set.of(predicate.set(3, r == 0 ? ZERO_INT : r == 1 ? ONE_INT : MINUS_ONE_INT)), Set.of());
             }
-        } else if (BigInteger.ZERO.equals(result)) {
+        } else if (result != null) {
+            boolean zero = BigInteger.ZERO.equals(result);
             if (numComp1 != null) {
-                return Conclusion.of(Set.of(predicate.set(2, predicate.getVal(1))));
+                Set<PredicateImpl> facts = Set.of(predicate.set(2, (StructureImpl) predicate.getVal(1)));
+                return zero ? Conclusion.of(facts, Set.of()) : Conclusion.of(facts, context.stack(predicate));
             } else if (numComp2 != null) {
-                return Conclusion.of(Set.of(predicate.set(1, predicate.getVal(2))));
+                Set<PredicateImpl> facts = Set.of(predicate.set(1, (StructureImpl) predicate.getVal(2)));
+                return zero ? Conclusion.of(facts, Set.of()) : Conclusion.of(facts, context.stack(predicate));
             }
         }
-        return context.incomplete(predicate);
-    });
+        return Conclusion.of(context.stack(predicate));
+    }
 
     public static Predicate compare(RationalCons a, RationalCons b, IntegerCons c) {
         return pred(compare, a, b, c);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> plusPred = Logic.<Predicate, RationalCons, RationalCons, RationalCons> functor(Rationals::plus, (LogicLambda) (predicate, context) -> {
+    private static Functor<Predicate> plusPred = Logic.<Predicate, RationalCons, RationalCons, RationalCons> functor(Rationals::plus, (LogicLambda) Rationals::plusLogic);
+
+    private static Conclusion plusLogic(PredicateImpl predicate, InferContext context) {
         BigInteger numAddend1 = predicate.getVal(1, 1);
         BigInteger denAddend1 = predicate.getVal(1, 2);
         BigInteger numAddend2 = predicate.getVal(2, 1);
@@ -138,29 +149,32 @@ public final class Rationals {
             BigInteger b = numAddend2.multiply(denAddend1);
             StructureImpl<RationalCons> s = struct(a.add(b), denAddend1.multiply(denAddend2));
             if (numSum != null) {
-                return Conclusion.of(s.equals(predicate.getVal(3)) ? Set.of(predicate) : Set.of());
+                boolean eq = s.equals(predicate.getVal(3));
+                return Conclusion.of(eq ? Set.of(predicate) : Set.of(), eq ? Set.of() : Set.of(predicate));
             } else {
-                return Conclusion.of(Set.of(predicate.set(3, s)));
+                return Conclusion.of(Set.of(predicate.set(3, s)), Set.of());
             }
         } else if (numAddend1 != null && numSum != null) {
             BigInteger a = numAddend1.multiply(denSum);
             BigInteger c = numSum.multiply(denAddend1);
-            return Conclusion.of(Set.of(predicate.set(2, struct(c.subtract(a), denSum.multiply(denAddend1)))));
+            return Conclusion.of(Set.of(predicate.set(2, struct(c.subtract(a), denSum.multiply(denAddend1)))), Set.of());
         } else if (numAddend2 != null && numSum != null) {
             BigInteger b = numAddend2.multiply(denSum);
             BigInteger c = numSum.multiply(denAddend2);
-            return Conclusion.of(Set.of(predicate.set(1, struct(c.subtract(b), denSum.multiply(denAddend2)))));
+            return Conclusion.of(Set.of(predicate.set(1, struct(c.subtract(b), denSum.multiply(denAddend2)))), Set.of());
         } else {
-            return context.incomplete(predicate);
+            return Conclusion.of(context.stack(predicate));
         }
-    });
+    }
 
     public static Predicate plus(RationalCons a, RationalCons b, RationalCons r) {
         return pred(plusPred, a, b, r);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> multiplyPred = Logic.<Predicate, RationalCons, RationalCons, RationalCons> functor(Rationals::multiply, (LogicLambda) (predicate, context) -> {
+    private static Functor<Predicate> multiplyPred = Logic.<Predicate, RationalCons, RationalCons, RationalCons> functor(Rationals::multiply, (LogicLambda) Rationals::multiplyLogic);
+
+    private static Conclusion multiplyLogic(PredicateImpl predicate, InferContext context) {
         BigInteger numFactor1 = predicate.getVal(1, 1);
         BigInteger denFactor1 = predicate.getVal(1, 2);
         BigInteger numFactor2 = predicate.getVal(2, 1);
@@ -170,25 +184,28 @@ public final class Rationals {
         if (numFactor1 != null && numFactor2 != null) {
             StructureImpl<RationalCons> p = struct(numFactor1.multiply(numFactor2), denFactor1.multiply(denFactor2));
             if (numProduct != null) {
-                return Conclusion.of(p.equals(predicate.getVal(3)) ? Set.of(predicate) : Set.of());
+                boolean eq = p.equals(predicate.getVal(3));
+                return Conclusion.of(eq ? Set.of(predicate) : Set.of(), eq ? Set.of() : Set.of(predicate));
             } else {
-                return Conclusion.of(Set.of(predicate.set(3, p)));
+                return Conclusion.of(Set.of(predicate.set(3, p)), Set.of());
             }
         } else if (numFactor1 != null && numProduct != null) {
-            return Conclusion.of(Set.of(predicate.set(2, struct(numProduct.multiply(denFactor1), denProduct.multiply(numFactor1)))));
+            return Conclusion.of(Set.of(predicate.set(2, struct(numProduct.multiply(denFactor1), denProduct.multiply(numFactor1)))), Set.of());
         } else if (numFactor2 != null && numProduct != null) {
-            return Conclusion.of(Set.of(predicate.set(1, struct(numProduct.multiply(denFactor2), denProduct.multiply(numFactor2)))));
+            return Conclusion.of(Set.of(predicate.set(1, struct(numProduct.multiply(denFactor2), denProduct.multiply(numFactor2)))), Set.of());
         } else {
-            return context.incomplete(predicate);
+            return Conclusion.of(context.stack(predicate));
         }
-    });
+    }
 
     public static Predicate multiply(RationalCons a, RationalCons b, RationalCons r) {
         return pred(multiplyPred, a, b, r);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> squarePred = Logic.<Predicate, RationalCons, RationalCons> functor(Rationals::square, (LogicLambda) (predicate, context) -> {
+    private static Functor<Predicate> squarePred = Logic.<Predicate, RationalCons, RationalCons> functor(Rationals::square, (LogicLambda) Rationals::squareLogic);
+
+    private static Conclusion squareLogic(PredicateImpl predicate, InferContext context) {
         BigInteger numRoot = predicate.getVal(1, 1);
         BigInteger denRoot = predicate.getVal(1, 2);
         BigInteger numSquare = predicate.getVal(2, 1);
@@ -196,18 +213,19 @@ public final class Rationals {
         if (numRoot != null) {
             StructureImpl<RationalCons> s = struct(numRoot.multiply(numRoot), denRoot.multiply(denRoot));
             if (numSquare != null) {
-                return Conclusion.of(s.equals(predicate.getVal(2)) ? Set.of(predicate) : Set.of());
+                boolean eq = s.equals(predicate.getVal(2));
+                return Conclusion.of(eq ? Set.of(predicate) : Set.of(), eq ? Set.of() : Set.of(predicate));
             } else {
-                return Conclusion.of(Set.of(predicate.set(2, s)));
+                return Conclusion.of(Set.of(predicate.set(2, s)), Set.of());
             }
         } else if (numSquare != null) {
             BigInteger sqrt = numSquare.multiply(denSquare).sqrt();
             BigInteger abs = denSquare.abs();
-            return Conclusion.of(Set.of(predicate.set(1, struct(sqrt, abs)), predicate.set(1, struct(sqrt.negate(), abs))));
+            return Conclusion.of(Set.of(predicate.set(1, struct(sqrt, abs)), predicate.set(1, struct(sqrt.negate(), abs))), Set.of());
         } else {
-            return context.incomplete(predicate);
+            return Conclusion.of(context.stack(predicate));
         }
-    });
+    }
 
     public static Predicate square(RationalCons a, RationalCons r) {
         return pred(squarePred, a, r);

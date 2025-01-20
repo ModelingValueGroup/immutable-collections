@@ -54,12 +54,12 @@ public interface InferContext {
         return of(knowledgebase(), stack().append(predicate), cycleConclusion());
     }
 
-    default InferContext putCycleConclusion(PredicateImpl predicate, Set<PredicateImpl> facts) {
-        return of(knowledgebase(), stack(), cycleConclusion().put(predicate, Conclusion.of(facts)));
+    default InferContext putCycleConclusion(PredicateImpl predicate, Set<PredicateImpl> facts, Set<PredicateImpl> falsehoods) {
+        return of(knowledgebase(), stack(), cycleConclusion().put(predicate, Conclusion.of(facts, falsehoods)));
     }
 
-    default Conclusion incomplete(PredicateImpl predicate) {
-        return Conclusion.of(stack().append(predicate));
+    default List<PredicateImpl> stack(PredicateImpl predicate) {
+        return stack().append(predicate);
     }
 
 }

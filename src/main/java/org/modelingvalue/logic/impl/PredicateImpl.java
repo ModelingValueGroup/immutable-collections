@@ -105,7 +105,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         }
         int nrOfUnbound = nrOfUnbound();
         if (nrOfUnbound > 1 || (nrOfUnbound == 1 && functor.args().size() == 1)) {
-            return context.incomplete(this);
+            return Conclusion.of(context.stack(this));
         }
         KnowledgeBaseImpl knowledgebase = context.knowledgebase();
         Conclusion conclusion = knowledgebase.getFacts(this);
@@ -124,7 +124,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             }
             List<PredicateImpl> stack = context.stack();
             if (stack.size() >= MAX_LOGIC_DEPTH || stack.lastIndexOf(this) >= 0) {
-                return context.incomplete(this);
+                return Conclusion.of(stack.append(this));
             }
             conclusion = fixpoint(rules, context.pushOnStack(this));
             if (stack.size() >= MAX_LOGIC_DEPTH_D2) {
@@ -163,37 +163,38 @@ public class PredicateImpl extends StructureImpl<Predicate> {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private Conclusion fixpoint(List<RuleImpl> rules, InferContext context) {
-        Conclusion conclusion = Conclusion.EMPTY, next;
-        Set<PredicateImpl> added = Set.of();
+        Conclusion result = Conclusion.EMPTY, conclusion;
+        Set<PredicateImpl> addedFacts = Set.of(), addedFalsehoods = Set.of();
         boolean cycle = false;
         do {
-            next = inferRules(rules, added.isEmpty() ? context : context.putCycleConclusion(this, added));
-            if (next.hasStackOverflow()) {
-                return next;
+            conclusion = inferRules(rules, addedFacts.isEmpty() && addedFalsehoods.isEmpty() ? context : context.putCycleConclusion(this, addedFacts, addedFalsehoods));
+            if (conclusion.hasStackOverflow()) {
+                return conclusion;
             }
-            added = next.facts().removeAll(conclusion.facts());
-            cycle |= conclusion == Conclusion.EMPTY && !added.isEmpty() && next.hasCycleWith(this);
-            if (cycle && conclusion == Conclusion.EMPTY) {
-                conclusion = Conclusion.of(added);
+            addedFacts = conclusion.facts().removeAll(result.facts());
+            addedFalsehoods = conclusion.falsehoods().removeAll(result.falsehoods());
+            cycle |= result == Conclusion.EMPTY && !(addedFacts.isEmpty() && addedFalsehoods.isEmpty()) && conclusion.hasCycleWith(this);
+            if (cycle && result == Conclusion.EMPTY) {
+                result = Conclusion.of(addedFacts, addedFalsehoods);
             } else {
-                conclusion = conclusion.add(next);
+                result = result.add(conclusion);
             }
-        } while (cycle && !added.isEmpty());
-        return conclusion;
+        } while (cycle && !(addedFacts.isEmpty() && addedFalsehoods.isEmpty()));
+        return result;
     }
 
     @SuppressWarnings("rawtypes")
     private Conclusion inferRules(List<RuleImpl> rules, InferContext context) {
-        Conclusion conclusion = Conclusion.EMPTY, eval;
+        Conclusion result = Conclusion.EMPTY, conclusion;
         for (RuleImpl rule : rules) {
-            eval = rule.infer(this, context);
-            if (eval.hasStackOverflow()) {
-                return eval;
+            conclusion = rule.infer(this, context);
+            if (conclusion.hasStackOverflow()) {
+                return conclusion;
             } else {
-                conclusion = conclusion.add(eval);
+                result = result.add(conclusion);
             }
         }
-        return conclusion;
+        return result;
     }
 
     @SuppressWarnings("rawtypes")

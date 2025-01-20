@@ -21,8 +21,6 @@
 package org.modelingvalue.logic.impl;
 
 import org.modelingvalue.collections.List;
-import org.modelingvalue.collections.Map;
-import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Logic.Predicate;
 
 public final class OrImpl extends PredicateImpl {
@@ -84,8 +82,7 @@ public final class OrImpl extends PredicateImpl {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public Conclusion infer(PredicateImpl declaration, InferContext context) {
-        Set<PredicateImpl> facts = Set.of();
-        Set<List<PredicateImpl>> incomplete = Set.of();
+        Conclusion result = Conclusion.EMPTY;
         for (int[] i : ((OrImpl) declaration).idxList()) {
             PredicateImpl declPred = declaration.getVal(i);
             PredicateImpl pred = getVal(i);
@@ -93,11 +90,10 @@ public final class OrImpl extends PredicateImpl {
             if (conclusion.hasStackOverflow()) {
                 return conclusion;
             } else {
-                facts = facts.addAll(conclusion.facts().replaceAll(p -> declaration.setBinding(this, declPred.getBinding(p, Map.of()))));
-                incomplete = incomplete.addAll(conclusion.incomplete());
+                result = result.add(conclusion.bind(declPred, this, declaration));
             }
         }
-        return Conclusion.of(facts, incomplete);
+        return result;
     }
 
     @Override

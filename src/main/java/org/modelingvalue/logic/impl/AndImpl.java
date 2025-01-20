@@ -21,7 +21,6 @@
 package org.modelingvalue.logic.impl;
 
 import org.modelingvalue.collections.List;
-import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Logic.Predicate;
 
@@ -86,7 +85,7 @@ public final class AndImpl extends PredicateImpl {
     public Conclusion infer(PredicateImpl declaration, InferContext context) {
         idxList = ((AndImpl) declaration).idxList();
         Set<PredicateImpl> facts = Set.of();
-        Set<List<PredicateImpl>> incomplete = Set.of(), tmpIncomplete;
+        Conclusion result = Conclusion.EMPTY, tmpResult;
         Set<AndImpl> ands1 = Set.of(this), ands2;
         do {
             ands2 = ands1;
@@ -97,7 +96,7 @@ public final class AndImpl extends PredicateImpl {
                 if (idxl.isEmpty()) {
                     facts = facts.add(and);
                 } else {
-                    tmpIncomplete = Set.of();
+                    tmpResult = Conclusion.EMPTY;
                     for (int ii = 0; ii < idxl.size(); ii++) {
                         int[] i = idxl.get(ii);
                         PredicateImpl declPred = declaration.getVal(i);
@@ -106,24 +105,23 @@ public final class AndImpl extends PredicateImpl {
                         if (conclusion.hasStackOverflow()) {
                             return conclusion;
                         }
+                        conclusion = conclusion.bind(declPred, this, declaration);
                         if (conclusion.incomplete().isEmpty()) {
                             List<int[]> iil = idxl.removeIndex(ii);
-                            ands1 = ands1.addAll(conclusion.facts().replaceAll(p -> {
-                                AndImpl a = (AndImpl) declaration.setBinding(and, declPred.getBinding(p, Map.of()));
-                                a.idxList = iil;
-                                return a;
-                            }));
+                            conclusion.facts().forEach(f -> ((AndImpl) f).idxList = iil);
+                            ands1 = ands1.addAll((Set) conclusion.facts());
+                            result = result.add(Conclusion.of(Set.of(), conclusion.falsehoods()));
                             continue outer;
                         } else {
-                            tmpIncomplete = tmpIncomplete.addAll(conclusion.incomplete());
+                            tmpResult = tmpResult.add(conclusion);
                         }
                     }
-                    incomplete = incomplete.addAll(tmpIncomplete);
+                    result = result.add(tmpResult);
                 }
-
             }
         } while (!ands1.isEmpty());
-        return Conclusion.of(facts, incomplete);
+        return Conclusion.of(facts, result.falsehoods(), result.incomplete(), result.falseIncomplete());
+
     }
 
     @Override

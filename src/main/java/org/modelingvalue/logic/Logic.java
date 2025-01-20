@@ -306,21 +306,24 @@ public final class Logic {
     public interface Constant<T extends Structure> extends Structure {
     }
 
+    @SuppressWarnings("rawtypes")
+    private static Functor<Predicate> EQ = Logic.<Predicate, Constant, Constant> functor(Logic::eq, (LogicLambda) Logic::eqLogic);
+
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> EQ = Logic.<Predicate, Constant, Constant> functor(Logic::eq, (LogicLambda) (predicate, context) -> {
+    private static Conclusion eqLogic(PredicateImpl predicate, InferContext context) {
         StructureImpl constant1 = predicate.getVal(1);
         StructureImpl constant2 = predicate.getVal(2);
         if (constant1 == null && constant2 == null) {
-            return context.incomplete(predicate);
+            return Conclusion.of(context.stack(predicate));
         } else if (constant1 == null) {
-            return Conclusion.of(Set.of(predicate.set(1, constant2)));
+            return Conclusion.of(Set.of(predicate.set(1, constant2)), Set.of());
         } else if (constant2 == null) {
-            return Conclusion.of(Set.of(predicate.set(2, constant1)));
+            return Conclusion.of(Set.of(predicate.set(2, constant1)), Set.of());
         } else {
             StructureImpl eq = constant1.eq(constant2);
-            return eq == null ? Conclusion.EMPTY : Conclusion.of(Set.of(predicate.set(1, eq, eq)));
+            return eq != null ? Conclusion.of(Set.of(predicate.set(1, eq, eq)), Set.of()) : Conclusion.of(Set.of(predicate), context.stack(predicate));
         }
-    });
+    }
 
     @SuppressWarnings("rawtypes")
     public static <T extends Structure> Predicate eq(Constant<T> a, Constant<T> b) {

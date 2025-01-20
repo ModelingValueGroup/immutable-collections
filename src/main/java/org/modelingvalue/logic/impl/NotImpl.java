@@ -21,7 +21,6 @@
 package org.modelingvalue.logic.impl;
 
 import org.modelingvalue.collections.Map;
-import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Logic;
 import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.Predicate;
@@ -54,11 +53,9 @@ public final class NotImpl extends PredicateImpl {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public Conclusion infer(PredicateImpl declaration, InferContext context) {
-        if (nrOfUnbound() > 0) {
-            return context.incomplete(this);
-        }
-        Conclusion conclusion = predicate().infer(((NotImpl) declaration).predicate(), context);
-        return Conclusion.of(conclusion.facts().isEmpty() ? Set.of(this) : Set.of(), conclusion.incomplete());
+        PredicateImpl declPred = ((NotImpl) declaration).predicate();
+        Conclusion conclusion = predicate().infer(declPred, context);
+        return conclusion.bind(declPred, this, declaration).not();
     }
 
     @SuppressWarnings("rawtypes")
