@@ -82,8 +82,8 @@ public final class RuleImpl extends StructureImpl<Rule> {
         }
         PredicateImpl condition = condition();
         Conclusion conclusion = condition.setBinding(condition, variables().putAll(binding)).infer(condition, context);
-        Set<PredicateImpl> positive = conclusion.positive().replaceAll(i -> consequence.setBinding(declaration, condition.getBinding(i, Map.of())));
-        return Conclusion.of(positive, conclusion.incomplete());
+        Set<PredicateImpl> facts = conclusion.facts().replaceAll(i -> consequence.setBinding(declaration, condition.getBinding(i, Map.of())));
+        return Conclusion.of(facts, conclusion.incomplete());
     }
 
     public int rulePrio() {

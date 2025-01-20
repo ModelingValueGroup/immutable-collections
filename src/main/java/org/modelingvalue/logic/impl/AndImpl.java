@@ -85,7 +85,7 @@ public final class AndImpl extends PredicateImpl {
     @Override
     public Conclusion infer(PredicateImpl declaration, InferContext context) {
         idxList = ((AndImpl) declaration).idxList();
-        Set<PredicateImpl> positive = Set.of();
+        Set<PredicateImpl> facts = Set.of();
         Set<List<PredicateImpl>> incomplete = Set.of(), tmpIncomplete;
         Set<AndImpl> ands1 = Set.of(this), ands2;
         do {
@@ -95,7 +95,7 @@ public final class AndImpl extends PredicateImpl {
             for (AndImpl and : ands2) {
                 List<int[]> idxl = and.idxList;
                 if (idxl.isEmpty()) {
-                    positive = positive.add(and);
+                    facts = facts.add(and);
                 } else {
                     tmpIncomplete = Set.of();
                     for (int ii = 0; ii < idxl.size(); ii++) {
@@ -108,7 +108,7 @@ public final class AndImpl extends PredicateImpl {
                         }
                         if (conclusion.incomplete().isEmpty()) {
                             List<int[]> iil = idxl.removeIndex(ii);
-                            ands1 = ands1.addAll(conclusion.positive().replaceAll(p -> {
+                            ands1 = ands1.addAll(conclusion.facts().replaceAll(p -> {
                                 AndImpl a = (AndImpl) declaration.setBinding(and, declPred.getBinding(p, Map.of()));
                                 a.idxList = iil;
                                 return a;
@@ -123,7 +123,7 @@ public final class AndImpl extends PredicateImpl {
 
             }
         } while (!ands1.isEmpty());
-        return Conclusion.of(positive, incomplete);
+        return Conclusion.of(facts, incomplete);
     }
 
     @Override

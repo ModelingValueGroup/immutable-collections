@@ -138,7 +138,7 @@ public final class CollectImpl extends PredicateImpl {
             return conclusion;
         }
         Set<List<PredicateImpl>> incomplete = conclusion.incomplete();
-        for (PredicateImpl element : conclusion.positive()) {
+        for (PredicateImpl element : conclusion.facts()) {
             Map<VariableImpl, Object> binding = goalColl.getBinding(element, Map.of());
             Set<StructureImpl> res = Set.of();
             for (StructureImpl r : result) {
@@ -147,7 +147,7 @@ public final class CollectImpl extends PredicateImpl {
                 if (conclusion.hasStackOverflow()) {
                     return conclusion;
                 }
-                for (PredicateImpl am : conclusion.positive()) {
+                for (PredicateImpl am : conclusion.facts()) {
                     res = res.add(am.getVal(resultIndex));
                 }
                 incomplete = incomplete.addAll(conclusion.incomplete());

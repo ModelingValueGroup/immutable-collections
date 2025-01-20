@@ -84,7 +84,7 @@ public final class OrImpl extends PredicateImpl {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public Conclusion infer(PredicateImpl declaration, InferContext context) {
-        Set<PredicateImpl> positive = Set.of();
+        Set<PredicateImpl> facts = Set.of();
         Set<List<PredicateImpl>> incomplete = Set.of();
         for (int[] i : ((OrImpl) declaration).idxList()) {
             PredicateImpl declPred = declaration.getVal(i);
@@ -93,11 +93,11 @@ public final class OrImpl extends PredicateImpl {
             if (conclusion.hasStackOverflow()) {
                 return conclusion;
             } else {
-                positive = positive.addAll(conclusion.positive().replaceAll(p -> declaration.setBinding(this, declPred.getBinding(p, Map.of()))));
+                facts = facts.addAll(conclusion.facts().replaceAll(p -> declaration.setBinding(this, declPred.getBinding(p, Map.of()))));
                 incomplete = incomplete.addAll(conclusion.incomplete());
             }
         }
-        return Conclusion.of(positive, incomplete);
+        return Conclusion.of(facts, incomplete);
     }
 
     @Override

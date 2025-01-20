@@ -173,12 +173,12 @@ public final class Logic {
 
     public static boolean isTrue(Predicate pred) {
         Conclusion conclusion = infer(pred);
-        return !conclusion.positive().isEmpty();
+        return !conclusion.facts().isEmpty();
     }
 
     public static boolean isFalse(Predicate pred) {
         Conclusion conclusion = infer(pred);
-        return conclusion.positive().isEmpty() && conclusion.incomplete().isEmpty();
+        return conclusion.facts().isEmpty() && conclusion.incomplete().isEmpty();
     }
 
     public static boolean isIncomplete(Predicate pred) {
@@ -187,7 +187,7 @@ public final class Logic {
     }
 
     public static Set<Predicate> getInstances(Predicate pred) {
-        return infer(pred).positive().addAll(null).replaceAll(StructureImpl::proxy);
+        return infer(pred).facts().addAll(null).replaceAll(StructureImpl::proxy);
     }
 
     public static Set<List<Predicate>> getIncomplete(Predicate pred) {
@@ -198,7 +198,7 @@ public final class Logic {
     public static Set<Map<Variable, Object>> getBindings(Predicate pred) {
         PredicateImpl impl = StructureImpl.<Predicate, PredicateImpl> unproxy(pred);
         Conclusion conclusion = infer(pred);
-        Set<Map<VariableImpl, Object>> bindings = conclusion.positive().replaceAll(m -> impl.getBinding(m, Map.of()));
+        Set<Map<VariableImpl, Object>> bindings = conclusion.facts().replaceAll(m -> impl.getBinding(m, Map.of()));
         return bindings.replaceAll(m -> m.replaceAll(e -> Entry.of((Variable) e.getKey().proxy(), proxy(e.getValue()))));
     }
 

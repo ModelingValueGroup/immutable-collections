@@ -25,13 +25,13 @@ import org.modelingvalue.collections.Set;
 
 public interface Conclusion {
 
-    Set<PredicateImpl> positive();
+    Set<PredicateImpl> facts();
 
     Set<List<PredicateImpl>> incomplete();
 
     Conclusion EMPTY = new Conclusion() {
         @Override
-        public Set<PredicateImpl> positive() {
+        public Set<PredicateImpl> facts() {
             return Set.of();
         }
 
@@ -41,11 +41,11 @@ public interface Conclusion {
         }
     };
 
-    static Conclusion of(Set<PredicateImpl> positive) {
+    static Conclusion of(Set<PredicateImpl> facts) {
         return new Conclusion() {
             @Override
-            public Set<PredicateImpl> positive() {
-                return positive;
+            public Set<PredicateImpl> facts() {
+                return facts;
             }
 
             @Override
@@ -55,11 +55,11 @@ public interface Conclusion {
         };
     }
 
-    static Conclusion of(Set<PredicateImpl> positive, Set<List<PredicateImpl>> incomplete) {
+    static Conclusion of(Set<PredicateImpl> facts, Set<List<PredicateImpl>> incomplete) {
         return new Conclusion() {
             @Override
-            public Set<PredicateImpl> positive() {
-                return positive;
+            public Set<PredicateImpl> facts() {
+                return facts;
             }
 
             @Override
@@ -73,7 +73,7 @@ public interface Conclusion {
         Set<List<PredicateImpl>> incompletes = Set.of(incomplete);
         return new Conclusion() {
             @Override
-            public Set<PredicateImpl> positive() {
+            public Set<PredicateImpl> facts() {
                 return Set.of();
             }
 
@@ -85,7 +85,7 @@ public interface Conclusion {
     }
 
     default Conclusion add(Conclusion conclusion) {
-        return of(positive().addAll(conclusion.positive()), incomplete().addAll(conclusion.incomplete()));
+        return of(facts().addAll(conclusion.facts()), incomplete().addAll(conclusion.incomplete()));
     }
 
     default boolean hasCycleWith(PredicateImpl predicate) {

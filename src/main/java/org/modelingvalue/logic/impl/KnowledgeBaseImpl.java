@@ -205,7 +205,7 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
     public Map<Relation, Set<Relation>> facts() {
         return facts.get().replaceAll(e -> {
             Relation k = (Relation) e.getKey().proxy();
-            Set<Relation> v = e.getValue().positive().replaceAll(p -> (Relation) p.proxy());
+            Set<Relation> v = e.getValue().facts().replaceAll(p -> (Relation) p.proxy());
             return Entry.of(k, v);
         });
     }
@@ -217,7 +217,7 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
             if (functor.factual()) {
                 facts.updateAndGet(map -> {
                     map = map.put(predicate, conclusion);
-                    for (PredicateImpl p : conclusion.positive()) {
+                    for (PredicateImpl p : conclusion.facts()) {
                         map = map.put(p, ADD_FACT.apply(map.get(p), p));
                     }
                     return map;
@@ -226,7 +226,7 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
                 QualifiedSet<PredicateImpl, Inference>[] mem = memoization.updateAndGet(array -> {
                     array = array.clone();
                     array[0] = array[0].put(new Inference(predicate, conclusion));
-                    for (PredicateImpl p : conclusion.positive()) {
+                    for (PredicateImpl p : conclusion.facts()) {
                         array[0] = array[0].put(new Inference(p, Conclusion.of(Set.of(p))));
                     }
                     if (array[0].size() >= MAX_LOGIC_MEMOIZ_D4) {

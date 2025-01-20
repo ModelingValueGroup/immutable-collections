@@ -171,7 +171,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             if (next.hasStackOverflow()) {
                 return next;
             }
-            added = next.positive().removeAll(conclusion.positive());
+            added = next.facts().removeAll(conclusion.facts());
             cycle |= conclusion == Conclusion.EMPTY && !added.isEmpty() && next.hasCycleWith(this);
             if (cycle && conclusion == Conclusion.EMPTY) {
                 conclusion = Conclusion.of(added);
