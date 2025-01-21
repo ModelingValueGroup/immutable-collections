@@ -85,7 +85,7 @@ public final class AndImpl extends PredicateImpl {
     public InferResult infer(PredicateImpl declaration, InferContext context) {
         idxList = ((AndImpl) declaration).idxList();
         Set<PredicateImpl> facts = Set.of();
-        InferResult result = InferResult.EMPTY, tmpResult;
+        InferResult result = InferResult.EMPTY, tmpResult, andResult;
         Set<AndImpl> nextAnds = Set.of(this), prevAnds;
         do {
             prevAnds = nextAnds;
@@ -105,15 +105,15 @@ public final class AndImpl extends PredicateImpl {
                         if (predResult.hasStackOverflow()) {
                             return predResult;
                         }
-                        predResult = predResult.bind(declPred, and, declaration);
-                        if (predResult.incomplete().isEmpty()) {
+                        andResult = predResult.bind(declPred, and, declaration);
+                        if (andResult.incomplete().isEmpty()) {
                             List<int[]> iil = idxl.removeIndex(ii);
-                            predResult.facts().forEach(f -> ((AndImpl) f).idxList = iil);
-                            nextAnds = nextAnds.addAll((Set) predResult.facts());
-                            result = result.add(predResult);
+                            andResult.facts().forEach(f -> ((AndImpl) f).idxList = iil);
+                            nextAnds = nextAnds.addAll((Set) andResult.facts());
+                            result = result.add(andResult);
                             continue outer;
                         } else {
-                            tmpResult = tmpResult.add(predResult);
+                            tmpResult = tmpResult.add(andResult);
                         }
                     }
                     result = result.add(tmpResult);
