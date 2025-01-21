@@ -101,19 +101,19 @@ public final class AndImpl extends PredicateImpl {
                         int[] i = idxl.get(ii);
                         PredicateImpl declPred = declaration.getVal(i);
                         PredicateImpl pred = and.getVal(i);
-                        InferResult conclusion = pred.infer(declPred, context);
-                        if (conclusion.hasStackOverflow()) {
-                            return conclusion;
+                        InferResult predResult = pred.infer(declPred, context);
+                        if (predResult.hasStackOverflow()) {
+                            return predResult;
                         }
-                        conclusion = conclusion.bind(declPred, and, declaration);
-                        if (conclusion.incomplete().isEmpty()) {
+                        predResult = predResult.bind(declPred, and, declaration);
+                        if (predResult.incomplete().isEmpty()) {
                             List<int[]> iil = idxl.removeIndex(ii);
-                            conclusion.facts().forEach(f -> ((AndImpl) f).idxList = iil);
-                            nextAnds = nextAnds.addAll((Set) conclusion.facts());
-                            result = result.add(InferResult.of(Set.of(), conclusion.falsehoods()));
+                            predResult.facts().forEach(f -> ((AndImpl) f).idxList = iil);
+                            nextAnds = nextAnds.addAll((Set) predResult.facts());
+                            result = result.add(InferResult.of(Set.of(), predResult.falsehoods()));
                             continue outer;
                         } else {
-                            tmpResult = tmpResult.add(conclusion);
+                            tmpResult = tmpResult.add(predResult);
                         }
                     }
                     result = result.add(tmpResult);

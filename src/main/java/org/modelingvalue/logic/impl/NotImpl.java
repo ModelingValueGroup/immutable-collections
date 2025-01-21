@@ -54,8 +54,8 @@ public final class NotImpl extends PredicateImpl {
     @Override
     public InferResult infer(PredicateImpl declaration, InferContext context) {
         PredicateImpl declPred = ((NotImpl) declaration).predicate();
-        InferResult conclusion = predicate().infer(declPred, context);
-        return conclusion.bind(declPred, this, declaration).not();
+        InferResult result = predicate().infer(declPred, context);
+        return result.bind(declPred, this, declaration).not();
     }
 
     @SuppressWarnings("rawtypes")

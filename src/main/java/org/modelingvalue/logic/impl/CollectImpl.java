@@ -132,31 +132,31 @@ public final class CollectImpl extends PredicateImpl {
         PredicateImpl goalAccum = ((CollectImpl) declaration).accumulator();
         PredicateImpl accum = accumulator();
         StructureImpl identity = accum.getVal(identityIndex);
-        InferResult conclusion = goalColl.setBinding(collector(), localVars).infer(goalColl, context);
-        if (conclusion.hasStackOverflow()) {
-            return conclusion;
+        InferResult result = goalColl.setBinding(collector(), localVars).infer(goalColl, context);
+        if (result.hasStackOverflow()) {
+            return result;
         }
-        Set<List<PredicateImpl>> incomplete = conclusion.incomplete();
-        Set<List<PredicateImpl>> falseIncomplete = conclusion.falseIncomplete();
-        Set<StructureImpl> result = Set.of(identity);
-        for (PredicateImpl element : conclusion.facts()) {
+        Set<List<PredicateImpl>> incomplete = result.incomplete();
+        Set<List<PredicateImpl>> falseIncomplete = result.falseIncomplete();
+        Set<StructureImpl> facts = Set.of(identity);
+        for (PredicateImpl element : result.facts()) {
             Map<VariableImpl, Object> binding = goalColl.getBinding(element, Map.of());
             Set<StructureImpl> res = Set.of();
-            for (StructureImpl r : result) {
+            for (StructureImpl r : facts) {
                 PredicateImpl s = goalAccum.setBinding(accum, binding).set(identityIndex, r);
-                conclusion = s.infer(goalAccum, context);
-                if (conclusion.hasStackOverflow()) {
-                    return conclusion;
+                result = s.infer(goalAccum, context);
+                if (result.hasStackOverflow()) {
+                    return result;
                 }
-                for (PredicateImpl am : conclusion.facts()) {
+                for (PredicateImpl am : result.facts()) {
                     res = res.add(am.getVal(resultIndex));
                 }
-                incomplete = incomplete.addAll(conclusion.incomplete());
-                falseIncomplete = falseIncomplete.addAll(conclusion.falseIncomplete());
+                incomplete = incomplete.addAll(result.incomplete());
+                falseIncomplete = falseIncomplete.addAll(result.falseIncomplete());
             }
-            result = res;
+            facts = res;
         }
-        return InferResult.of(result.replaceAll(r -> set(2, accum.set(resultIndex, r))), Set.of(), incomplete, falseIncomplete);
+        return InferResult.of(facts.replaceAll(r -> set(2, accum.set(resultIndex, r))), Set.of(), incomplete, falseIncomplete);
     }
 
     @SuppressWarnings("rawtypes")

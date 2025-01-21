@@ -108,76 +108,76 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             return InferResult.of(context.stack(this));
         }
         KnowledgeBaseImpl knowledgebase = context.knowledgebase();
-        InferResult conclusion = knowledgebase.getFacts(this);
-        if (conclusion != null) {
-            return conclusion;
+        InferResult result = knowledgebase.getFacts(this);
+        if (result != null) {
+            return result;
         }
         List<RuleImpl> rules = knowledgebase.getRules(this);
         if (rules != null) {
-            conclusion = context.cycleConclusion().get(this);
-            if (conclusion != null) {
-                return conclusion;
+            result = context.cycleConclusion().get(this);
+            if (result != null) {
+                return result;
             }
-            conclusion = knowledgebase.getMemoiz(this);
-            if (conclusion != null) {
-                return conclusion;
+            result = knowledgebase.getMemoiz(this);
+            if (result != null) {
+                return result;
             }
             List<PredicateImpl> stack = context.stack();
             if (stack.size() >= MAX_LOGIC_DEPTH || stack.lastIndexOf(this) >= 0) {
                 return InferResult.of(stack.append(this));
             }
-            conclusion = fixpoint(rules, context.pushOnStack(this));
+            result = fixpoint(rules, context.pushOnStack(this));
             if (stack.size() >= MAX_LOGIC_DEPTH_D2) {
-                List<PredicateImpl> overflow = conclusion.stackOverflow();
+                List<PredicateImpl> overflow = result.stackOverflow();
                 if (overflow != null) {
                     if (stack.size() == MAX_LOGIC_DEPTH_D2) {
-                        return flatten(conclusion, overflow, context);
+                        return flatten(result, overflow, context);
                     }
-                    return conclusion;
+                    return result;
                 }
             }
-            knowledgebase.memoization(this, conclusion);
-            return conclusion;
+            knowledgebase.memoization(this, result);
+            return result;
         }
         return InferResult.EMPTY;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static InferResult flatten(InferResult conclusion, List<PredicateImpl> overflow, InferContext context) {
+    private static InferResult flatten(InferResult result, List<PredicateImpl> overflow, InferContext context) {
         int stackSize = context.stack().size();
         List<PredicateImpl> todo = overflow.sublist(stackSize, overflow.size());
         KnowledgeBaseImpl knowledgebase = context.knowledgebase();
         while (todo.size() > 0) {
             PredicateImpl predicate = todo.last();
-            conclusion = predicate.fixpoint(knowledgebase.getRules(predicate), context.pushOnStack(predicate));
-            overflow = conclusion.stackOverflow();
+            result = predicate.fixpoint(knowledgebase.getRules(predicate), context.pushOnStack(predicate));
+            overflow = result.stackOverflow();
             if (overflow != null) {
                 todo = todo.appendList(overflow.sublist(stackSize, overflow.size()));
             } else {
-                knowledgebase.memoization(predicate, conclusion);
+                knowledgebase.memoization(predicate, result);
                 todo = todo.removeLast();
             }
         }
-        return conclusion;
+        return result;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private InferResult fixpoint(List<RuleImpl> rules, InferContext context) {
-        InferResult result = InferResult.EMPTY, conclusion;
+        InferResult result = InferResult.EMPTY, ruleResult;
         Set<PredicateImpl> addedFacts = Set.of(), addedFalsehoods = Set.of();
         boolean cycle = false;
         do {
-            conclusion = inferRules(rules, addedFacts.isEmpty() && addedFalsehoods.isEmpty() ? context : context.putCycleConclusion(this, addedFacts, addedFalsehoods));
-            if (conclusion.hasStackOverflow()) {
-                return conclusion;
+            ruleResult = inferRules(rules, addedFacts.isEmpty() && addedFalsehoods.isEmpty() ? context : context.putCycleConclusion(this, addedFacts, addedFalsehoods));
+            if (ruleResult.hasStackOverflow()) {
+                return ruleResult;
             }
-            addedFacts = conclusion.facts().removeAll(result.facts());
-            addedFalsehoods = conclusion.falsehoods().removeAll(result.falsehoods());
-            cycle |= result == InferResult.EMPTY && !(addedFacts.isEmpty() && addedFalsehoods.isEmpty()) && conclusion.hasCycleWith(this);
+            addedFacts = ruleResult.facts().removeAll(result.facts());
+            addedFalsehoods = ruleResult.falsehoods().removeAll(result.falsehoods());
+            cycle |= result == InferResult.EMPTY && !(addedFacts.isEmpty() && addedFalsehoods.isEmpty()) && ruleResult.hasCycleWith(this);
             if (cycle && result == InferResult.EMPTY) {
                 result = InferResult.of(addedFacts, addedFalsehoods);
             } else {
-                result = result.add(conclusion);
+                result = result.add(ruleResult);
             }
         } while (cycle && !(addedFacts.isEmpty() && addedFalsehoods.isEmpty()));
         return result;
@@ -185,13 +185,13 @@ public class PredicateImpl extends StructureImpl<Predicate> {
 
     @SuppressWarnings("rawtypes")
     private InferResult inferRules(List<RuleImpl> rules, InferContext context) {
-        InferResult result = InferResult.EMPTY, conclusion;
+        InferResult result = InferResult.EMPTY, ruleResult;
         for (RuleImpl rule : rules) {
-            conclusion = rule.infer(this, context);
-            if (conclusion.hasStackOverflow()) {
-                return conclusion;
+            ruleResult = rule.infer(this, context);
+            if (ruleResult.hasStackOverflow()) {
+                return ruleResult;
             } else {
-                result = result.add(conclusion);
+                result = result.add(ruleResult);
             }
         }
         return result;

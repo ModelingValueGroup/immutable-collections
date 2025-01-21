@@ -55,7 +55,7 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
     private static final int                                                  MAX_LOGIC_MEMOIZ_D4 = KnowledgeBaseImpl.MAX_LOGIC_MEMOIZ / 4;
     private static final int                                                  INITIAL_USAGE_COUNT = Integer.getInteger("INITIAL_USAGE_COUNT", 4);
     @SuppressWarnings("rawtypes")
-    private static final BiFunction<InferResult, PredicateImpl, InferResult>    ADD_FACT            = (s, p) -> {
+    private static final BiFunction<InferResult, PredicateImpl, InferResult>  ADD_FACT            = (s, p) -> {
                                                                                                       InferResult m = InferResult.of(Set.of(p), Set.of());
                                                                                                       return s == null ? m : s.add(m);
                                                                                                   };
@@ -86,15 +86,15 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
 
         public int                count            = INITIAL_USAGE_COUNT;
 
-        public Inference(PredicateImpl predicate, InferResult conclusion) {
-            super(predicate, conclusion);
+        public Inference(PredicateImpl predicate, InferResult result) {
+            super(predicate, result);
         }
 
         public PredicateImpl premise() {
             return get0();
         }
 
-        public InferResult conclusion() {
+        public InferResult result() {
             return get1();
         }
 
@@ -160,7 +160,7 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
         return specs;
     }
 
-    private final AtomicReference<Map<PredicateImpl, InferResult>>           facts;
+    private final AtomicReference<Map<PredicateImpl, InferResult>>          facts;
     private final AtomicReference<Map<PredicateImpl, List<RuleImpl>>>       rules;
     private final AtomicReference<QualifiedSet<PredicateImpl, Inference>[]> memoization;
     private final InferContext                                              context = InferContext.of(KnowledgeBaseImpl.this, List.of(), Map.of());
@@ -186,7 +186,7 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
             Inference memoiz = m.get(pred);
             if (memoiz != null) {
                 memoiz.count++;
-                return memoiz.conclusion();
+                return memoiz.result();
             }
         }
         return null;
@@ -211,13 +211,13 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void memoization(PredicateImpl predicate, InferResult conclusion) {
-        if (conclusion.incomplete().isEmpty()) {
+    public void memoization(PredicateImpl predicate, InferResult result) {
+        if (result.incomplete().isEmpty()) {
             FunctorImpl<Predicate> functor = predicate.functor();
             if (functor.factual()) {
                 facts.updateAndGet(map -> {
-                    map = map.put(predicate, conclusion);
-                    for (PredicateImpl p : conclusion.facts()) {
+                    map = map.put(predicate, result);
+                    for (PredicateImpl p : result.facts()) {
                         map = map.put(p, ADD_FACT.apply(map.get(p), p));
                     }
                     return map;
@@ -225,8 +225,8 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
             } else if (!functor.derived()) {
                 QualifiedSet<PredicateImpl, Inference>[] mem = memoization.updateAndGet(array -> {
                     array = array.clone();
-                    array[0] = array[0].put(new Inference(predicate, conclusion));
-                    for (PredicateImpl p : conclusion.facts()) {
+                    array[0] = array[0].put(new Inference(predicate, result));
+                    for (PredicateImpl p : result.facts()) {
                         array[0] = array[0].put(new Inference(p, InferResult.of(Set.of(p), Set.of())));
                     }
                     if (array[0].size() >= MAX_LOGIC_MEMOIZ_D4) {

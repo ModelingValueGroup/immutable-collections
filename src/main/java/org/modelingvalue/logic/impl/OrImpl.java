@@ -86,11 +86,11 @@ public final class OrImpl extends PredicateImpl {
         for (int[] i : ((OrImpl) declaration).idxList()) {
             PredicateImpl declPred = declaration.getVal(i);
             PredicateImpl pred = getVal(i);
-            InferResult conclusion = pred.infer(declPred, context);
-            if (conclusion.hasStackOverflow()) {
-                return conclusion;
+            InferResult predResult = pred.infer(declPred, context);
+            if (predResult.hasStackOverflow()) {
+                return predResult;
             } else {
-                result = result.add(conclusion.bind(declPred, this, declaration));
+                result = result.add(predResult.bind(declPred, this, declaration));
             }
         }
         return result;
