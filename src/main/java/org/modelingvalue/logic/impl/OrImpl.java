@@ -20,15 +20,12 @@
 
 package org.modelingvalue.logic.impl;
 
-import org.modelingvalue.collections.List;
 import org.modelingvalue.logic.Logic.Predicate;
 
-public final class OrImpl extends PredicateImpl {
+public final class OrImpl extends AndOrImpl {
     private static final long                   serialVersionUID = -1732549494864415986L;
 
     private static final FunctorImpl<Predicate> OR_FUNCTOR       = FunctorImpl.<Predicate, Predicate, Predicate> of(OrImpl::or);
-
-    private List<int[]>                         idxList;
 
     private static Predicate or(Predicate predicate1, Predicate predicate2) {
         return new OrImpl(StructureImpl.unproxy(predicate1), StructureImpl.unproxy(predicate2)).proxy();
@@ -48,54 +45,6 @@ public final class OrImpl extends PredicateImpl {
         return new OrImpl(array);
     }
 
-    @SuppressWarnings("rawtypes")
-    private List<int[]> idxList() {
-        if (idxList == null) {
-            List<int[]> l = List.of();
-            PredicateImpl predicate1 = predicate1();
-            if (predicate1 instanceof OrImpl) {
-                l = l.prependList(((OrImpl) predicate1).idxList().replaceAll(ADD_ONE));
-            } else {
-                l = l.append(ONE_ARRAY);
-            }
-            PredicateImpl predicate2 = predicate2();
-            if (predicate2 instanceof OrImpl) {
-                l = l.appendList(((OrImpl) predicate2).idxList().replaceAll(ADD_TWO));
-            } else {
-                l = l.append(TWO_ARRAY);
-            }
-            idxList = l;
-        }
-        return idxList;
-    }
-
-    @SuppressWarnings("rawtypes")
-    public final PredicateImpl predicate1() {
-        return (PredicateImpl) get(1);
-    }
-
-    @SuppressWarnings("rawtypes")
-    public final PredicateImpl predicate2() {
-        return (PredicateImpl) get(2);
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    @Override
-    public InferResult infer(PredicateImpl declaration, InferContext context) {
-        InferResult result = InferResult.EMPTY;
-        for (int[] i : ((OrImpl) declaration).idxList()) {
-            PredicateImpl declPred = declaration.getVal(i);
-            PredicateImpl pred = getVal(i);
-            InferResult predResult = pred.infer(declPred, context);
-            if (predResult.hasStackOverflow()) {
-                return predResult;
-            } else {
-                result = result.add(predResult.bind(declPred, this, declaration));
-            }
-        }
-        return result;
-    }
-
     @Override
     public OrImpl set(int i, Object... a) {
         return (OrImpl) super.set(i, a);
@@ -105,5 +54,15 @@ public final class OrImpl extends PredicateImpl {
     @SuppressWarnings("rawtypes")
     public boolean contains(PredicateImpl cond) {
         return super.contains(cond) || predicate1().contains(cond) || predicate2().contains(cond);
+    }
+
+    @Override
+    protected boolean equalClass(PredicateImpl predicate) {
+        return predicate instanceof OrImpl;
+    }
+
+    @Override
+    protected InferResult flip(InferResult result) {
+        return result.not();
     }
 }

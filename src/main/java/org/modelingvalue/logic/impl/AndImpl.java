@@ -20,11 +20,9 @@
 
 package org.modelingvalue.logic.impl;
 
-import org.modelingvalue.collections.List;
-import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Logic.Predicate;
 
-public final class AndImpl extends PredicateImpl {
+public final class AndImpl extends AndOrImpl {
     private static final long                   serialVersionUID = -7248491569810098948L;
 
     private static final FunctorImpl<Predicate> AND_FUNCTOR      = FunctorImpl.<Predicate, Predicate, Predicate> of(AndImpl::and);
@@ -32,8 +30,6 @@ public final class AndImpl extends PredicateImpl {
     private static Predicate and(Predicate p1, Predicate p2) {
         return new AndImpl(StructureImpl.unproxy(p1), StructureImpl.unproxy(p2)).proxy();
     }
-
-    private List<int[]> idxList;
 
     public AndImpl(PredicateImpl predicate1, PredicateImpl predicate2) {
         super(AND_FUNCTOR, predicate1, predicate2);
@@ -49,82 +45,18 @@ public final class AndImpl extends PredicateImpl {
         return new AndImpl(array);
     }
 
-    @SuppressWarnings("rawtypes")
-    private List<int[]> idxList() {
-        if (idxList == null) {
-            List<int[]> l = List.of();
-            PredicateImpl predicate1 = predicate1();
-            if (predicate1 instanceof AndImpl) {
-                l = l.prependList(((AndImpl) predicate1).idxList().replaceAll(ADD_ONE));
-            } else {
-                l = l.append(ONE_ARRAY);
-            }
-            PredicateImpl predicate2 = predicate2();
-            if (predicate2 instanceof AndImpl) {
-                l = l.appendList(((AndImpl) predicate2).idxList().replaceAll(ADD_TWO));
-            } else {
-                l = l.append(TWO_ARRAY);
-            }
-            idxList = l;
-        }
-        return idxList;
-    }
-
-    @SuppressWarnings("rawtypes")
-    public final PredicateImpl predicate1() {
-        return (PredicateImpl) get(1);
-    }
-
-    @SuppressWarnings("rawtypes")
-    public final PredicateImpl predicate2() {
-        return (PredicateImpl) get(2);
-    }
-
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    @Override
-    public InferResult infer(PredicateImpl declaration, InferContext context) {
-        idxList = ((AndImpl) declaration).idxList();
-        Set<PredicateImpl> facts = Set.of();
-        InferResult result = InferResult.EMPTY, tmpResult, andResult;
-        Set<AndImpl> nextAnds = Set.of(this), prevAnds;
-        do {
-            prevAnds = nextAnds;
-            nextAnds = Set.of();
-            outer:
-            for (AndImpl and : prevAnds) {
-                List<int[]> idxl = and.idxList;
-                if (idxl.isEmpty()) {
-                    facts = facts.add(and);
-                } else {
-                    tmpResult = InferResult.EMPTY;
-                    for (int ii = 0; ii < idxl.size(); ii++) {
-                        int[] i = idxl.get(ii);
-                        PredicateImpl declPred = declaration.getVal(i);
-                        PredicateImpl pred = and.getVal(i);
-                        InferResult predResult = pred.infer(declPred, context);
-                        if (predResult.hasStackOverflow()) {
-                            return predResult;
-                        }
-                        andResult = predResult.bind(declPred, and, declaration);
-                        if (andResult.incomplete().isEmpty()) {
-                            List<int[]> iil = idxl.removeIndex(ii);
-                            andResult.facts().forEach(f -> ((AndImpl) f).idxList = iil);
-                            nextAnds = nextAnds.addAll((Set) andResult.facts());
-                            result = result.add(andResult);
-                            continue outer;
-                        } else {
-                            tmpResult = tmpResult.add(andResult);
-                        }
-                    }
-                    result = result.add(tmpResult);
-                }
-            }
-        } while (!nextAnds.isEmpty());
-        return InferResult.of(facts, result.falsehoods(), result.incomplete(), result.falseIncomplete());
-    }
-
     @Override
     public AndImpl set(int i, Object... a) {
         return (AndImpl) super.set(i, a);
+    }
+
+    @Override
+    protected boolean equalClass(PredicateImpl predicate) {
+        return predicate instanceof AndImpl;
+    }
+
+    @Override
+    protected InferResult flip(InferResult result) {
+        return result;
     }
 }
