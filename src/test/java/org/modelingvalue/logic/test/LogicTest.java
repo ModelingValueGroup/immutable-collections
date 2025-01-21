@@ -311,7 +311,7 @@ public class LogicTest {
     public void notTest() {
         run(() -> {
             isFalse(and(F(), T()));
-            // isFalse(not(or(not(F()), not(T()))));
+            isFalse(not(or(not(F()), not(T()))));
 
             integerRules();
 
