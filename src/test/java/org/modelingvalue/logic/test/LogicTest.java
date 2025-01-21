@@ -43,6 +43,7 @@ import static org.modelingvalue.logic.Rationals.plus;
 import static org.modelingvalue.logic.Rationals.sqrt;
 
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Test;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
@@ -59,6 +60,10 @@ import org.modelingvalue.logic.Logic.*;
 import org.modelingvalue.logic.Rationals.RationalCons;
 
 public class LogicTest {
+
+    static {
+        // System.setProperty("TRACE_LOGIC", "true");
+    }
 
     // Utilities
 
@@ -301,6 +306,15 @@ public class LogicTest {
         for (Entry<Relation, Set<Relation>> e : db.facts()) {
             System.err.println(e.getKey() + " " + e.getValue());
         }
+    }
+
+    @Test
+    public void notTest() {
+        run(() -> {
+            integerRules();
+            isTrue(not(plus(i(5), i(2), i(8))));
+            isTrue(not(is(plus(i(5), i(2)), i(8))));
+        });
     }
 
     @RepeatedTest(100)

@@ -76,15 +76,16 @@ public final class RuleImpl extends StructureImpl<Rule> {
         if (binding == null) {
             return Conclusion.EMPTY;
         }
-        PredicateImpl condition = condition();
-        Conclusion conclusion = condition.setBinding(condition, variables().putAll(binding)).infer(condition, context);
-        conclusion = conclusion.bind(condition, consequence, conseqDecl);
+        PredicateImpl condPred = condition();
+        PredicateImpl condition = condPred.setBinding(condPred, variables().putAll(binding));
+        Conclusion condConcl = condition.infer(condPred, context);
+        Conclusion ConseqConcl = condConcl.bind(condPred, consequence, conseqDecl);
         if (TRACE_LOGIC) {
-            System.err.println("LOGIC " + "  ".repeat(context.stack().size()) + this + " " + //
-                    binding.toString().substring(3) + " -> " + //
-                    conclusion.facts().toString().substring(3));
+            System.err.println("LOGIC " + "  ".repeat(context.stack().size()) + //
+                    condPred.setBinding(condPred, binding) + " -> " + //
+                    ConseqConcl.facts().toString().substring(3));
         }
-        return conclusion;
+        return ConseqConcl;
     }
 
     public int rulePrio() {

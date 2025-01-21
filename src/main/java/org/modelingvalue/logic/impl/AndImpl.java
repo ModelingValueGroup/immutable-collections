@@ -86,12 +86,12 @@ public final class AndImpl extends PredicateImpl {
         idxList = ((AndImpl) declaration).idxList();
         Set<PredicateImpl> facts = Set.of();
         Conclusion result = Conclusion.EMPTY, tmpResult;
-        Set<AndImpl> ands1 = Set.of(this), ands2;
+        Set<AndImpl> nextAnds = Set.of(this), prevAnds;
         do {
-            ands2 = ands1;
-            ands1 = Set.of();
+            prevAnds = nextAnds;
+            nextAnds = Set.of();
             outer:
-            for (AndImpl and : ands2) {
+            for (AndImpl and : prevAnds) {
                 List<int[]> idxl = and.idxList;
                 if (idxl.isEmpty()) {
                     facts = facts.add(and);
@@ -105,11 +105,11 @@ public final class AndImpl extends PredicateImpl {
                         if (conclusion.hasStackOverflow()) {
                             return conclusion;
                         }
-                        conclusion = conclusion.bind(declPred, this, declaration);
+                        conclusion = conclusion.bind(declPred, and, declaration);
                         if (conclusion.incomplete().isEmpty()) {
                             List<int[]> iil = idxl.removeIndex(ii);
                             conclusion.facts().forEach(f -> ((AndImpl) f).idxList = iil);
-                            ands1 = ands1.addAll((Set) conclusion.facts());
+                            nextAnds = nextAnds.addAll((Set) conclusion.facts());
                             result = result.add(Conclusion.of(Set.of(), conclusion.falsehoods()));
                             continue outer;
                         } else {
@@ -119,7 +119,7 @@ public final class AndImpl extends PredicateImpl {
                     result = result.add(tmpResult);
                 }
             }
-        } while (!ands1.isEmpty());
+        } while (!nextAnds.isEmpty());
         return Conclusion.of(facts, result.falsehoods(), result.incomplete(), result.falseIncomplete());
 
     }
