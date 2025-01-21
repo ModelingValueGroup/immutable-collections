@@ -32,7 +32,7 @@ public final class FalseImpl extends PredicateImpl {
 
     public static final FalseImpl              FALSE            = new FalseImpl();
 
-    private final Conclusion                   FALSE_CONCLUSION = Conclusion.of(Set.of(), Set.of(TrueImpl.TRUE));
+    private final InferResult                   FALSE_CONCLUSION = InferResult.of(Set.of(), Set.of(TrueImpl.TRUE));
 
     private FalseImpl() {
         super(FALSE_FUNCTOR);
@@ -56,7 +56,7 @@ public final class FalseImpl extends PredicateImpl {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Conclusion infer(PredicateImpl declaration, InferContext context) {
+    public InferResult infer(PredicateImpl declaration, InferContext context) {
         return FALSE_CONCLUSION;
     }
 

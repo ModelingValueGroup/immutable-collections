@@ -29,9 +29,9 @@ public interface InferContext {
 
     List<PredicateImpl> stack();
 
-    Map<PredicateImpl, Conclusion> cycleConclusion();
+    Map<PredicateImpl, InferResult> cycleConclusion();
 
-    static InferContext of(KnowledgeBaseImpl knowledgebase, List<PredicateImpl> stack, Map<PredicateImpl, Conclusion> cyclic) {
+    static InferContext of(KnowledgeBaseImpl knowledgebase, List<PredicateImpl> stack, Map<PredicateImpl, InferResult> cyclic) {
         return new InferContext() {
             @Override
             public KnowledgeBaseImpl knowledgebase() {
@@ -44,7 +44,7 @@ public interface InferContext {
             }
 
             @Override
-            public Map<PredicateImpl, Conclusion> cycleConclusion() {
+            public Map<PredicateImpl, InferResult> cycleConclusion() {
                 return cyclic;
             }
         };
@@ -55,7 +55,7 @@ public interface InferContext {
     }
 
     default InferContext putCycleConclusion(PredicateImpl predicate, Set<PredicateImpl> facts, Set<PredicateImpl> falsehoods) {
-        return of(knowledgebase(), stack(), cycleConclusion().put(predicate, Conclusion.of(facts, falsehoods)));
+        return of(knowledgebase(), stack(), cycleConclusion().put(predicate, InferResult.of(facts, falsehoods)));
     }
 
     default List<PredicateImpl> stack(PredicateImpl predicate) {

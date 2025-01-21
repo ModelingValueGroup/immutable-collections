@@ -52,9 +52,9 @@ public final class NotImpl extends PredicateImpl {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Conclusion infer(PredicateImpl declaration, InferContext context) {
+    public InferResult infer(PredicateImpl declaration, InferContext context) {
         PredicateImpl declPred = ((NotImpl) declaration).predicate();
-        Conclusion conclusion = predicate().infer(declPred, context);
+        InferResult conclusion = predicate().infer(declPred, context);
         return conclusion.bind(declPred, this, declaration).not();
     }
 

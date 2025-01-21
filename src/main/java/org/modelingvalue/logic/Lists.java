@@ -29,7 +29,7 @@ import org.modelingvalue.logic.Logic.Functor;
 import org.modelingvalue.logic.Logic.LogicLambda;
 import org.modelingvalue.logic.Logic.Predicate;
 import org.modelingvalue.logic.Logic.Structure;
-import org.modelingvalue.logic.impl.Conclusion;
+import org.modelingvalue.logic.impl.InferResult;
 import org.modelingvalue.logic.impl.FunctorImpl;
 import org.modelingvalue.logic.impl.InferContext;
 import org.modelingvalue.logic.impl.ListImpl;
@@ -96,7 +96,7 @@ public final class Lists {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static final FunctorImpl<Predicate> ADD_FUNCTOR = FunctorImpl.<Predicate, Structure, ListCons, ListCons> of(Lists::add, (LogicLambda) Lists::addLogic);
 
-    private static Conclusion addLogic(PredicateImpl predicate, InferContext context) {
+    private static InferResult addLogic(PredicateImpl predicate, InferContext context) {
         StructureImpl<Structure> element = predicate.getVal(1);
         ListImpl<Structure> subListImpl = predicate.getVal(2);
         ListImpl<Structure> superListImpl = predicate.getVal(3);
@@ -104,19 +104,19 @@ public final class Lists {
         org.modelingvalue.collections.List<StructureImpl<Structure>> superlist = superListImpl != null ? superListImpl.list() : null;
         if (element != null && sublist != null && superlist != null) {
             boolean eq = addOrdered(sublist, element).equals(superlist);
-            return Conclusion.of(eq ? Set.of(predicate) : Set.of(), eq ? Set.of() : Set.of(predicate));
+            return InferResult.of(eq ? Set.of(predicate) : Set.of(), eq ? Set.of() : Set.of(predicate));
         } else if (element != null && sublist != null && superlist == null) {
-            return Conclusion.of(Set.of(predicate.set(3, ListImpl.of(addOrdered(sublist, element)))), Set.of());
+            return InferResult.of(Set.of(predicate.set(3, ListImpl.of(addOrdered(sublist, element)))), Set.of());
         } else if (element != null && sublist == null && superlist != null) {
-            return Conclusion.of(permRemove(superlist, element).replaceAll(l -> predicate.set(2, ListImpl.of(l))), Set.of());
+            return InferResult.of(permRemove(superlist, element).replaceAll(l -> predicate.set(2, ListImpl.of(l))), Set.of());
         } else if (element == null && sublist != null && superlist != null) {
             if (sublist.anyMatch(superlist::notContains)) {
-                return Conclusion.EMPTY;
+                return InferResult.EMPTY;
             } else {
-                return Conclusion.of(superlist.asSet().removeAll(sublist).replaceAll(r -> predicate.set(1, r)), Set.of());
+                return InferResult.of(superlist.asSet().removeAll(sublist).replaceAll(r -> predicate.set(1, r)), Set.of());
             }
         } else {
-            return Conclusion.of(context.stack(predicate));
+            return InferResult.of(context.stack(predicate));
         }
     }
 

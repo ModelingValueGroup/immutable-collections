@@ -97,7 +97,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         return v instanceof Class ? (Class) v : v instanceof StructureImpl ? ((StructureImpl) v).type() : null;
     }
 
-    public Conclusion infer(PredicateImpl declaration, InferContext context) {
+    public InferResult infer(PredicateImpl declaration, InferContext context) {
         FunctorImpl<Predicate> functor = functor();
         LogicLambda logic = functor.logic();
         if (logic != null) {
@@ -105,10 +105,10 @@ public class PredicateImpl extends StructureImpl<Predicate> {
         }
         int nrOfUnbound = nrOfUnbound();
         if (nrOfUnbound > 1 || (nrOfUnbound == 1 && functor.args().size() == 1)) {
-            return Conclusion.of(context.stack(this));
+            return InferResult.of(context.stack(this));
         }
         KnowledgeBaseImpl knowledgebase = context.knowledgebase();
-        Conclusion conclusion = knowledgebase.getFacts(this);
+        InferResult conclusion = knowledgebase.getFacts(this);
         if (conclusion != null) {
             return conclusion;
         }
@@ -124,7 +124,7 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             }
             List<PredicateImpl> stack = context.stack();
             if (stack.size() >= MAX_LOGIC_DEPTH || stack.lastIndexOf(this) >= 0) {
-                return Conclusion.of(stack.append(this));
+                return InferResult.of(stack.append(this));
             }
             conclusion = fixpoint(rules, context.pushOnStack(this));
             if (stack.size() >= MAX_LOGIC_DEPTH_D2) {
@@ -139,11 +139,11 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             knowledgebase.memoization(this, conclusion);
             return conclusion;
         }
-        return Conclusion.EMPTY;
+        return InferResult.EMPTY;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static Conclusion flatten(Conclusion conclusion, List<PredicateImpl> overflow, InferContext context) {
+    private static InferResult flatten(InferResult conclusion, List<PredicateImpl> overflow, InferContext context) {
         int stackSize = context.stack().size();
         List<PredicateImpl> todo = overflow.sublist(stackSize, overflow.size());
         KnowledgeBaseImpl knowledgebase = context.knowledgebase();
@@ -162,8 +162,8 @@ public class PredicateImpl extends StructureImpl<Predicate> {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private Conclusion fixpoint(List<RuleImpl> rules, InferContext context) {
-        Conclusion result = Conclusion.EMPTY, conclusion;
+    private InferResult fixpoint(List<RuleImpl> rules, InferContext context) {
+        InferResult result = InferResult.EMPTY, conclusion;
         Set<PredicateImpl> addedFacts = Set.of(), addedFalsehoods = Set.of();
         boolean cycle = false;
         do {
@@ -173,9 +173,9 @@ public class PredicateImpl extends StructureImpl<Predicate> {
             }
             addedFacts = conclusion.facts().removeAll(result.facts());
             addedFalsehoods = conclusion.falsehoods().removeAll(result.falsehoods());
-            cycle |= result == Conclusion.EMPTY && !(addedFacts.isEmpty() && addedFalsehoods.isEmpty()) && conclusion.hasCycleWith(this);
-            if (cycle && result == Conclusion.EMPTY) {
-                result = Conclusion.of(addedFacts, addedFalsehoods);
+            cycle |= result == InferResult.EMPTY && !(addedFacts.isEmpty() && addedFalsehoods.isEmpty()) && conclusion.hasCycleWith(this);
+            if (cycle && result == InferResult.EMPTY) {
+                result = InferResult.of(addedFacts, addedFalsehoods);
             } else {
                 result = result.add(conclusion);
             }
@@ -184,8 +184,8 @@ public class PredicateImpl extends StructureImpl<Predicate> {
     }
 
     @SuppressWarnings("rawtypes")
-    private Conclusion inferRules(List<RuleImpl> rules, InferContext context) {
-        Conclusion result = Conclusion.EMPTY, conclusion;
+    private InferResult inferRules(List<RuleImpl> rules, InferContext context) {
+        InferResult result = InferResult.EMPTY, conclusion;
         for (RuleImpl rule : rules) {
             conclusion = rule.infer(this, context);
             if (conclusion.hasStackOverflow()) {

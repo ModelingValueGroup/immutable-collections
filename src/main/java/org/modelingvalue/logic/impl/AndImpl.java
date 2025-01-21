@@ -82,10 +82,10 @@ public final class AndImpl extends PredicateImpl {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Conclusion infer(PredicateImpl declaration, InferContext context) {
+    public InferResult infer(PredicateImpl declaration, InferContext context) {
         idxList = ((AndImpl) declaration).idxList();
         Set<PredicateImpl> facts = Set.of();
-        Conclusion result = Conclusion.EMPTY, tmpResult;
+        InferResult result = InferResult.EMPTY, tmpResult;
         Set<AndImpl> nextAnds = Set.of(this), prevAnds;
         do {
             prevAnds = nextAnds;
@@ -96,12 +96,12 @@ public final class AndImpl extends PredicateImpl {
                 if (idxl.isEmpty()) {
                     facts = facts.add(and);
                 } else {
-                    tmpResult = Conclusion.EMPTY;
+                    tmpResult = InferResult.EMPTY;
                     for (int ii = 0; ii < idxl.size(); ii++) {
                         int[] i = idxl.get(ii);
                         PredicateImpl declPred = declaration.getVal(i);
                         PredicateImpl pred = and.getVal(i);
-                        Conclusion conclusion = pred.infer(declPred, context);
+                        InferResult conclusion = pred.infer(declPred, context);
                         if (conclusion.hasStackOverflow()) {
                             return conclusion;
                         }
@@ -110,7 +110,7 @@ public final class AndImpl extends PredicateImpl {
                             List<int[]> iil = idxl.removeIndex(ii);
                             conclusion.facts().forEach(f -> ((AndImpl) f).idxList = iil);
                             nextAnds = nextAnds.addAll((Set) conclusion.facts());
-                            result = result.add(Conclusion.of(Set.of(), conclusion.falsehoods()));
+                            result = result.add(InferResult.of(Set.of(), conclusion.falsehoods()));
                             continue outer;
                         } else {
                             tmpResult = tmpResult.add(conclusion);
@@ -120,7 +120,7 @@ public final class AndImpl extends PredicateImpl {
                 }
             }
         } while (!nextAnds.isEmpty());
-        return Conclusion.of(facts, result.falsehoods(), result.incomplete(), result.falseIncomplete());
+        return InferResult.of(facts, result.falsehoods(), result.incomplete(), result.falseIncomplete());
 
     }
 

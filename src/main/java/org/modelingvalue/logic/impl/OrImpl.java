@@ -81,12 +81,12 @@ public final class OrImpl extends PredicateImpl {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Conclusion infer(PredicateImpl declaration, InferContext context) {
-        Conclusion result = Conclusion.EMPTY;
+    public InferResult infer(PredicateImpl declaration, InferContext context) {
+        InferResult result = InferResult.EMPTY;
         for (int[] i : ((OrImpl) declaration).idxList()) {
             PredicateImpl declPred = declaration.getVal(i);
             PredicateImpl pred = getVal(i);
-            Conclusion conclusion = pred.infer(declPred, context);
+            InferResult conclusion = pred.infer(declPred, context);
             if (conclusion.hasStackOverflow()) {
                 return conclusion;
             } else {

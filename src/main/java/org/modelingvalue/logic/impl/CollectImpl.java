@@ -124,7 +124,7 @@ public final class CollectImpl extends PredicateImpl {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Conclusion infer(PredicateImpl declaration, InferContext context) {
+    public InferResult infer(PredicateImpl declaration, InferContext context) {
         Map<VariableImpl, Object> localVars = ((CollectImpl) declaration).localVariables();
         int identityIndex = ((CollectImpl) declaration).identityIndex();
         int resultIndex = ((CollectImpl) declaration).resultIndex();
@@ -132,7 +132,7 @@ public final class CollectImpl extends PredicateImpl {
         PredicateImpl goalAccum = ((CollectImpl) declaration).accumulator();
         PredicateImpl accum = accumulator();
         StructureImpl identity = accum.getVal(identityIndex);
-        Conclusion conclusion = goalColl.setBinding(collector(), localVars).infer(goalColl, context);
+        InferResult conclusion = goalColl.setBinding(collector(), localVars).infer(goalColl, context);
         if (conclusion.hasStackOverflow()) {
             return conclusion;
         }
@@ -156,7 +156,7 @@ public final class CollectImpl extends PredicateImpl {
             }
             result = res;
         }
-        return Conclusion.of(result.replaceAll(r -> set(2, accum.set(resultIndex, r))), Set.of(), incomplete, falseIncomplete);
+        return InferResult.of(result.replaceAll(r -> set(2, accum.set(resultIndex, r))), Set.of(), incomplete, falseIncomplete);
     }
 
     @SuppressWarnings("rawtypes")

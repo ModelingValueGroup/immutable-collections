@@ -24,7 +24,7 @@ import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
 import org.modelingvalue.collections.Set;
 
-public interface Conclusion {
+public interface InferResult {
 
     Set<PredicateImpl> facts();
 
@@ -34,7 +34,7 @@ public interface Conclusion {
 
     Set<List<PredicateImpl>> falseIncomplete();
 
-    Conclusion EMPTY = new Conclusion() {
+    InferResult EMPTY = new InferResult() {
         @Override
         public Set<PredicateImpl> facts() {
             return Set.of();
@@ -56,8 +56,8 @@ public interface Conclusion {
         }
     };
 
-    static Conclusion of(Set<PredicateImpl> facts, Set<PredicateImpl> falsehoods) {
-        return new Conclusion() {
+    static InferResult of(Set<PredicateImpl> facts, Set<PredicateImpl> falsehoods) {
+        return new InferResult() {
             @Override
             public Set<PredicateImpl> facts() {
                 return facts;
@@ -80,9 +80,9 @@ public interface Conclusion {
         };
     }
 
-    static Conclusion of(Set<PredicateImpl> falsehoods, List<PredicateImpl> falseIncomplete) {
+    static InferResult of(Set<PredicateImpl> falsehoods, List<PredicateImpl> falseIncomplete) {
         Set<List<PredicateImpl>> falseIncompletes = Set.of(falseIncomplete);
-        return new Conclusion() {
+        return new InferResult() {
             @Override
             public Set<PredicateImpl> facts() {
                 return Set.of();
@@ -105,8 +105,8 @@ public interface Conclusion {
         };
     }
 
-    static Conclusion of(Set<PredicateImpl> facts, Set<PredicateImpl> falsehoods, Set<List<PredicateImpl>> incomplete, Set<List<PredicateImpl>> falseIncomplete) {
-        return new Conclusion() {
+    static InferResult of(Set<PredicateImpl> facts, Set<PredicateImpl> falsehoods, Set<List<PredicateImpl>> incomplete, Set<List<PredicateImpl>> falseIncomplete) {
+        return new InferResult() {
             @Override
             public Set<PredicateImpl> facts() {
                 return facts;
@@ -129,9 +129,9 @@ public interface Conclusion {
         };
     }
 
-    static Conclusion of(List<PredicateImpl> incomplete) {
+    static InferResult of(List<PredicateImpl> incomplete) {
         Set<List<PredicateImpl>> incompletes = Set.of(incomplete);
-        return new Conclusion() {
+        return new InferResult() {
             @Override
             public Set<PredicateImpl> facts() {
                 return Set.of();
@@ -154,18 +154,18 @@ public interface Conclusion {
         };
     }
 
-    default Conclusion add(Conclusion conclusion) {
+    default InferResult add(InferResult conclusion) {
         return of(facts().addAll(conclusion.facts()), falsehoods().addAll(conclusion.falsehoods()), //
                 incomplete().addAll(conclusion.incomplete()), falseIncomplete().addAll(conclusion.falseIncomplete()));
     }
 
-    default Conclusion bind(PredicateImpl fromDecl, PredicateImpl to, PredicateImpl toDecl) {
+    default InferResult bind(PredicateImpl fromDecl, PredicateImpl to, PredicateImpl toDecl) {
         return of(facts().replaceAll(p -> toDecl.setBinding(to, fromDecl.getBinding(p, Map.of()))), //
                 falsehoods().replaceAll(p -> toDecl.setBinding(to, fromDecl.getBinding(p, Map.of()))), //
                 incomplete(), falseIncomplete());
     }
 
-    default Conclusion not() {
+    default InferResult not() {
         return of(falsehoods(), facts(), falseIncomplete(), incomplete());
     }
 

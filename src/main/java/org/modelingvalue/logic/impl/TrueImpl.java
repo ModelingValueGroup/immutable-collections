@@ -32,7 +32,7 @@ public final class TrueImpl extends PredicateImpl {
 
     public static final TrueImpl                TRUE             = new TrueImpl();
 
-    private static final Conclusion             TRUE_CONCLUSION  = Conclusion.of(Set.of(TRUE), Set.of());
+    private static final InferResult             TRUE_CONCLUSION  = InferResult.of(Set.of(TRUE), Set.of());
 
     private TrueImpl() {
         super(TRUE_FUNCTOR);
@@ -56,7 +56,7 @@ public final class TrueImpl extends PredicateImpl {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
-    public Conclusion infer(PredicateImpl declaration, InferContext context) {
+    public InferResult infer(PredicateImpl declaration, InferContext context) {
         return TRUE_CONCLUSION;
     }
 

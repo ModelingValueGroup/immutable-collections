@@ -70,16 +70,16 @@ public final class RuleImpl extends StructureImpl<Rule> {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    protected Conclusion infer(PredicateImpl consequence, InferContext context) {
+    protected InferResult infer(PredicateImpl consequence, InferContext context) {
         PredicateImpl conseqDecl = consequence();
         Map<VariableImpl, Object> binding = conseqDecl.getBinding(consequence, Map.of());
         if (binding == null) {
-            return Conclusion.EMPTY;
+            return InferResult.EMPTY;
         }
         PredicateImpl condPred = condition();
         PredicateImpl condition = condPred.setBinding(condPred, variables().putAll(binding));
-        Conclusion condConcl = condition.infer(condPred, context);
-        Conclusion ConseqConcl = condConcl.bind(condPred, consequence, conseqDecl);
+        InferResult condConcl = condition.infer(condPred, context);
+        InferResult ConseqConcl = condConcl.bind(condPred, consequence, conseqDecl);
         if (TRACE_LOGIC) {
             System.err.println("LOGIC " + "  ".repeat(context.stack().size()) + //
                     condPred.setBinding(condPred, binding) + " -> " + //

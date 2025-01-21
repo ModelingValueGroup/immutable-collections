@@ -32,7 +32,7 @@ import org.modelingvalue.logic.Logic.LogicLambda;
 import org.modelingvalue.logic.Logic.Predicate;
 import org.modelingvalue.logic.Logic.Relation;
 import org.modelingvalue.logic.Logic.Structure;
-import org.modelingvalue.logic.impl.Conclusion;
+import org.modelingvalue.logic.impl.InferResult;
 import org.modelingvalue.logic.impl.FunctorImpl;
 import org.modelingvalue.logic.impl.InferContext;
 import org.modelingvalue.logic.impl.PredicateImpl;
@@ -89,7 +89,7 @@ public final class Integers {
     private static Functor<Predicate> COMPARE_FUNCTOR = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::compare, (LogicLambda) Integers::compareLogic);
 
     @SuppressWarnings("rawtypes")
-    private static Conclusion compareLogic(PredicateImpl predicate, InferContext context) {
+    private static InferResult compareLogic(PredicateImpl predicate, InferContext context) {
         BigInteger compared1 = predicate.getVal(1, 1);
         BigInteger compared2 = predicate.getVal(2, 1);
         BigInteger result = predicate.getVal(3, 1);
@@ -97,21 +97,21 @@ public final class Integers {
             int r = compared1.compareTo(compared2);
             if (result != null) {
                 boolean eq = r == result.intValue();
-                return Conclusion.of(eq ? Set.of(predicate) : Set.of(), eq ? Set.of() : Set.of(predicate));
+                return InferResult.of(eq ? Set.of(predicate) : Set.of(), eq ? Set.of() : Set.of(predicate));
             } else {
-                return Conclusion.of(Set.of(predicate.set(3, r == 0 ? ZERO_INT : r == 1 ? ONE_INT : MINUS_ONE_INT)), Set.of());
+                return InferResult.of(Set.of(predicate.set(3, r == 0 ? ZERO_INT : r == 1 ? ONE_INT : MINUS_ONE_INT)), Set.of());
             }
         } else if (result != null) {
             boolean zero = BigInteger.ZERO.equals(result);
             if (compared1 != null) {
                 Set<PredicateImpl> facts = Set.of(predicate.set(2, (StructureImpl) predicate.getVal(1)));
-                return zero ? Conclusion.of(facts, Set.of()) : Conclusion.of(facts, context.stack(predicate));
+                return zero ? InferResult.of(facts, Set.of()) : InferResult.of(facts, context.stack(predicate));
             } else if (compared2 != null) {
                 Set<PredicateImpl> facts = Set.of(predicate.set(1, (StructureImpl) predicate.getVal(2)));
-                return zero ? Conclusion.of(facts, Set.of()) : Conclusion.of(facts, context.stack(predicate));
+                return zero ? InferResult.of(facts, Set.of()) : InferResult.of(facts, context.stack(predicate));
             }
         }
-        return Conclusion.of(context.stack(predicate));
+        return InferResult.of(context.stack(predicate));
     }
 
     public static Predicate compare(IntegerCons a, IntegerCons b, IntegerCons c) {
@@ -121,7 +121,7 @@ public final class Integers {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Functor<Predicate> PLUS_PRED_FUNCTOR = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::plus, (LogicLambda) Integers::plusLogic);
 
-    private static Conclusion plusLogic(PredicateImpl predicate, InferContext context) {
+    private static InferResult plusLogic(PredicateImpl predicate, InferContext context) {
         BigInteger addend1 = predicate.getVal(1, 1);
         BigInteger addend2 = predicate.getVal(2, 1);
         BigInteger sum = predicate.getVal(3, 1);
@@ -129,16 +129,16 @@ public final class Integers {
             BigInteger s = addend1.add(addend2);
             if (sum != null) {
                 boolean eq = s.equals(sum);
-                return Conclusion.of(eq ? Set.of(predicate) : Set.of(), eq ? Set.of() : Set.of(predicate));
+                return InferResult.of(eq ? Set.of(predicate) : Set.of(), eq ? Set.of() : Set.of(predicate));
             } else {
-                return Conclusion.of(Set.of(predicate.set(3, struct(s))), Set.of());
+                return InferResult.of(Set.of(predicate.set(3, struct(s))), Set.of());
             }
         } else if (addend1 != null && sum != null) {
-            return Conclusion.of(Set.of(predicate.set(2, struct(sum.subtract(addend1)))), Set.of());
+            return InferResult.of(Set.of(predicate.set(2, struct(sum.subtract(addend1)))), Set.of());
         } else if (addend2 != null && sum != null) {
-            return Conclusion.of(Set.of(predicate.set(1, struct(sum.subtract(addend2)))), Set.of());
+            return InferResult.of(Set.of(predicate.set(1, struct(sum.subtract(addend2)))), Set.of());
         } else {
-            return Conclusion.of(context.stack(predicate));
+            return InferResult.of(context.stack(predicate));
         }
     }
 
@@ -149,7 +149,7 @@ public final class Integers {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Functor<Predicate> MULTIPLY_PRED_FUNCTOR = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::multiply, (LogicLambda) Integers::multiplyLogic);
 
-    private static Conclusion multiplyLogic(PredicateImpl predicate, InferContext context) {
+    private static InferResult multiplyLogic(PredicateImpl predicate, InferContext context) {
         BigInteger factor1 = predicate.getVal(1, 1);
         BigInteger factor2 = predicate.getVal(2, 1);
         BigInteger product = predicate.getVal(3, 1);
@@ -157,16 +157,16 @@ public final class Integers {
             BigInteger p = factor1.multiply(factor2);
             if (product != null) {
                 boolean eq = p.equals(product);
-                return Conclusion.of(eq ? Set.of(predicate) : Set.of(), eq ? Set.of() : Set.of(predicate));
+                return InferResult.of(eq ? Set.of(predicate) : Set.of(), eq ? Set.of() : Set.of(predicate));
             } else {
-                return Conclusion.of(Set.of(predicate.set(3, struct(p))), Set.of());
+                return InferResult.of(Set.of(predicate.set(3, struct(p))), Set.of());
             }
         } else if (factor1 != null && product != null) {
-            return Conclusion.of(Set.of(predicate.set(2, struct(product.divide(factor1)))), Set.of());
+            return InferResult.of(Set.of(predicate.set(2, struct(product.divide(factor1)))), Set.of());
         } else if (factor2 != null && product != null) {
-            return Conclusion.of(Set.of(predicate.set(1, struct(product.divide(factor2)))), Set.of());
+            return InferResult.of(Set.of(predicate.set(1, struct(product.divide(factor2)))), Set.of());
         } else {
-            return Conclusion.of(context.stack(predicate));
+            return InferResult.of(context.stack(predicate));
         }
     }
 
@@ -177,19 +177,19 @@ public final class Integers {
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Functor<Predicate> SQUARE_PRED_FUNCTOR = Logic.<Predicate, IntegerCons, IntegerCons> functor(Integers::square, (LogicLambda) Integers::squareLogic);
 
-    private static Conclusion squareLogic(PredicateImpl predicate, InferContext context) {
+    private static InferResult squareLogic(PredicateImpl predicate, InferContext context) {
         BigInteger root = predicate.getVal(1, 1);
         BigInteger square = predicate.getVal(2, 1);
         if (root != null && square != null) {
             boolean eq = root.multiply(root).equals(square);
-            return Conclusion.of(eq ? Set.of(predicate) : Set.of(), eq ? Set.of() : Set.of(predicate));
+            return InferResult.of(eq ? Set.of(predicate) : Set.of(), eq ? Set.of() : Set.of(predicate));
         } else if (root != null && square == null) {
-            return Conclusion.of(Set.of(predicate.set(2, struct(root.multiply(root)))), Set.of());
+            return InferResult.of(Set.of(predicate.set(2, struct(root.multiply(root)))), Set.of());
         } else if (root == null && square != null) {
             BigInteger sqrt = square.sqrt();
-            return Conclusion.of(Set.of(predicate.set(1, struct(sqrt)), predicate.set(1, struct(sqrt.negate()))), Set.of());
+            return InferResult.of(Set.of(predicate.set(1, struct(sqrt)), predicate.set(1, struct(sqrt.negate()))), Set.of());
         } else {
-            return Conclusion.of(context.stack(predicate));
+            return InferResult.of(context.stack(predicate));
         }
     }
 

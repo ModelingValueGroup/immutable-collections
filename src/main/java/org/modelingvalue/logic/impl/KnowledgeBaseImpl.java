@@ -55,8 +55,8 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
     private static final int                                                  MAX_LOGIC_MEMOIZ_D4 = KnowledgeBaseImpl.MAX_LOGIC_MEMOIZ / 4;
     private static final int                                                  INITIAL_USAGE_COUNT = Integer.getInteger("INITIAL_USAGE_COUNT", 4);
     @SuppressWarnings("rawtypes")
-    private static final BiFunction<Conclusion, PredicateImpl, Conclusion>    ADD_FACT            = (s, p) -> {
-                                                                                                      Conclusion m = Conclusion.of(Set.of(p), Set.of());
+    private static final BiFunction<InferResult, PredicateImpl, InferResult>    ADD_FACT            = (s, p) -> {
+                                                                                                      InferResult m = InferResult.of(Set.of(p), Set.of());
                                                                                                       return s == null ? m : s.add(m);
                                                                                                   };
     @SuppressWarnings("unchecked")
@@ -81,12 +81,12 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
                                                                                                   };
 
     @SuppressWarnings("rawtypes")
-    private static class Inference extends Struct2Impl<PredicateImpl, Conclusion> {
+    private static class Inference extends Struct2Impl<PredicateImpl, InferResult> {
         private static final long serialVersionUID = 1531759272582548244L;
 
         public int                count            = INITIAL_USAGE_COUNT;
 
-        public Inference(PredicateImpl predicate, Conclusion conclusion) {
+        public Inference(PredicateImpl predicate, InferResult conclusion) {
             super(predicate, conclusion);
         }
 
@@ -94,7 +94,7 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
             return get0();
         }
 
-        public Conclusion conclusion() {
+        public InferResult conclusion() {
             return get1();
         }
 
@@ -160,7 +160,7 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
         return specs;
     }
 
-    private final AtomicReference<Map<PredicateImpl, Conclusion>>           facts;
+    private final AtomicReference<Map<PredicateImpl, InferResult>>           facts;
     private final AtomicReference<Map<PredicateImpl, List<RuleImpl>>>       rules;
     private final AtomicReference<QualifiedSet<PredicateImpl, Inference>[]> memoization;
     private final InferContext                                              context = InferContext.of(KnowledgeBaseImpl.this, List.of(), Map.of());
@@ -173,7 +173,7 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
         memoization = new AtomicReference<>(init != null ? init.memoization.get() : new QualifiedSet[]{EMPTY_MEMOIZ, EMPTY_MEMOIZ, EMPTY_MEMOIZ});
     }
 
-    public Conclusion getFacts(PredicateImpl pred) {
+    public InferResult getFacts(PredicateImpl pred) {
         return facts.get().get(pred);
     }
 
@@ -181,7 +181,7 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
         return rules.get().get(pred.signature());
     }
 
-    public Conclusion getMemoiz(PredicateImpl pred) {
+    public InferResult getMemoiz(PredicateImpl pred) {
         for (QualifiedSet<PredicateImpl, Inference> m : memoization.get()) {
             Inference memoiz = m.get(pred);
             if (memoiz != null) {
@@ -211,7 +211,7 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void memoization(PredicateImpl predicate, Conclusion conclusion) {
+    public void memoization(PredicateImpl predicate, InferResult conclusion) {
         if (conclusion.incomplete().isEmpty()) {
             FunctorImpl<Predicate> functor = predicate.functor();
             if (functor.factual()) {
@@ -227,7 +227,7 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
                     array = array.clone();
                     array[0] = array[0].put(new Inference(predicate, conclusion));
                     for (PredicateImpl p : conclusion.facts()) {
-                        array[0] = array[0].put(new Inference(p, Conclusion.of(Set.of(p), Set.of())));
+                        array[0] = array[0].put(new Inference(p, InferResult.of(Set.of(p), Set.of())));
                     }
                     if (array[0].size() >= MAX_LOGIC_MEMOIZ_D4) {
                         array[2] = array[2].putAll(array[1]);
@@ -304,7 +304,7 @@ public final class KnowledgeBaseImpl implements KnowledgeBase {
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    private static Map<PredicateImpl, Conclusion> addFact(Map<PredicateImpl, Conclusion> map, PredicateImpl predicate, PredicateImpl pattern, int i, Class cls) {
+    private static Map<PredicateImpl, InferResult> addFact(Map<PredicateImpl, InferResult> map, PredicateImpl predicate, PredicateImpl pattern, int i, Class cls) {
         Class type = pattern.getType(i);
         if (cls.isAssignableFrom(type)) {
             map = map.put(pattern, ADD_FACT.apply(map.get(pattern), predicate));

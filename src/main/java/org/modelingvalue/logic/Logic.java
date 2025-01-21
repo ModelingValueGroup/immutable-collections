@@ -106,7 +106,7 @@ public final class Logic {
 
     @SuppressWarnings("rawtypes")
     @FunctionalInterface
-    public interface LogicLambda extends BiFunction<PredicateImpl, InferContext, Conclusion>, LambdaReflection, FunctorModifier {
+    public interface LogicLambda extends BiFunction<PredicateImpl, InferContext, InferResult>, LambdaReflection, FunctorModifier {
 
         @Override
         default LogicLambdaImpl of() {
@@ -122,7 +122,7 @@ public final class Logic {
 
             @SuppressWarnings("unchecked")
             @Override
-            public final Conclusion apply(PredicateImpl predicate, InferContext context) {
+            public final InferResult apply(PredicateImpl predicate, InferContext context) {
                 return f.apply(predicate, context);
             }
 
@@ -172,17 +172,17 @@ public final class Logic {
     }
 
     public static boolean isTrue(Predicate pred) {
-        Conclusion conclusion = infer(pred);
+        InferResult conclusion = infer(pred);
         return !conclusion.facts().isEmpty();
     }
 
     public static boolean isFalse(Predicate pred) {
-        Conclusion conclusion = infer(pred);
+        InferResult conclusion = infer(pred);
         return conclusion.facts().isEmpty() && conclusion.incomplete().isEmpty();
     }
 
     public static boolean isIncomplete(Predicate pred) {
-        Conclusion conclusion = infer(pred);
+        InferResult conclusion = infer(pred);
         return !conclusion.incomplete().isEmpty();
     }
 
@@ -197,7 +197,7 @@ public final class Logic {
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static Set<Map<Variable, Object>> getBindings(Predicate pred) {
         PredicateImpl impl = StructureImpl.<Predicate, PredicateImpl> unproxy(pred);
-        Conclusion conclusion = infer(pred);
+        InferResult conclusion = infer(pred);
         Set<Map<VariableImpl, Object>> bindings = conclusion.facts().replaceAll(m -> impl.getBinding(m, Map.of()));
         return bindings.replaceAll(m -> m.replaceAll(e -> Entry.of((Variable) e.getKey().proxy(), proxy(e.getValue()))));
     }
@@ -207,12 +207,12 @@ public final class Logic {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Conclusion infer(Predicate pred) {
+    private static InferResult infer(Predicate pred) {
         return infer(StructureImpl.<Predicate, PredicateImpl> unproxy(pred));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Conclusion infer(PredicateImpl impl) {
+    private static InferResult infer(PredicateImpl impl) {
         return impl.setBinding(impl, impl.variables()).infer(impl, KnowledgeBaseImpl.CURRENT.get().context());
     }
 
@@ -308,18 +308,18 @@ public final class Logic {
     private static Functor<Predicate> EQ_FUNCTOR = Logic.<Predicate, Constant, Constant> functor(Logic::eq, (LogicLambda) Logic::eqLogic);
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Conclusion eqLogic(PredicateImpl predicate, InferContext context) {
+    private static InferResult eqLogic(PredicateImpl predicate, InferContext context) {
         StructureImpl constant1 = predicate.getVal(1);
         StructureImpl constant2 = predicate.getVal(2);
         if (constant1 == null && constant2 == null) {
-            return Conclusion.of(context.stack(predicate));
+            return InferResult.of(context.stack(predicate));
         } else if (constant1 == null) {
-            return Conclusion.of(Set.of(predicate.set(1, constant2)), Set.of());
+            return InferResult.of(Set.of(predicate.set(1, constant2)), Set.of());
         } else if (constant2 == null) {
-            return Conclusion.of(Set.of(predicate.set(2, constant1)), Set.of());
+            return InferResult.of(Set.of(predicate.set(2, constant1)), Set.of());
         } else {
             StructureImpl eq = constant1.eq(constant2);
-            return eq != null ? Conclusion.of(Set.of(predicate.set(1, eq, eq)), Set.of()) : Conclusion.of(Set.of(predicate), context.stack(predicate));
+            return eq != null ? InferResult.of(Set.of(predicate.set(1, eq, eq)), Set.of()) : InferResult.of(Set.of(predicate), context.stack(predicate));
         }
     }
 
