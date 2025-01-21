@@ -43,7 +43,6 @@ import static org.modelingvalue.logic.Rationals.plus;
 import static org.modelingvalue.logic.Rationals.sqrt;
 
 import org.junit.jupiter.api.RepeatedTest;
-import org.junit.jupiter.api.Test;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
@@ -308,7 +307,7 @@ public class LogicTest {
         }
     }
 
-    @Test
+    @RepeatedTest(100)
     public void notTest() {
         run(() -> {
             integerRules();
