@@ -30,9 +30,11 @@ public final class TrueImpl extends PredicateImpl {
 
     private static final FunctorImpl<Predicate> TRUE_FUNCTOR     = FunctorImpl.<Predicate> of(Logic::T);
 
-    private final Conclusion                    TRUE             = Conclusion.of(Set.of(TrueImpl.this), Set.of());
+    public static final TrueImpl                TRUE             = new TrueImpl();
 
-    public TrueImpl() {
+    private static final Conclusion             TRUE_CONCLUSION  = Conclusion.of(Set.of(TRUE), Set.of());
+
+    private TrueImpl() {
         super(TRUE_FUNCTOR);
     }
 
@@ -55,7 +57,7 @@ public final class TrueImpl extends PredicateImpl {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public Conclusion infer(PredicateImpl declaration, InferContext context) {
-        return TRUE;
+        return TRUE_CONCLUSION;
     }
 
     @SuppressWarnings("rawtypes")

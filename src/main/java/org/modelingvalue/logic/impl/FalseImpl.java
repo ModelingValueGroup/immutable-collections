@@ -30,9 +30,11 @@ public final class FalseImpl extends PredicateImpl {
 
     public static final FunctorImpl<Predicate> FALSE_FUNCTOR    = FunctorImpl.<Predicate> of(Logic::F);
 
-    private final Conclusion                   FALSE            = Conclusion.of(Set.of(), Set.of(FalseImpl.this));
+    public static final FalseImpl              FALSE            = new FalseImpl();
 
-    public FalseImpl() {
+    private final Conclusion                   FALSE_CONCLUSION = Conclusion.of(Set.of(), Set.of(TrueImpl.TRUE));
+
+    private FalseImpl() {
         super(FALSE_FUNCTOR);
     }
 
@@ -55,7 +57,7 @@ public final class FalseImpl extends PredicateImpl {
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public Conclusion infer(PredicateImpl declaration, InferContext context) {
-        return FALSE;
+        return FALSE_CONCLUSION;
     }
 
     @SuppressWarnings("rawtypes")

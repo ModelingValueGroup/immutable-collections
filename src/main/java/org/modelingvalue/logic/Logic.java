@@ -235,8 +235,7 @@ public final class Logic {
 
     // True
 
-    private static final TrueImpl  TRUE       = new TrueImpl();
-    private static final Predicate TRUE_PROXY = (Predicate) Proxy.newProxyInstance(Predicate.class.getClassLoader(), new Class[]{Predicate.class}, TRUE);
+    private static final Predicate TRUE_PROXY = (Predicate) Proxy.newProxyInstance(Predicate.class.getClassLoader(), new Class[]{Predicate.class}, TrueImpl.TRUE);
 
     @SuppressWarnings("unchecked")
     public static Predicate T() {
@@ -245,8 +244,7 @@ public final class Logic {
 
     // False
 
-    private static final FalseImpl FALSE       = new FalseImpl();
-    private static final Predicate FALSE_PROXY = (Predicate) Proxy.newProxyInstance(Predicate.class.getClassLoader(), new Class[]{Predicate.class}, FALSE);
+    private static final Predicate FALSE_PROXY = (Predicate) Proxy.newProxyInstance(Predicate.class.getClassLoader(), new Class[]{Predicate.class}, FalseImpl.FALSE);
 
     @SuppressWarnings("unchecked")
     public static Predicate F() {
@@ -264,9 +262,9 @@ public final class Logic {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static Predicate or(Predicate... ps) {
-        PredicateImpl impl = FALSE;
+        PredicateImpl impl = FalseImpl.FALSE;
         for (int i = ps.length - 1; i >= 0; i--) {
-            impl = impl == FALSE ? StructureImpl.unproxy(ps[i]) : new OrImpl(StructureImpl.unproxy(ps[i]), impl);
+            impl = impl == FalseImpl.FALSE ? StructureImpl.unproxy(ps[i]) : new OrImpl(StructureImpl.unproxy(ps[i]), impl);
         }
         return impl.proxy();
     }
@@ -275,9 +273,9 @@ public final class Logic {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static Predicate and(Predicate... ps) {
-        PredicateImpl impl = TRUE;
+        PredicateImpl impl = TrueImpl.TRUE;
         for (int i = ps.length - 1; i >= 0; i--) {
-            impl = impl == TRUE ? StructureImpl.unproxy(ps[i]) : new AndImpl(StructureImpl.unproxy(ps[i]), impl);
+            impl = impl == TrueImpl.TRUE ? StructureImpl.unproxy(ps[i]) : new AndImpl(StructureImpl.unproxy(ps[i]), impl);
         }
         return impl.proxy();
     }
