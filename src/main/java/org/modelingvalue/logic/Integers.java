@@ -261,15 +261,15 @@ public final class Integers {
 
     // Rules
 
+    private static final IntegerCons P = iVarCons("PL");
+    private static final IntegerCons Q = iVarCons("QL");
+    private static final IntegerCons R = iVarCons("RL");
+
+    private static final Integer     X = iVar("X");
+    private static final Integer     Y = iVar("Y");
+
     public static void integerRules() {
         isRules();
-
-        IntegerCons P = iVarCons("PL");
-        IntegerCons Q = iVarCons("QL");
-        IntegerCons R = iVarCons("RL");
-
-        Integer X = iVar("X");
-        Integer Y = iVar("Y");
 
         rule(gt(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, i(1))));
         rule(lt(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, i(-1))));

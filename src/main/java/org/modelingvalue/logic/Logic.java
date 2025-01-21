@@ -350,13 +350,17 @@ public final class Logic {
         return pred(IS_FUNCTOR, a, b);
     }
 
+    @SuppressWarnings("rawtypes")
+    private static final Constant A1 = variable(Constant.class, "A1");
+    @SuppressWarnings("rawtypes")
+    private static final Constant A2 = variable(Constant.class, "A2");
+    @SuppressWarnings("rawtypes")
+    private static final Function F1 = variable(Function.class, "F1");
+    @SuppressWarnings("rawtypes")
+    private static final Function F2 = variable(Function.class, "F2");
+
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static void isRules() {
-        Constant A1 = variable(Constant.class, "A1");
-        Constant A2 = variable(Constant.class, "A2");
-        Function F1 = variable(Function.class, "F1");
-        Function F2 = variable(Function.class, "F2");
-
         rule(is((Structure) A1, (Structure) A2), eq(A1, A2));
         rule(is(F1, F2), and(is(F2, A2), is(F1, A2)));
         rule(is(A1, F1), is(F1, A1));

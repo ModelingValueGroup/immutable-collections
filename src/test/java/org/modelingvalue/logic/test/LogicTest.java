@@ -107,10 +107,10 @@ public class LogicTest {
     interface RootFunc extends Root, Function<Root> {
     }
 
-    static Functor<RootCons> rootAtom = functor((SerializableFunction<String, RootCons>) LogicTest::root);
+    static Functor<RootCons> ROOT = functor((SerializableFunction<String, RootCons>) LogicTest::root);
 
     static RootCons root(String name) {
-        return constant(rootAtom, name);
+        return constant(ROOT, name);
     }
 
     static RootCons rootAtomVar(String name) {
@@ -121,16 +121,16 @@ public class LogicTest {
         return variable(Root.class, name);
     }
 
-    static Functor<Relation> rootPerson = functor(LogicTest::rootPerson);
+    static Functor<Relation> ROOT_PERSON = functor(LogicTest::rootPerson);
 
     static Relation rootPerson(RootCons root, PersonCons person) {
-        return pred(rootPerson, root, person);
+        return pred(ROOT_PERSON, root, person);
     }
 
-    static Functor<RootFunc> rootFunc = functor((SerializableFunction<Person, RootFunc>) LogicTest::root);
+    static Functor<RootFunc> ROOT_FUNC = functor((SerializableFunction<Person, RootFunc>) LogicTest::root);
 
     static RootFunc root(Person person) {
-        return function(rootFunc, person);
+        return function(ROOT_FUNC, person);
     }
 
     // Family Tree
@@ -144,16 +144,16 @@ public class LogicTest {
     interface PersonFunc extends Person, Function<Person> {
     }
 
-    static Functor<PersonCons> strPerson = functor((SerializableFunction<String, PersonCons>) LogicTest::person);
+    static Functor<PersonCons> STRING_PERSON = functor((SerializableFunction<String, PersonCons>) LogicTest::person);
 
     static PersonCons person(String name) {
-        return constant(strPerson, name);
+        return constant(STRING_PERSON, name);
     }
 
-    static Functor<PersonCons> intPerson = functor((SerializableFunction<IntegerCons, PersonCons>) LogicTest::person);
+    static Functor<PersonCons> INTEGER_PERSON = functor((SerializableFunction<IntegerCons, PersonCons>) LogicTest::person);
 
     static PersonCons person(IntegerCons i) {
-        return constant(intPerson, i);
+        return constant(INTEGER_PERSON, i);
     }
 
     static PersonCons person(int i) {
@@ -168,40 +168,40 @@ public class LogicTest {
         return variable(Person.class, name);
     }
 
-    static Functor<Relation> parentChild = functor(LogicTest::parentChild);
+    static Functor<Relation> PARENT_CHILD = functor(LogicTest::parentChild);
 
     static Relation parentChild(PersonCons parent, PersonCons child) {
-        return pred(parentChild, parent, child);
+        return pred(PARENT_CHILD, parent, child);
     }
 
-    static Functor<PersonFunc> parent = functor(LogicTest::parent);
+    static Functor<PersonFunc> PARENT = functor(LogicTest::parent);
 
     static PersonFunc parent(Person child) {
-        return function(parent, child);
+        return function(PARENT, child);
     }
 
-    static Functor<PersonFunc> child = functor(LogicTest::child);
+    static Functor<PersonFunc> CHILD = functor(LogicTest::child);
 
     static PersonFunc child(Person parent) {
-        return function(child, parent);
+        return function(CHILD, parent);
     }
 
-    static Functor<Relation> ancestorDescendent = functor(LogicTest::ancestorDescendent);
+    static Functor<Relation> ANCESTOR_DESCENTENT = functor(LogicTest::ancestorDescendent);
 
     static Relation ancestorDescendent(PersonCons ancestor, PersonCons descendent) {
-        return pred(ancestorDescendent, ancestor, descendent);
+        return pred(ANCESTOR_DESCENTENT, ancestor, descendent);
     }
 
-    static Functor<PersonFunc> ancestor = functor(LogicTest::ancestor);
+    static Functor<PersonFunc> ANCESTOR = functor(LogicTest::ancestor);
 
     static PersonFunc ancestor(Person descendent) {
-        return function(ancestor, descendent);
+        return function(ANCESTOR, descendent);
     }
 
-    static Functor<PersonFunc> descendent = functor(LogicTest::descendent);
+    static Functor<PersonFunc> DESCENDENT = functor(LogicTest::descendent);
 
     static PersonFunc descendent(Person ancestor) {
-        return function(descendent, ancestor);
+        return function(DESCENDENT, ancestor);
     }
 
     // Variables

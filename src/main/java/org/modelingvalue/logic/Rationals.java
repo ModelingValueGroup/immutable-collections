@@ -295,17 +295,17 @@ public final class Rationals {
 
     // Rules
 
+    private static final RationalCons P = rVarCons("PL");
+    private static final RationalCons Q = rVarCons("QL");
+    private static final RationalCons R = rVarCons("RL");
+
+    private static final IntegerCons  I = iVarCons("IL");
+
+    private static final Rational     X = rVar("X");
+    private static final Rational     Y = rVar("Y");
+
     public static void rationalRules() {
         isRules();
-
-        RationalCons P = rVarCons("PL");
-        RationalCons Q = rVarCons("QL");
-        RationalCons R = rVarCons("RL");
-
-        IntegerCons I = iVarCons("IL");
-
-        Rational X = rVar("X");
-        Rational Y = rVar("Y");
 
         rule(gt(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, i(1))));
         rule(lt(X, Y), and(is(X, P), is(Y, Q), compare(P, Q, i(-1))));
