@@ -67,7 +67,7 @@ public final class Integers {
         return i(BigInteger.valueOf(val));
     }
 
-    public static IntegerCons iVarCons(String name) {
+    public static IntegerCons iConsVar(String name) {
         return variable(IntegerCons.class, name);
     }
 
@@ -261,9 +261,9 @@ public final class Integers {
 
     // Rules
 
-    private static final IntegerCons P = iVarCons("PL");
-    private static final IntegerCons Q = iVarCons("QL");
-    private static final IntegerCons R = iVarCons("RL");
+    private static final IntegerCons P = iConsVar("PL");
+    private static final IntegerCons Q = iConsVar("QL");
+    private static final IntegerCons R = iConsVar("RL");
 
     private static final Integer     X = iVar("X");
     private static final Integer     Y = iVar("Y");

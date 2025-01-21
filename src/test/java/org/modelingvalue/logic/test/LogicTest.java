@@ -112,7 +112,7 @@ public class LogicTest {
         return constant(ROOT, name);
     }
 
-    static RootCons rootAtomVar(String name) {
+    static RootCons rootConsVar(String name) {
         return variable(RootCons.class, name);
     }
 
@@ -159,7 +159,7 @@ public class LogicTest {
         return person(i(i));
     }
 
-    static PersonCons personAtomVar(String name) {
+    static PersonCons personConsVar(String name) {
         return variable(PersonCons.class, name);
     }
 
@@ -205,24 +205,24 @@ public class LogicTest {
 
     // Variables
 
-    IntegerCons              P      = iVarCons("P");
-    IntegerCons              Q      = iVarCons("Q");
+    IntegerCons              P      = iConsVar("P");
+    IntegerCons              Q      = iConsVar("Q");
 
     Integer                  R      = iVar("R");
     Integer                  S      = iVar("S");
 
-    RationalCons             T      = rVarCons("T");
-    RationalCons             U      = rVarCons("U");
+    RationalCons             T      = rConsVar("T");
+    RationalCons             U      = rConsVar("U");
 
-    PersonCons               A      = personAtomVar("A");
-    PersonCons               B      = personAtomVar("B");
-    PersonCons               C      = personAtomVar("C");
+    PersonCons               A      = personConsVar("A");
+    PersonCons               B      = personConsVar("B");
+    PersonCons               C      = personConsVar("C");
 
     Person                   X      = personVar("X");
     Person                   Y      = personVar("Y");
     Person                   Z      = personVar("Z");
 
-    RootCons                 V      = rootAtomVar("V");
+    RootCons                 V      = rootConsVar("V");
     Root                     W      = rootVar("W");
 
     @SuppressWarnings("unchecked")
@@ -310,7 +310,11 @@ public class LogicTest {
     @RepeatedTest(100)
     public void notTest() {
         run(() -> {
+            isFalse(and(F(), T()));
+            // isFalse(not(or(not(F()), not(T()))));
+
             integerRules();
+
             isTrue(not(plus(i(5), i(2), i(8))));
             isTrue(not(is(plus(i(5), i(2)), i(8))));
         });

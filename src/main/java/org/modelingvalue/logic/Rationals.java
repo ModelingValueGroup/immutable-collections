@@ -21,7 +21,7 @@
 package org.modelingvalue.logic;
 
 import static org.modelingvalue.logic.Integers.i;
-import static org.modelingvalue.logic.Integers.iVarCons;
+import static org.modelingvalue.logic.Integers.iConsVar;
 import static org.modelingvalue.logic.Logic.*;
 
 import java.math.BigInteger;
@@ -79,7 +79,7 @@ public final class Rationals {
         return r(BigInteger.valueOf(numerator));
     }
 
-    public static RationalCons rVarCons(String name) {
+    public static RationalCons rConsVar(String name) {
         return variable(RationalCons.class, name);
     }
 
@@ -295,11 +295,11 @@ public final class Rationals {
 
     // Rules
 
-    private static final RationalCons P = rVarCons("PL");
-    private static final RationalCons Q = rVarCons("QL");
-    private static final RationalCons R = rVarCons("RL");
+    private static final RationalCons P = rConsVar("PL");
+    private static final RationalCons Q = rConsVar("QL");
+    private static final RationalCons R = rConsVar("RL");
 
-    private static final IntegerCons  I = iVarCons("IL");
+    private static final IntegerCons  I = iConsVar("IL");
 
     private static final Rational     X = rVar("X");
     private static final Rational     Y = rVar("Y");
