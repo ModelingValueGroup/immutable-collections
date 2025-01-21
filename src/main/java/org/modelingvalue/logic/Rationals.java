@@ -48,7 +48,7 @@ public final class Rationals {
     public interface RationalFunc extends Rational, Function<Rational> {
     }
 
-    private static Functor<RationalCons> r = Logic.<RationalCons, BigInteger, BigInteger> functor(Rationals::r, (NormalizeLambda) r -> {
+    private static Functor<RationalCons> R_FUNCTOR = Logic.<RationalCons, BigInteger, BigInteger> functor(Rationals::r, (NormalizeLambda) r -> {
         BigInteger numerator = r.getVal(1);
         BigInteger denominator = r.getVal(2);
         BigInteger gcd = numerator.gcd(denominator);
@@ -56,7 +56,7 @@ public final class Rationals {
     });
 
     public static RationalCons r(BigInteger numerator, BigInteger denominator) {
-        return constant(r, numerator, denominator);
+        return constant(R_FUNCTOR, numerator, denominator);
     }
 
     public static RationalCons r(String numerator, String denominator, int radix) {
@@ -135,7 +135,7 @@ public final class Rationals {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> plusPred = Logic.<Predicate, RationalCons, RationalCons, RationalCons> functor(Rationals::plus, (LogicLambda) Rationals::plusLogic);
+    private static Functor<Predicate> PLUS_PRED_FUNCTOR = Logic.<Predicate, RationalCons, RationalCons, RationalCons> functor(Rationals::plus, (LogicLambda) Rationals::plusLogic);
 
     private static Conclusion plusLogic(PredicateImpl predicate, InferContext context) {
         BigInteger numAddend1 = predicate.getVal(1, 1);
@@ -168,11 +168,11 @@ public final class Rationals {
     }
 
     public static Predicate plus(RationalCons a, RationalCons b, RationalCons r) {
-        return pred(plusPred, a, b, r);
+        return pred(PLUS_PRED_FUNCTOR, a, b, r);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> multiplyPred = Logic.<Predicate, RationalCons, RationalCons, RationalCons> functor(Rationals::multiply, (LogicLambda) Rationals::multiplyLogic);
+    private static Functor<Predicate> MULTIPLY_PRED_FUNCTOR = Logic.<Predicate, RationalCons, RationalCons, RationalCons> functor(Rationals::multiply, (LogicLambda) Rationals::multiplyLogic);
 
     private static Conclusion multiplyLogic(PredicateImpl predicate, InferContext context) {
         BigInteger numFactor1 = predicate.getVal(1, 1);
@@ -199,11 +199,11 @@ public final class Rationals {
     }
 
     public static Predicate multiply(RationalCons a, RationalCons b, RationalCons r) {
-        return pred(multiplyPred, a, b, r);
+        return pred(MULTIPLY_PRED_FUNCTOR, a, b, r);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> squarePred = Logic.<Predicate, RationalCons, RationalCons> functor(Rationals::square, (LogicLambda) Rationals::squareLogic);
+    private static Functor<Predicate> SQUARE_PRED_FUNCTOR = Logic.<Predicate, RationalCons, RationalCons> functor(Rationals::square, (LogicLambda) Rationals::squareLogic);
 
     private static Conclusion squareLogic(PredicateImpl predicate, InferContext context) {
         BigInteger numRoot = predicate.getVal(1, 1);
@@ -228,69 +228,69 @@ public final class Rationals {
     }
 
     public static Predicate square(RationalCons a, RationalCons r) {
-        return pred(squarePred, a, r);
+        return pred(SQUARE_PRED_FUNCTOR, a, r);
     }
 
     // Functions
 
-    private static Functor<Relation> gt = functor(Rationals::gt);
+    private static Functor<Relation> GT_FUNCTOR = functor(Rationals::gt);
 
     public static Relation gt(Rational a, Rational b) {
-        return pred(gt, a, b);
+        return pred(GT_FUNCTOR, a, b);
     }
 
-    private static Functor<Relation> lt = functor(Rationals::lt);
+    private static Functor<Relation> LT_FUNCTOR = functor(Rationals::lt);
 
     public static Relation lt(Rational a, Rational b) {
-        return pred(lt, a, b);
+        return pred(LT_FUNCTOR, a, b);
     }
 
-    private static Functor<Relation> ge = functor(Rationals::ge);
+    private static Functor<Relation> GE_FUNCTOR = functor(Rationals::ge);
 
     public static Relation ge(Rational a, Rational b) {
-        return pred(ge, a, b);
+        return pred(GE_FUNCTOR, a, b);
     }
 
-    private static Functor<Relation> le = functor(Rationals::le);
+    private static Functor<Relation> LE_FUNCTOR = functor(Rationals::le);
 
     public static Relation le(Rational a, Rational b) {
-        return pred(le, a, b);
+        return pred(LE_FUNCTOR, a, b);
     }
 
-    private static Functor<RationalFunc> plusFunc = Logic.<RationalFunc, Rational, Rational> functor(Rationals::plus);
+    private static Functor<RationalFunc> PLUS_FUNC_FUNCTOR = Logic.<RationalFunc, Rational, Rational> functor(Rationals::plus);
 
     public static RationalFunc plus(Rational a, Rational b) {
-        return function(plusFunc, a, b);
+        return function(PLUS_FUNC_FUNCTOR, a, b);
     }
 
-    private static Functor<RationalFunc> minusFunc = Logic.<RationalFunc, Rational, Rational> functor(Rationals::minus);
+    private static Functor<RationalFunc> MINUS_FUNC_FUNCTOR = Logic.<RationalFunc, Rational, Rational> functor(Rationals::minus);
 
     public static RationalFunc minus(Rational a, Rational b) {
-        return function(minusFunc, a, b);
+        return function(MINUS_FUNC_FUNCTOR, a, b);
     }
 
-    private static Functor<RationalFunc> multiplyFunc = Logic.<RationalFunc, Rational, Rational> functor(Rationals::multiply);
+    private static Functor<RationalFunc> MULTIPLY_FUNC_FUNCTOR = Logic.<RationalFunc, Rational, Rational> functor(Rationals::multiply);
 
     public static RationalFunc multiply(Rational a, Rational b) {
-        return function(multiplyFunc, a, b);
+        return function(MULTIPLY_FUNC_FUNCTOR, a, b);
     }
 
-    private static Functor<RationalFunc> divideFunc = Logic.<RationalFunc, Rational, Rational> functor(Rationals::divide);
+    private static Functor<RationalFunc> DIVIDE_FUNC_FUNCTOR = Logic.<RationalFunc, Rational, Rational> functor(Rationals::divide);
 
     public static RationalFunc divide(Rational a, Rational b) {
-        return function(divideFunc, a, b);
+        return function(DIVIDE_FUNC_FUNCTOR, a, b);
     }
 
-    private static Functor<RationalFunc> squareFunc = Logic.<RationalFunc, Rational> functor(Rationals::square);
+    private static Functor<RationalFunc> SQUARE_FUNC_FUNCTOR = Logic.<RationalFunc, Rational> functor(Rationals::square);
 
     public static RationalFunc square(Rational a) {
-        return function(squareFunc, a);
+        return function(SQUARE_FUNC_FUNCTOR, a);
     }
 
-    private static Functor<RationalFunc> sqrtFunc = Logic.<RationalFunc, Rational> functor(Rationals::sqrt);
+    private static Functor<RationalFunc> SQRT_FUNC_FUNCTOR = Logic.<RationalFunc, Rational> functor(Rationals::sqrt);
 
     public static RationalFunc sqrt(Rational a) {
-        return function(sqrtFunc, a);
+        return function(SQRT_FUNC_FUNCTOR, a);
     }
 
     // Rules

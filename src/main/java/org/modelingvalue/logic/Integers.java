@@ -52,11 +52,11 @@ public final class Integers {
     public interface IntegerFunc extends Integer, Function<Integer> {
     }
 
-    private static FunctorImpl<IntegerCons> iImpl = FunctorImpl.<IntegerCons, BigInteger> of(Integers::i);
-    private static Functor<IntegerCons>     i     = iImpl.proxy();
+    private static FunctorImpl<IntegerCons> I_FUNCTOR_IMPL = FunctorImpl.<IntegerCons, BigInteger> of(Integers::i);
+    private static Functor<IntegerCons>     I_FUNCTOR      = I_FUNCTOR_IMPL.proxy();
 
     public static IntegerCons i(BigInteger val) {
-        return constant(i, val);
+        return constant(I_FUNCTOR, val);
     }
 
     public static IntegerCons i(String val, int radix) {
@@ -86,7 +86,7 @@ public final class Integers {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> compare = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::compare, (LogicLambda) Integers::compareLogic);
+    private static Functor<Predicate> COMPARE_FUNCTOR = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::compare, (LogicLambda) Integers::compareLogic);
 
     @SuppressWarnings("rawtypes")
     private static Conclusion compareLogic(PredicateImpl predicate, InferContext context) {
@@ -115,11 +115,11 @@ public final class Integers {
     }
 
     public static Predicate compare(IntegerCons a, IntegerCons b, IntegerCons c) {
-        return pred(compare, a, b, c);
+        return pred(COMPARE_FUNCTOR, a, b, c);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> plusPred = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::plus, (LogicLambda) Integers::plusLogic);
+    private static Functor<Predicate> PLUS_PRED_FUNCTOR = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::plus, (LogicLambda) Integers::plusLogic);
 
     private static Conclusion plusLogic(PredicateImpl predicate, InferContext context) {
         BigInteger addend1 = predicate.getVal(1, 1);
@@ -143,11 +143,11 @@ public final class Integers {
     }
 
     public static Predicate plus(IntegerCons a, IntegerCons b, IntegerCons r) {
-        return pred(plusPred, a, b, r);
+        return pred(PLUS_PRED_FUNCTOR, a, b, r);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> multiplyPred = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::multiply, (LogicLambda) Integers::multiplyLogic);
+    private static Functor<Predicate> MULTIPLY_PRED_FUNCTOR = Logic.<Predicate, IntegerCons, IntegerCons, IntegerCons> functor(Integers::multiply, (LogicLambda) Integers::multiplyLogic);
 
     private static Conclusion multiplyLogic(PredicateImpl predicate, InferContext context) {
         BigInteger factor1 = predicate.getVal(1, 1);
@@ -171,11 +171,11 @@ public final class Integers {
     }
 
     public static Predicate multiply(IntegerCons a, IntegerCons b, IntegerCons r) {
-        return pred(multiplyPred, a, b, r);
+        return pred(MULTIPLY_PRED_FUNCTOR, a, b, r);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static Functor<Predicate> squarePred = Logic.<Predicate, IntegerCons, IntegerCons> functor(Integers::square, (LogicLambda) Integers::squareLogic);
+    private static Functor<Predicate> SQUARE_PRED_FUNCTOR = Logic.<Predicate, IntegerCons, IntegerCons> functor(Integers::square, (LogicLambda) Integers::squareLogic);
 
     private static Conclusion squareLogic(PredicateImpl predicate, InferContext context) {
         BigInteger root = predicate.getVal(1, 1);
@@ -194,69 +194,69 @@ public final class Integers {
     }
 
     public static Predicate square(IntegerCons a, IntegerCons r) {
-        return pred(squarePred, a, r);
+        return pred(SQUARE_PRED_FUNCTOR, a, r);
     }
 
     // Functions
 
-    private static Functor<Relation> gt = functor(Integers::gt);
+    private static Functor<Relation> GT_FUNCTOR = functor(Integers::gt);
 
     public static Relation gt(Integer a, Integer b) {
-        return pred(gt, a, b);
+        return pred(GT_FUNCTOR, a, b);
     }
 
-    private static Functor<Relation> lt = functor(Integers::lt);
+    private static Functor<Relation> LT_FUNCTOR = functor(Integers::lt);
 
     public static Relation lt(Integer a, Integer b) {
-        return pred(lt, a, b);
+        return pred(LT_FUNCTOR, a, b);
     }
 
-    private static Functor<Relation> ge = functor(Integers::ge);
+    private static Functor<Relation> GE_FUNCTOR = functor(Integers::ge);
 
     public static Relation ge(Integer a, Integer b) {
-        return pred(ge, a, b);
+        return pred(GE_FUNCTOR, a, b);
     }
 
-    private static Functor<Relation> le = functor(Integers::le);
+    private static Functor<Relation> LE_FUNCTOR = functor(Integers::le);
 
     public static Relation le(Integer a, Integer b) {
-        return pred(le, a, b);
+        return pred(LE_FUNCTOR, a, b);
     }
 
-    private static Functor<IntegerFunc> plusFunc = Logic.<IntegerFunc, Integer, Integer> functor(Integers::plus);
+    private static Functor<IntegerFunc> PLUS_FUNC_FUNCTOR = Logic.<IntegerFunc, Integer, Integer> functor(Integers::plus);
 
     public static IntegerFunc plus(Integer a, Integer b) {
-        return function(plusFunc, a, b);
+        return function(PLUS_FUNC_FUNCTOR, a, b);
     }
 
-    private static Functor<IntegerFunc> minusFunc = Logic.<IntegerFunc, Integer, Integer> functor(Integers::minus);
+    private static Functor<IntegerFunc> MINUS_FUNC_FUNCTOR = Logic.<IntegerFunc, Integer, Integer> functor(Integers::minus);
 
     public static IntegerFunc minus(Integer a, Integer b) {
-        return function(minusFunc, a, b);
+        return function(MINUS_FUNC_FUNCTOR, a, b);
     }
 
-    private static Functor<IntegerFunc> multiplyFunc = Logic.<IntegerFunc, Integer, Integer> functor(Integers::multiply);
+    private static Functor<IntegerFunc> MULTIPLY_FUNC_FUNCTOR = Logic.<IntegerFunc, Integer, Integer> functor(Integers::multiply);
 
     public static IntegerFunc multiply(Integer a, Integer b) {
-        return function(multiplyFunc, a, b);
+        return function(MULTIPLY_FUNC_FUNCTOR, a, b);
     }
 
-    private static Functor<IntegerFunc> divideFunc = Logic.<IntegerFunc, Integer, Integer> functor(Integers::divide);
+    private static Functor<IntegerFunc> DIVIDE_FUNC_FUNCTOR = Logic.<IntegerFunc, Integer, Integer> functor(Integers::divide);
 
     public static IntegerFunc divide(Integer a, Integer b) {
-        return function(divideFunc, a, b);
+        return function(DIVIDE_FUNC_FUNCTOR, a, b);
     }
 
-    private static Functor<IntegerFunc> squareFunc = Logic.<IntegerFunc, Integer> functor(Integers::square);
+    private static Functor<IntegerFunc> SQUARE_FUNC_FUNCTOR = Logic.<IntegerFunc, Integer> functor(Integers::square);
 
     public static IntegerFunc square(Integer a) {
-        return function(squareFunc, a);
+        return function(SQUARE_FUNC_FUNCTOR, a);
     }
 
-    private static Functor<IntegerFunc> sqrtFunc = Logic.<IntegerFunc, Integer> functor(Integers::sqrt);
+    private static Functor<IntegerFunc> SQRT_FUNC_FUNCTOR = Logic.<IntegerFunc, Integer> functor(Integers::sqrt);
 
     public static IntegerFunc sqrt(Integer a) {
-        return function(sqrtFunc, a);
+        return function(SQRT_FUNC_FUNCTOR, a);
     }
 
     // Rules

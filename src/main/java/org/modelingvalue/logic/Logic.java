@@ -305,7 +305,7 @@ public final class Logic {
     }
 
     @SuppressWarnings("rawtypes")
-    private static Functor<Predicate> EQ = Logic.<Predicate, Constant, Constant> functor(Logic::eq, (LogicLambda) Logic::eqLogic);
+    private static Functor<Predicate> EQ_FUNCTOR = Logic.<Predicate, Constant, Constant> functor(Logic::eq, (LogicLambda) Logic::eqLogic);
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static Conclusion eqLogic(PredicateImpl predicate, InferContext context) {
@@ -325,7 +325,7 @@ public final class Logic {
 
     @SuppressWarnings("rawtypes")
     public static <T extends Structure> Predicate eq(Constant<T> a, Constant<T> b) {
-        return pred(EQ, a, b);
+        return pred(EQ_FUNCTOR, a, b);
     }
 
     // Is
@@ -334,20 +334,20 @@ public final class Logic {
     }
 
     @SuppressWarnings("rawtypes")
-    private static final Functor<Relation> IS = Logic.<Relation, Structure, Structure> functor(Logic::is);
+    private static final Functor<Relation> IS_FUNCTOR = Logic.<Relation, Structure, Structure> functor(Logic::is);
 
     private static <T extends Structure> Relation is(T a, T b) {
-        return pred(IS, a, b);
+        return pred(IS_FUNCTOR, a, b);
     }
 
     // Use this one for function definitions
     public static <T extends Structure> Relation is(T a, Constant<T> b) {
-        return pred(IS, a, b);
+        return pred(IS_FUNCTOR, a, b);
     }
 
     // Implied by the above using the generic rules here
     public static <T extends Structure> Relation is(Constant<T> a, T b) {
-        return pred(IS, a, b);
+        return pred(IS_FUNCTOR, a, b);
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
