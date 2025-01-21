@@ -172,18 +172,18 @@ public final class Logic {
     }
 
     public static boolean isTrue(Predicate pred) {
-        InferResult conclusion = infer(pred);
-        return !conclusion.facts().isEmpty();
+        InferResult result = infer(pred);
+        return !result.facts().isEmpty();
     }
 
     public static boolean isFalse(Predicate pred) {
-        InferResult conclusion = infer(pred);
-        return conclusion.facts().isEmpty() && conclusion.incomplete().isEmpty();
+        InferResult result = infer(pred);
+        return result.facts().isEmpty() && result.incomplete().isEmpty();
     }
 
     public static boolean isIncomplete(Predicate pred) {
-        InferResult conclusion = infer(pred);
-        return !conclusion.incomplete().isEmpty();
+        InferResult result = infer(pred);
+        return !result.incomplete().isEmpty();
     }
 
     public static Set<Predicate> getInstances(Predicate pred) {
@@ -197,8 +197,8 @@ public final class Logic {
     @SuppressWarnings({"rawtypes", "unchecked"})
     public static Set<Map<Variable, Object>> getBindings(Predicate pred) {
         PredicateImpl impl = StructureImpl.<Predicate, PredicateImpl> unproxy(pred);
-        InferResult conclusion = infer(pred);
-        Set<Map<VariableImpl, Object>> bindings = conclusion.facts().replaceAll(m -> impl.getBinding(m, Map.of()));
+        InferResult result = infer(pred);
+        Set<Map<VariableImpl, Object>> bindings = result.facts().replaceAll(m -> impl.getBinding(m, Map.of()));
         return bindings.replaceAll(m -> m.replaceAll(e -> Entry.of((Variable) e.getKey().proxy(), proxy(e.getValue()))));
     }
 
