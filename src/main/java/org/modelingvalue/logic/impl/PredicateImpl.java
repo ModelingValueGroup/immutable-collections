@@ -21,7 +21,6 @@
 package org.modelingvalue.logic.impl;
 
 import java.util.Objects;
-import java.util.function.UnaryOperator;
 
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Map;
@@ -31,25 +30,10 @@ import org.modelingvalue.logic.Logic.LogicLambda;
 import org.modelingvalue.logic.Logic.Predicate;
 
 public class PredicateImpl extends StructureImpl<Predicate> {
-    private static final long                   serialVersionUID   = -1605559565948158856L;
+    private static final long serialVersionUID   = -1605559565948158856L;
 
-    static final int                            MAX_LOGIC_DEPTH    = Integer.getInteger("MAX_LOGIC_DEPTH", 32);
-    private static final int                    MAX_LOGIC_DEPTH_D2 = MAX_LOGIC_DEPTH / 2;
-
-    protected static final int[]                ONE_ARRAY          = new int[]{1};
-    protected static final int[]                TWO_ARRAY          = new int[]{2};
-    protected static final UnaryOperator<int[]> ADD_ONE            = a -> {
-                                                                       int[] r = new int[a.length + 1];
-                                                                       System.arraycopy(a, 0, r, 1, a.length);
-                                                                       r[0] = 1;
-                                                                       return r;
-                                                                   };
-    protected static final UnaryOperator<int[]> ADD_TWO            = a -> {
-                                                                       int[] r = new int[a.length + 1];
-                                                                       System.arraycopy(a, 0, r, 1, a.length);
-                                                                       r[0] = 2;
-                                                                       return r;
-                                                                   };
+    static final int          MAX_LOGIC_DEPTH    = Integer.getInteger("MAX_LOGIC_DEPTH", 32);
+    private static final int  MAX_LOGIC_DEPTH_D2 = MAX_LOGIC_DEPTH / 2;
 
     public PredicateImpl(Functor<Predicate> functor, Object... args) {
         super(functor, args);

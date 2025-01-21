@@ -20,14 +20,31 @@
 
 package org.modelingvalue.logic.impl;
 
+import java.util.function.UnaryOperator;
+
 import org.modelingvalue.collections.List;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Logic.Predicate;
 
 public abstract class AndOrImpl extends PredicateImpl {
-    private static final long serialVersionUID = -928776822979604743L;
+    private static final long                 serialVersionUID = -928776822979604743L;
 
-    private List<int[]>       idxList;
+    private static final int[]                ONE_ARRAY        = new int[]{1};
+    private static final int[]                TWO_ARRAY        = new int[]{2};
+    private static final UnaryOperator<int[]> ADD_ONE          = a -> {
+                                                                   int[] r = new int[a.length + 1];
+                                                                   System.arraycopy(a, 0, r, 1, a.length);
+                                                                   r[0] = 1;
+                                                                   return r;
+                                                               };
+    private static final UnaryOperator<int[]> ADD_TWO          = a -> {
+                                                                   int[] r = new int[a.length + 1];
+                                                                   System.arraycopy(a, 0, r, 1, a.length);
+                                                                   r[0] = 2;
+                                                                   return r;
+                                                               };
+
+    private List<int[]>                       idxList;
 
     protected AndOrImpl(FunctorImpl<Predicate> functor, PredicateImpl predicate1, PredicateImpl predicate2) {
         super(functor, predicate1, predicate2);
