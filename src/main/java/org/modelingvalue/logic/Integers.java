@@ -32,9 +32,9 @@ import org.modelingvalue.logic.Logic.LogicLambda;
 import org.modelingvalue.logic.Logic.Predicate;
 import org.modelingvalue.logic.Logic.Relation;
 import org.modelingvalue.logic.Logic.Structure;
-import org.modelingvalue.logic.impl.InferResult;
 import org.modelingvalue.logic.impl.FunctorImpl;
 import org.modelingvalue.logic.impl.InferContext;
+import org.modelingvalue.logic.impl.InferResult;
 import org.modelingvalue.logic.impl.PredicateImpl;
 import org.modelingvalue.logic.impl.StructureImpl;
 
@@ -114,8 +114,8 @@ public final class Integers {
         return InferResult.of(context.stack(predicate));
     }
 
-    public static Predicate compare(IntegerCons a, IntegerCons b, IntegerCons c) {
-        return pred(COMPARE_FUNCTOR, a, b, c);
+    public static Predicate compare(IntegerCons compared1, IntegerCons compared2, IntegerCons result) {
+        return pred(COMPARE_FUNCTOR, compared1, compared2, result);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -142,8 +142,8 @@ public final class Integers {
         }
     }
 
-    public static Predicate plus(IntegerCons a, IntegerCons b, IntegerCons r) {
-        return pred(PLUS_PRED_FUNCTOR, a, b, r);
+    public static Predicate plus(IntegerCons addend1, IntegerCons addend2, IntegerCons sum) {
+        return pred(PLUS_PRED_FUNCTOR, addend1, addend2, sum);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -170,8 +170,8 @@ public final class Integers {
         }
     }
 
-    public static Predicate multiply(IntegerCons a, IntegerCons b, IntegerCons r) {
-        return pred(MULTIPLY_PRED_FUNCTOR, a, b, r);
+    public static Predicate multiply(IntegerCons factor1, IntegerCons factor2, IntegerCons product) {
+        return pred(MULTIPLY_PRED_FUNCTOR, factor1, factor2, product);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -193,8 +193,8 @@ public final class Integers {
         }
     }
 
-    public static Predicate square(IntegerCons a, IntegerCons r) {
-        return pred(SQUARE_PRED_FUNCTOR, a, r);
+    public static Predicate square(IntegerCons root, IntegerCons square) {
+        return pred(SQUARE_PRED_FUNCTOR, root, square);
     }
 
     // Functions

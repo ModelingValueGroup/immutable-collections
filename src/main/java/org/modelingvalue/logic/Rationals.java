@@ -29,8 +29,8 @@ import java.math.BigInteger;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.logic.Integers.IntegerCons;
 import org.modelingvalue.logic.Logic.*;
-import org.modelingvalue.logic.impl.InferResult;
 import org.modelingvalue.logic.impl.InferContext;
+import org.modelingvalue.logic.impl.InferResult;
 import org.modelingvalue.logic.impl.PredicateImpl;
 import org.modelingvalue.logic.impl.StructureImpl;
 
@@ -130,8 +130,8 @@ public final class Rationals {
         return InferResult.of(context.stack(predicate));
     }
 
-    public static Predicate compare(RationalCons a, RationalCons b, IntegerCons c) {
-        return pred(compare, a, b, c);
+    public static Predicate compare(RationalCons compared1, RationalCons compared2, IntegerCons result) {
+        return pred(compare, compared1, compared2, result);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -167,8 +167,8 @@ public final class Rationals {
         }
     }
 
-    public static Predicate plus(RationalCons a, RationalCons b, RationalCons r) {
-        return pred(PLUS_PRED_FUNCTOR, a, b, r);
+    public static Predicate plus(RationalCons addend1, RationalCons addend2, RationalCons sum) {
+        return pred(PLUS_PRED_FUNCTOR, addend1, addend2, sum);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -198,8 +198,8 @@ public final class Rationals {
         }
     }
 
-    public static Predicate multiply(RationalCons a, RationalCons b, RationalCons r) {
-        return pred(MULTIPLY_PRED_FUNCTOR, a, b, r);
+    public static Predicate multiply(RationalCons factor1, RationalCons factor2, RationalCons product) {
+        return pred(MULTIPLY_PRED_FUNCTOR, factor1, factor2, product);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -227,8 +227,8 @@ public final class Rationals {
         }
     }
 
-    public static Predicate square(RationalCons a, RationalCons r) {
-        return pred(SQUARE_PRED_FUNCTOR, a, r);
+    public static Predicate square(RationalCons root, RationalCons square) {
+        return pred(SQUARE_PRED_FUNCTOR, root, square);
     }
 
     // Functions

@@ -61,14 +61,14 @@ public final class Lists {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static <E extends Structure> ListCons<E> l(E... es) {
-        return l(org.modelingvalue.collections.List.of(es));
+    public static <E extends Structure> ListCons<E> l(E... elements) {
+        return l(org.modelingvalue.collections.List.of(elements));
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private static <E extends Structure> ListCons<E> l(org.modelingvalue.collections.List<E> es) {
+    private static <E extends Structure> ListCons<E> l(org.modelingvalue.collections.List<E> elements) {
         ListImpl<E> l = (ListImpl) ListImpl.EMPTY_LIST;
-        for (E e : es.reverse()) {
+        for (E e : elements.reverse()) {
             l = ListImpl.of(StructureImpl.<E, StructureImpl<E>> unproxy(e), l);
         }
         return l.proxy();
