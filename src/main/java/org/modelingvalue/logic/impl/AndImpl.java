@@ -110,7 +110,7 @@ public final class AndImpl extends PredicateImpl {
                             List<int[]> iil = idxl.removeIndex(ii);
                             predResult.facts().forEach(f -> ((AndImpl) f).idxList = iil);
                             nextAnds = nextAnds.addAll((Set) predResult.facts());
-                            result = result.add(InferResult.of(Set.of(), predResult.falsehoods()));
+                            result = result.add(predResult);
                             continue outer;
                         } else {
                             tmpResult = tmpResult.add(predResult);
@@ -121,7 +121,6 @@ public final class AndImpl extends PredicateImpl {
             }
         } while (!nextAnds.isEmpty());
         return InferResult.of(facts, result.falsehoods(), result.incomplete(), result.falseIncomplete());
-
     }
 
     @Override
