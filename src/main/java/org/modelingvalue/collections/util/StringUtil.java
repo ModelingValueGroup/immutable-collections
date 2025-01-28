@@ -22,6 +22,7 @@ package org.modelingvalue.collections.util;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.util.Arrays;
 
 public final class StringUtil {
 
@@ -33,18 +34,24 @@ public final class StringUtil {
         if (o == null) {
             return "null";
         } else if (o.getClass().isArray()) {
-            Object[] a = (Object[]) o;
-            int iMax = a.length - 1;
-            if (iMax == -1) {
-                return "[]";
+            if (o instanceof int[]) {
+                return Arrays.toString((int[]) o);
+            } else if (o instanceof boolean[]) {
+                return Arrays.toString((boolean[]) o);
             } else {
-                StringBuilder b = new StringBuilder();
-                b.append('[');
-                for (int i = 0;; i++) {
-                    b.append(toString(a[i]));
-                    if (i == iMax)
-                        return b.append(']').toString();
-                    b.append(",");
+                Object[] a = (Object[]) o;
+                int iMax = a.length - 1;
+                if (iMax == -1) {
+                    return "[]";
+                } else {
+                    StringBuilder b = new StringBuilder();
+                    b.append('[');
+                    for (int i = 0;; i++) {
+                        b.append(toString(a[i]));
+                        if (i == iMax)
+                            return b.append(']').toString();
+                        b.append(",");
+                    }
                 }
             }
         } else if (o instanceof Class) {

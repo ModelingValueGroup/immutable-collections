@@ -657,6 +657,21 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
     }
 
     @Override
+    public Collection<T> filter(Predicate<? super T> predicate) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.filter(predicate);
+        } else {
+            ContainingCollection<T> result = clear();
+            for (T t : this) {
+                if (predicate.test(t)) {
+                    result = result.add(t);
+                }
+            }
+            return result;
+        }
+    }
+
+    @Override
     public void forEach(Consumer<? super T> action) {
         if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
             super.forEach(action);
