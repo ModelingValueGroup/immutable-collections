@@ -106,7 +106,10 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
     default <R> Set<R> replaceAll(Function<? super T, R> mapper) {
         Set<R> r = (Set<R>) clear();
         for (T t : this) {
-            r = r.add(mapper.apply(t));
+            R e = mapper.apply(t);
+            if (e != null) {
+                r = r.add(e);
+            }
         }
         return r;
     }
