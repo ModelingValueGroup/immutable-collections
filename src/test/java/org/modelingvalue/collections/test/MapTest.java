@@ -38,7 +38,7 @@ public class MapTest {
         Map<String, String> map4 = map1.put("B", "yyyyy").put("C", "zzzzz");
         Map<String, String> map5 = map4.removeAllKey(map1);
         Map<String, String> map6 = map4.removeAllKey(map1.toKeys());
-        Set<String>         set  = Set.of("B", "A");
+        Set<String> set = Set.of("B", "A");
         assertEquals(2, map1.size());
         assertEquals(2, map2.size());
         assertEquals(1, map5.size());
