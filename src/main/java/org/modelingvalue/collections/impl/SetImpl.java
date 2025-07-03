@@ -62,6 +62,11 @@ public class SetImpl<T> extends HashCollectionImpl<T> implements Set<T> {
     }
 
     @Override
+    public T get(Object e) {
+        return get(value, key(), e);
+    }
+
+    @Override
     public int index(Object e) {
         return index(value, key(), e);
     }

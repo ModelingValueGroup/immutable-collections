@@ -122,4 +122,6 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
         }
         return r;
     }
+
+    T get(T e);
 }
