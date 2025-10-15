@@ -92,16 +92,6 @@ public abstract class MutableList<T> extends AbstractList<T> implements Mutable<
     }
 
     @Override
-    public T getLast() {
-        return get().last();
-    }
-
-    @Override
-    public java.util.List<T> subList(int fromIndex, int toIndex) {
-        return get().sublist(fromIndex, toIndex).toMutable();
-    }
-
-    @Override
     public Iterator<T> iterator() {
         return new Iterator<T>() {
             private final Iterator<T> it   = get().iterator();
