@@ -87,11 +87,6 @@ public abstract class MutableList<T> extends AbstractList<T> implements Mutable<
     }
 
     @Override
-    public T getFirst() {
-        return get().first();
-    }
-
-    @Override
     public Iterator<T> iterator() {
         return new Iterator<T>() {
             private final Iterator<T> it   = get().iterator();
