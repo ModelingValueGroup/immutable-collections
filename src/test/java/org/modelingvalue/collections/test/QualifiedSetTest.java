@@ -35,7 +35,6 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.QualifiedSet;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Context;
-import org.modelingvalue.collections.util.ContextPool;
 import org.modelingvalue.collections.util.ContextThread;
 import org.modelingvalue.collections.util.SerializableFunction;
 
@@ -123,26 +122,24 @@ public class QualifiedSetTest {
 
     @Test
     public void bigTest() {
-        try (ContextPool pool = ContextThread.createPool().setWorkerThreadName("QualifiedSetTest")) {
-            pool.invoke(new RecursiveAction() {
-                @Override
-                protected void compute() {
-                    Object ctx = new Object();
-                    CONTEXT.run(ctx, () -> {
-                        QualifiedSet<String, Long> set = QualifiedSet.of(Object::toString, Collection.of(LongStream.range(Long.MAX_VALUE - 10_000_000, Long.MAX_VALUE)).collect(Collectors.toSet()));
-                        Double sum = set.asSet().reduce(0d, (s, e) -> {
-                            assertEquals(ctx, CONTEXT.get());
-                            return s + e;
-                        }, (s1, s2) -> {
-                            assertEquals(ctx, CONTEXT.get());
-                            return s1 + s2;
-                        });
+        ContextThread.createPool().setWorkerThreadName("QualifiedSetTest").invoke(new RecursiveAction() {
+            @Override
+            protected void compute() {
+                Object ctx = new Object();
+                CONTEXT.run(ctx, () -> {
+                    QualifiedSet<String, Long> set = QualifiedSet.of(Object::toString, Collection.of(LongStream.range(Long.MAX_VALUE - 10_000_000, Long.MAX_VALUE)).collect(Collectors.toSet()));
+                    Double sum = set.asSet().reduce(0d, (s, e) -> {
                         assertEquals(ctx, CONTEXT.get());
-                        System.err.println(sum + " / " + set.size() + " = " + (sum / set.size()));
+                        return s + e;
+                    }, (s1, s2) -> {
+                        assertEquals(ctx, CONTEXT.get());
+                        return s1 + s2;
                     });
-                }
-            });
-        }
+                    assertEquals(ctx, CONTEXT.get());
+                    System.err.println(sum + " / " + set.size() + " = " + (sum / set.size()));
+                });
+            }
+        });
     }
 
     @Test
