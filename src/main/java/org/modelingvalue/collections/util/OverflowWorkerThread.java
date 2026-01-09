@@ -20,7 +20,7 @@
 
 package org.modelingvalue.collections.util;
 
-public class OverflowWorkerThread extends DclareWorkerThread {
+public class OverflowWorkerThread extends ImmutableCollectionsWorkerThread {
     public static final String OVERFLOW_WORKER_THREAD_NAME_TEMPLATE = ContextThread.WORKER_THREAD_NAME_TEMPLATE + "-OVERFLOW";
 
     public OverflowWorkerThread(ContextPool pool) {

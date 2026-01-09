@@ -20,16 +20,15 @@
 
 package org.modelingvalue.collections.util;
 
-import org.modelingvalue.collections.Collection;
-
 import java.util.concurrent.ForkJoinPool.ForkJoinWorkerThreadFactory;
 
+import org.modelingvalue.collections.Collection;
+
 @SuppressWarnings("unused")
-public final class ContextThread extends DclareWorkerThread {
-    public static final  String                      WORKER_THREAD_NAME_TEMPLATE          = "dclare-p%02d-w%02d";
-    public static final  int                         POOL_SIZE                            = Integer.getInteger("POOL_SIZE", Collection.PARALLELISM * 2 + 2);
-    //
-    private static final ForkJoinWorkerThreadFactory FACTORY                              = pool -> ((ContextPool) pool).newThread();
+public final class ContextThread extends ImmutableCollectionsWorkerThread {
+    public static final  String                      WORKER_THREAD_NAME_TEMPLATE = "%s-p%02d-w%02d";
+    public static final  int                         POOL_SIZE                   = Integer.getInteger("POOL_SIZE", Collection.PARALLELISM * 2 + 2);
+    private static final ForkJoinWorkerThreadFactory FACTORY                     = pool -> ((ContextPool) pool).newThread();
 
     public static ContextPool createPool() {
         return new ContextPool(Collection.PARALLELISM, FACTORY, null, false);

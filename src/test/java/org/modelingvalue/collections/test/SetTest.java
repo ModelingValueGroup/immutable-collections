@@ -36,6 +36,7 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.impl.HashCollectionImpl;
 import org.modelingvalue.collections.util.Context;
+import org.modelingvalue.collections.util.ContextPool;
 import org.modelingvalue.collections.util.ContextThread;
 
 public class SetTest {
@@ -65,34 +66,35 @@ public class SetTest {
         assertEquals(expected, reduce2);
     }
 
-    @SuppressWarnings("serial")
     @Test
     public void bigTest() {
-        ContextThread.createPool().invoke(new RecursiveAction() {
-            @Override
-            protected void compute() {
-                Object ctx = new Object();
-                CONTEXT.run(ctx, () -> {
-                    Set<Long> set = Collection.of(LongStream.range(Long.MAX_VALUE - 10_000_000, Long.MAX_VALUE)).reduce(Set.of(), (s, i) -> {
+        try (ContextPool pool = ContextThread.createPool().setWorkerThreadName("SetTest")) {
+            pool.invoke(new RecursiveAction() {
+                @Override
+                protected void compute() {
+                    Object ctx = new Object();
+                    CONTEXT.run(ctx, () -> {
+                        Set<Long> set = Collection.of(LongStream.range(Long.MAX_VALUE - 10_000_000, Long.MAX_VALUE)).reduce(Set.of(), (s, i) -> {
+                            assertEquals(ctx, CONTEXT.get());
+                            return s.add(i);
+                        }, (x, y) -> {
+                            assertEquals(ctx, CONTEXT.get());
+                            return x.addAll(y);
+                        });
+                        assertEquals(10_000_000, set.size());
+                        double sum = set.reduce(0d, (s, e) -> {
+                            assertEquals(ctx, CONTEXT.get());
+                            return s + e;
+                        }, (s1, s2) -> {
+                            assertEquals(ctx, CONTEXT.get());
+                            return s1 + s2;
+                        });
                         assertEquals(ctx, CONTEXT.get());
-                        return s.add(i);
-                    }, (x, y) -> {
-                        assertEquals(ctx, CONTEXT.get());
-                        return x.addAll(y);
+                        System.err.println(sum + " / " + set.size() + " = " + (sum / set.size()));
                     });
-                    assertEquals(10_000_000, set.size());
-                    double sum = set.reduce(0d, (s, e) -> {
-                        assertEquals(ctx, CONTEXT.get());
-                        return s + e;
-                    }, (s1, s2) -> {
-                        assertEquals(ctx, CONTEXT.get());
-                        return s1 + s2;
-                    });
-                    assertEquals(ctx, CONTEXT.get());
-                    System.err.println(sum + " / " + set.size() + " = " + (sum / set.size()));
-                });
-            }
-        });
+                }
+            });
+        }
     }
 
     @Test
@@ -295,16 +297,15 @@ public class SetTest {
         assertTrue(IntStream.range(-max, max).map(i -> i * step + half).allMatch(set3::contains));
     }
 
-    @SuppressWarnings("rawtypes")
     @Test
     public void checkIndex() {
         int max = 1_000_000;
-        Set<Integer> set = Collection.of(IntStream.range(0, max)).map(Integer::valueOf).asSet();
+        Set<Integer> set = Collection.of(IntStream.range(0, max)).asSet();
         assertEquals(-1, set.index(-1));
         assertEquals(0, set.index(0));
         assertEquals(max - 1, set.index(max - 1));
         assertEquals(-1, set.index(max));
-        Collection.of(IntStream.range(0, max)).map(Integer::valueOf).forEach(i -> assertEquals(set.index(i), i.intValue()));
+        Collection.of(IntStream.range(0, max)).forEach(i -> assertEquals(set.index(i), i.intValue()));
     }
 
     @SuppressWarnings("rawtypes")

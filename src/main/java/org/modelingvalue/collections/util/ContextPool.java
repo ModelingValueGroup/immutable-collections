@@ -26,20 +26,33 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicIntegerArray;
 
 public final class ContextPool extends ForkJoinPool {
-    private static final AtomicInteger POOL_COUNTER  = new AtomicInteger();
-    private final AtomicIntegerArray   workerCreated = new AtomicIntegerArray(ContextThread.POOL_SIZE);
-    private final int                  poolNr;
-    private final AtomicInteger        numInOverflow = new AtomicInteger();
-    private final int[]                activity      = new int[ContextThread.POOL_SIZE];
-    private int                        running       = -1;
+    public static final  String        DEFAULT_WORKER_THREAD_NAME = "IC";
+    private static final AtomicInteger POOL_COUNTER               = new AtomicInteger();
 
     static {
         ContextPoolMonitor.init();
     }
 
+    //
+    private final AtomicIntegerArray workerCreated    = new AtomicIntegerArray(ContextThread.POOL_SIZE);
+    private final int                poolNr;
+    private final AtomicInteger      numInOverflow    = new AtomicInteger();
+    private final int[]              activity         = new int[ContextThread.POOL_SIZE];
+    private       int                running          = -1;
+    private       String             workerThreadName = DEFAULT_WORKER_THREAD_NAME;
+
     ContextPool(int parallelism, ForkJoinWorkerThreadFactory factory, Thread.UncaughtExceptionHandler handler, boolean asyncMode) {
         super(parallelism, factory, handler, asyncMode);
         poolNr = POOL_COUNTER.getAndIncrement();
+    }
+
+    public ContextPool setWorkerThreadName(String workerThreadName) {
+        this.workerThreadName = workerThreadName;
+        return this;
+    }
+
+    public String getWorkerThreadName() {
+        return workerThreadName;
     }
 
     public int runningThreads() {

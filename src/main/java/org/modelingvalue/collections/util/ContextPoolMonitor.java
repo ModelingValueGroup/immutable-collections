@@ -104,7 +104,7 @@ public class ContextPoolMonitor extends Thread {
 
         private record WorkerInfo(int poolNr, int workerNr, State state, boolean stuck, Thread thread, StackTraceElement[] stack) {
             private static WorkerInfo of(Map.Entry<Thread, StackTraceElement[]> e) {
-                if (e.getKey() instanceof DclareWorkerThread dwt) {
+                if (e.getKey() instanceof ImmutableCollectionsWorkerThread dwt) {
                     State state = dwt.getState();
                     StackTraceElement[] stack = e.getValue();
                     boolean stuck = state == State.RUNNABLE && stack[0].toString().contains("java.util.concurrent.ForkJoinPool$WorkQueue.helpComplete(");

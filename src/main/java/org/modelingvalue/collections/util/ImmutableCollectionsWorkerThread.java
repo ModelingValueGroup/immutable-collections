@@ -22,13 +22,13 @@ package org.modelingvalue.collections.util;
 
 import java.util.concurrent.ForkJoinWorkerThread;
 
-public class DclareWorkerThread extends ForkJoinWorkerThread {
+public class ImmutableCollectionsWorkerThread extends ForkJoinWorkerThread {
     protected final int nr;
 
-    protected DclareWorkerThread(ContextPool pool, int nr, String nameTemplate) {
+    protected ImmutableCollectionsWorkerThread(ContextPool pool, int nr, String nameTemplate) {
         super(pool);
         this.nr = nr;
-        setName(String.format(nameTemplate, pool.poolNr(), nr));
+        setName(String.format(nameTemplate, pool.getWorkerThreadName(), pool.poolNr(), nr));
     }
 
     public int getNr() {

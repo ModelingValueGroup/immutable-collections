@@ -20,7 +20,10 @@
 
 package org.modelingvalue.collections.test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.concurrent.RecursiveAction;
 import java.util.stream.Collectors;
@@ -32,6 +35,7 @@ import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.QualifiedSet;
 import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.util.Context;
+import org.modelingvalue.collections.util.ContextPool;
 import org.modelingvalue.collections.util.ContextThread;
 import org.modelingvalue.collections.util.SerializableFunction;
 
@@ -79,10 +83,10 @@ public class QualifiedSetTest {
 
     @Test
     public void testQualifiedSet1() {
-        QualifiedSet<String, O> qset1 = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"));
-        QualifiedSet<String, O> qset2 = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"), O.of("jet"), O.of("jet"));
-        Set<String> qset1keys = qset1.map(a -> a.v).sequential().asSet();
-        Set<String> qset2keys = qset2.map(a -> a.v).sequential().asSet();
+        QualifiedSet<String, O> qset1     = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"));
+        QualifiedSet<String, O> qset2     = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"), O.of("jet"), O.of("jet"));
+        Set<String>             qset1keys = qset1.map(a -> a.v).sequential().asSet();
+        Set<String>             qset2keys = qset2.map(a -> a.v).sequential().asSet();
 
         assertEquals(5, qset1.size());
         assertEquals(5, qset2.size());
@@ -98,14 +102,14 @@ public class QualifiedSetTest {
 
     @Test
     public void testQualifiedSet2() {
-        QualifiedSet<String, O> qset1 = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"));
-        QualifiedSet<String, O> qset2 = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"), O.of("jet"), O.of("jet"));
-        String keys1 = qset1.map(o -> o.k).sequential().reduce("", (a, b) -> a + b);
-        String keys2 = qset2.map(o -> o.k).sequential().reduce("", (a, b) -> a + b);
-        String values1 = qset1.map(o -> o.v).sequential().reduce("", (a, b) -> a + b);
-        String values2 = qset2.map(o -> o.v).sequential().reduce("", (a, b) -> a + b);
-        String expectedKeys = "kaap" + "kjet" + "kmies" + "knoot" + "kteun";
-        String expectedValues = "aap" + "jet" + "mies" + "noot" + "teun";
+        QualifiedSet<String, O> qset1          = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"));
+        QualifiedSet<String, O> qset2          = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"), O.of("jet"), O.of("jet"));
+        String                  keys1          = qset1.map(o -> o.k).sequential().reduce("", (a, b) -> a + b);
+        String                  keys2          = qset2.map(o -> o.k).sequential().reduce("", (a, b) -> a + b);
+        String                  values1        = qset1.map(o -> o.v).sequential().reduce("", (a, b) -> a + b);
+        String                  values2        = qset2.map(o -> o.v).sequential().reduce("", (a, b) -> a + b);
+        String                  expectedKeys   = "kaap" + "kjet" + "kmies" + "knoot" + "kteun";
+        String                  expectedValues = "aap" + "jet" + "mies" + "noot" + "teun";
 
         assertEquals(expectedKeys.length(), keys1.length());
         assertEquals(expectedKeys.length(), keys2.length());
@@ -117,36 +121,37 @@ public class QualifiedSetTest {
         assertEquals(expectedValues, values2);
     }
 
-    @SuppressWarnings("serial")
     @Test
     public void bigTest() {
-        ContextThread.createPool().invoke(new RecursiveAction() {
-            @Override
-            protected void compute() {
-                Object ctx = new Object();
-                CONTEXT.run(ctx, () -> {
-                    QualifiedSet<String, Long> set = QualifiedSet.of(Object::toString, Collection.of(LongStream.range(Long.MAX_VALUE - 10_000_000, Long.MAX_VALUE)).collect(Collectors.toSet()));
-                    Double sum = set.asSet().reduce(0d, (s, e) -> {
+        try (ContextPool pool = ContextThread.createPool().setWorkerThreadName("QualifiedSetTest")) {
+            pool.invoke(new RecursiveAction() {
+                @Override
+                protected void compute() {
+                    Object ctx = new Object();
+                    CONTEXT.run(ctx, () -> {
+                        QualifiedSet<String, Long> set = QualifiedSet.of(Object::toString, Collection.of(LongStream.range(Long.MAX_VALUE - 10_000_000, Long.MAX_VALUE)).collect(Collectors.toSet()));
+                        Double sum = set.asSet().reduce(0d, (s, e) -> {
+                            assertEquals(ctx, CONTEXT.get());
+                            return s + e;
+                        }, (s1, s2) -> {
+                            assertEquals(ctx, CONTEXT.get());
+                            return s1 + s2;
+                        });
                         assertEquals(ctx, CONTEXT.get());
-                        return s + e;
-                    }, (s1, s2) -> {
-                        assertEquals(ctx, CONTEXT.get());
-                        return s1 + s2;
+                        System.err.println(sum + " / " + set.size() + " = " + (sum / set.size()));
                     });
-                    assertEquals(ctx, CONTEXT.get());
-                    System.err.println(sum + " / " + set.size() + " = " + (sum / set.size()));
-                });
-            }
-        });
+                }
+            });
+        }
     }
 
     @Test
     public void equalTest() {
         java.util.Collection<O> collection = Set.of(O.of("noot"), O.of("mies"), O.of("teun"), O.of("mies"), O.of("jet"), O.of("aap")).collect(Collectors.toSet());
 
-        SerializableFunction<O, String> f = o -> o.k;
-        QualifiedSet<String, O> qset1 = QualifiedSet.of(f, collection);
-        QualifiedSet<String, O> qset2 = QualifiedSet.of(f, collection);
+        SerializableFunction<O, String> f     = o -> o.k;
+        QualifiedSet<String, O>         qset1 = QualifiedSet.of(f, collection);
+        QualifiedSet<String, O>         qset2 = QualifiedSet.of(f, collection);
         assertEquals(qset1, qset2);
 
         QualifiedSet<String, O> qset3 = QualifiedSet.of(QualifiedSetTest::k, collection);
@@ -161,10 +166,10 @@ public class QualifiedSetTest {
 
     @Test
     public void subsetTest() {
-        int max = 500_000;
-        Set<Integer> set0 = Collection.of(IntStream.range(0, max * 2)).asSet();
-        SerializableFunction<Integer, String> f = Object::toString;
-        QualifiedSet<String, Integer> qset0 = QualifiedSet.of(f, set0.collect(Collectors.toSet()));
+        int                                   max   = 500_000;
+        Set<Integer>                          set0  = Collection.of(IntStream.range(0, max * 2)).asSet();
+        SerializableFunction<Integer, String> f     = Object::toString;
+        QualifiedSet<String, Integer>         qset0 = QualifiedSet.of(f, set0.collect(Collectors.toSet()));
 
         Set<Integer> set1 = Collection.of(IntStream.range(0, max).map(i -> i * 2)).asSet();
         Set<Integer> set2 = Collection.of(IntStream.range(0, max).map(i -> i * 2 + 1)).asSet();
