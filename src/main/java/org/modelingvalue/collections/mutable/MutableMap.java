@@ -43,11 +43,11 @@ public abstract class MutableMap<K, V> extends AbstractMap<K, V> implements Muta
         return new ConcurrentImpl<K, V>(map);
     }
 
-    protected abstract Map<K, V> get();
+    public abstract Map<K, V> get();
 
-    protected abstract boolean set(UnaryOperator<Map<K, V>> oper);
+    public abstract boolean set(UnaryOperator<Map<K, V>> oper);
 
-    protected abstract Map<K, V> getAndSet(UnaryOperator<Map<K, V>> oper);
+    public abstract Map<K, V> getAndSet(UnaryOperator<Map<K, V>> oper);
 
     @Override
     public Map<K, V> toImmutable() {
@@ -425,19 +425,19 @@ public abstract class MutableMap<K, V> extends AbstractMap<K, V> implements Muta
         }
 
         @Override
-        protected Map<K, V> get() {
+        public Map<K, V> get() {
             return map;
         }
 
         @Override
-        protected boolean set(UnaryOperator<Map<K, V>> oper) {
+        public boolean set(UnaryOperator<Map<K, V>> oper) {
             Map<K, V> pre = map;
             map = oper.apply(pre);
             return pre != map;
         }
 
         @Override
-        protected Map<K, V> getAndSet(UnaryOperator<Map<K, V>> oper) {
+        public Map<K, V> getAndSet(UnaryOperator<Map<K, V>> oper) {
             Map<K, V> pre = map;
             map = oper.apply(pre);
             return pre;
@@ -454,12 +454,12 @@ public abstract class MutableMap<K, V> extends AbstractMap<K, V> implements Muta
         }
 
         @Override
-        protected Map<K, V> get() {
+        public Map<K, V> get() {
             return ref.get();
         }
 
         @Override
-        protected boolean set(UnaryOperator<Map<K, V>> oper) {
+        public boolean set(UnaryOperator<Map<K, V>> oper) {
             Map<K, V> prev = ref.get(), next = null;
             for (boolean haveNext = false;;) {
                 if (!haveNext)
@@ -471,7 +471,7 @@ public abstract class MutableMap<K, V> extends AbstractMap<K, V> implements Muta
         }
 
         @Override
-        protected Map<K, V> getAndSet(UnaryOperator<Map<K, V>> oper) {
+        public Map<K, V> getAndSet(UnaryOperator<Map<K, V>> oper) {
             return ref.getAndUpdate(oper);
         }
 

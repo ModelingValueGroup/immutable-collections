@@ -40,11 +40,11 @@ public abstract class MutableList<T> extends AbstractList<T> implements Mutable<
         return new ConcurrentImpl<T>(list);
     }
 
-    protected abstract List<T> get();
+    public abstract List<T> get();
 
-    protected abstract boolean set(UnaryOperator<List<T>> oper);
+    public abstract boolean set(UnaryOperator<List<T>> oper);
 
-    protected abstract List<T> getAndSet(UnaryOperator<List<T>> oper);
+    public abstract List<T> getAndSet(UnaryOperator<List<T>> oper);
 
     @Override
     public List<T> toImmutable() {
@@ -247,19 +247,19 @@ public abstract class MutableList<T> extends AbstractList<T> implements Mutable<
         }
 
         @Override
-        protected List<T> get() {
+        public List<T> get() {
             return list;
         }
 
         @Override
-        protected boolean set(UnaryOperator<List<T>> oper) {
+        public boolean set(UnaryOperator<List<T>> oper) {
             List<T> pre = list;
             list = oper.apply(pre);
             return pre != list;
         }
 
         @Override
-        protected List<T> getAndSet(UnaryOperator<List<T>> oper) {
+        public List<T> getAndSet(UnaryOperator<List<T>> oper) {
             List<T> pre = list;
             list = oper.apply(pre);
             return pre;
@@ -276,12 +276,12 @@ public abstract class MutableList<T> extends AbstractList<T> implements Mutable<
         }
 
         @Override
-        protected List<T> get() {
+        public List<T> get() {
             return ref.get();
         }
 
         @Override
-        protected boolean set(UnaryOperator<List<T>> oper) {
+        public boolean set(UnaryOperator<List<T>> oper) {
             List<T> prev = ref.get(), next = null;
             for (boolean haveNext = false;;) {
                 if (!haveNext)
@@ -293,7 +293,7 @@ public abstract class MutableList<T> extends AbstractList<T> implements Mutable<
         }
 
         @Override
-        protected List<T> getAndSet(UnaryOperator<List<T>> oper) {
+        public List<T> getAndSet(UnaryOperator<List<T>> oper) {
             return ref.getAndUpdate(oper);
         }
 

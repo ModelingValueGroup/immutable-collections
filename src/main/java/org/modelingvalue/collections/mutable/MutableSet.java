@@ -38,9 +38,9 @@ public abstract class MutableSet<T> extends AbstractSet<T> implements Mutable<T>
         return new ConcurrentImpl<T>(set);
     }
 
-    protected abstract Set<T> get();
+    public abstract Set<T> get();
 
-    protected abstract boolean set(UnaryOperator<Set<T>> oper);
+    public abstract boolean set(UnaryOperator<Set<T>> oper);
 
     @Override
     public Set<T> toImmutable() {
@@ -149,12 +149,12 @@ public abstract class MutableSet<T> extends AbstractSet<T> implements Mutable<T>
         }
 
         @Override
-        protected Set<T> get() {
+        public Set<T> get() {
             return set;
         }
 
         @Override
-        protected boolean set(UnaryOperator<Set<T>> oper) {
+        public boolean set(UnaryOperator<Set<T>> oper) {
             Set<T> pre = set;
             set = oper.apply(pre);
             return pre != set;
@@ -171,12 +171,12 @@ public abstract class MutableSet<T> extends AbstractSet<T> implements Mutable<T>
         }
 
         @Override
-        protected Set<T> get() {
+        public Set<T> get() {
             return ref.get();
         }
 
         @Override
-        protected boolean set(UnaryOperator<Set<T>> oper) {
+        public boolean set(UnaryOperator<Set<T>> oper) {
             Set<T> prev = ref.get(), next = null;
             for (boolean haveNext = false;;) {
                 if (!haveNext)
