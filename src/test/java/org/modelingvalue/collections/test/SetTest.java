@@ -1,17 +1,22 @@
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2023 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
-//                                                                                                                     ~
-// Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
-// compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
-// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on ~
-// an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the  ~
-// specific language governing permissions and limitations under the License.                                          ~
-//                                                                                                                     ~
-// Maintainers:                                                                                                        ~
-//     Wim Bast, Tom Brus, Ronald Krijgsheld                                                                           ~
-// Contributors:                                                                                                       ~
-//     Arjan Kok, Carel Bast                                                                                           ~
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  (C) Copyright 2018-2026 Modeling Value Group B.V. (http://modelingvalue.org)                                         ~
+//                                                                                                                       ~
+//  Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in       ~
+//  compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0   ~
+//  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on  ~
+//  an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the   ~
+//  specific language governing permissions and limitations under the License.                                           ~
+//                                                                                                                       ~
+//  Maintainers:                                                                                                         ~
+//      Wim Bast, Tom Brus                                                                                               ~
+//                                                                                                                       ~
+//  Contributors:                                                                                                        ~
+//      Ronald Krijgsheld ✝, Arjan Kok, Carel Bast                                                                       ~
+// --------------------------------------------------------------------------------------------------------------------- ~
+//  In Memory of Ronald Krijgsheld, 1972 - 2023                                                                          ~
+//      Ronald was suddenly and unexpectedly taken from us. He was not only our long-term colleague and team member      ~
+//      but also our friend. "He will live on in many of the lines of code you see below."                               ~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 package org.modelingvalue.collections.test;
 
@@ -55,18 +60,17 @@ public class SetTest {
         set1.forEachOrdered(obj -> assertTrue(set2.contains(obj)));
         set2.forEachOrdered(obj -> assertTrue(set1.contains(obj)));
         String expected = "aap" + "jet" + "mies" + "noot" + "teun";
-        String reduce1 = set1.sequential().reduce("", (a, b) -> a + b);
-        String reduce2 = set2.sequential().reduce("", (a, b) -> a + b);
+        String reduce1  = set1.sequential().reduce("", (a, b) -> a + b);
+        String reduce2  = set2.sequential().reduce("", (a, b) -> a + b);
         assertEquals(expected.length(), reduce1.length());
         assertEquals(expected.length(), reduce2.length());
         assertEquals(expected, reduce1);
         assertEquals(expected, reduce2);
     }
 
-    @SuppressWarnings("serial")
     @Test
     public void bigTest() {
-        ContextThread.createPool().invoke(new RecursiveAction() {
+        ContextThread.createPool().setWorkerThreadName("SetTest").invoke(new RecursiveAction() {
             @Override
             protected void compute() {
                 Object ctx = new Object();
@@ -106,11 +110,11 @@ public class SetTest {
 
     @Test
     public void equaltest() {
-        int max = 1_000_000;
-        Set<Integer> set1 = Collection.of(IntStream.range(0, max)).asSet();
-        Set<Integer> set2 = Collection.of(IntStream.range(0, max).map(i -> max - i - 1)).asSet();
-        Random random = new Random();
-        java.util.Set<Integer> set = Collections.synchronizedSet(new HashSet<>());
+        int                    max    = 1_000_000;
+        Set<Integer>           set1   = Collection.of(IntStream.range(0, max)).asSet();
+        Set<Integer>           set2   = Collection.of(IntStream.range(0, max).map(i -> max - i - 1)).asSet();
+        Random                 random = new Random();
+        java.util.Set<Integer> set    = Collections.synchronizedSet(new HashSet<>());
         Set<Integer> set3 = Collection.of(() -> {
             int r = random.nextInt(max);
             while (!set.add(r)) {
@@ -132,7 +136,7 @@ public class SetTest {
 
     @Test
     public void subsetTest() {
-        int max = 500_000;
+        int          max  = 500_000;
         Set<Integer> set0 = Collection.of(IntStream.range(0, max * 2)).asSet();
         assertEquals(max * 2, set0.size());
 
@@ -251,41 +255,63 @@ public class SetTest {
     }
 
     @Test
+    public void testNull() {
+        Set<String> set0 = Set.of(null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, "a", null, "b", null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        Set<String> set1 = Set.of(null, "a", null, "b", null, null);
+        Set<String> set2 = Set.of("a", "b");
+        Set<String> set3 = set1.notNull().asSet();
+        assertEquals(set0, set1);
+        assertEquals(set1, set2);
+        assertEquals(set2, set3);
+    }
+
+    @Test
     public void contains() {
-        int max = 10_000_000;
-        int step = Integer.MAX_VALUE / max;
-        Set<Integer> set = Collection.of(IntStream.range(-max, max).map(i -> i * step)).asSet();
+        int          max  = 10_000_000;
+        int          step = Integer.MAX_VALUE / max;
+        Set<Integer> set  = Collection.of(IntStream.range(-max, max).map(i -> i * step)).asSet();
         assertTrue(IntStream.range(-max, max).map(i -> i * step).allMatch(set::contains));
     }
 
     @Test
     public void bigBigMerge() {
-        int max = 10_000_000;
-        int step = Integer.MAX_VALUE / max;
-        int half = step / 2;
+        int          max  = 10_000_000;
+        int          step = Integer.MAX_VALUE / max;
+        int          half = step / 2;
         Set<Integer> set1 = Collection.of(IntStream.range(-max, max).map(i -> i * step)).asSet();
         Set<Integer> set2 = Collection.of(IntStream.range(-max, max).map(i -> i * step + half)).asSet();
-        Set<Integer> set3 = Set.<Integer> of().merge(set1, set2);
+        Set<Integer> set3 = Set.<Integer>of().merge(set1, set2);
         assertTrue(IntStream.range(-max, max).map(i -> i * step).allMatch(i -> set3.contains(i) && set3.contains(i + half)));
     }
 
     @Test
     public void bigSmallMerge() {
-        int max = 10_000_000;
-        int min = 10;
-        int step = Integer.MAX_VALUE / max;
-        int half = step / 2;
+        int          max  = 10_000_000;
+        int          min  = 10;
+        int          step = Integer.MAX_VALUE / max;
+        int          half = step / 2;
         Set<Integer> set1 = Collection.of(IntStream.range(-min, min).map(i -> i * step)).asSet();
         Set<Integer> set2 = Collection.of(IntStream.range(-max, max).map(i -> i * step + half)).asSet();
-        Set<Integer> set3 = Set.<Integer> of().merge(set1, set2);
+        Set<Integer> set3 = Set.<Integer>of().merge(set1, set2);
         assertTrue(IntStream.range(-min, min).map(i -> i * step).allMatch(set3::contains));
         assertTrue(IntStream.range(-max, max).map(i -> i * step + half).allMatch(set3::contains));
+    }
+
+    @Test
+    public void checkIndex() {
+        int          max = 1_000_000;
+        Set<Integer> set = Collection.of(IntStream.range(0, max)).asSet();
+        assertEquals(-1, set.index(-1));
+        assertEquals(0, set.index(0));
+        assertEquals(max - 1, set.index(max - 1));
+        assertEquals(-1, set.index(max));
+        Collection.of(IntStream.range(0, max)).forEach(i -> assertEquals(set.index(i), i.intValue()));
     }
 
     @SuppressWarnings("rawtypes")
     @Test
     public void checkHashIntegrity() {
-        int max = 10_000;
+        int                     max = 10_000;
         Set<HashSharingInteger> set = Collection.of(IntStream.range(-max, max)).map(i -> new HashSharingInteger(i, i - i % 5)).asSet();
         assertNull(((HashCollectionImpl) set).checkHashIntegrity());
     }
@@ -295,7 +321,7 @@ public class SetTest {
         private final int hashCode;
 
         private HashSharingInteger(int integer, int hashCode) {
-            this.integer = integer;
+            this.integer  = integer;
             this.hashCode = hashCode;
         }
 

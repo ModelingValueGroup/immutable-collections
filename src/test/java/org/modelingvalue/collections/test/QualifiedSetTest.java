@@ -1,21 +1,27 @@
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2023 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
-//                                                                                                                     ~
-// Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
-// compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
-// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on ~
-// an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the  ~
-// specific language governing permissions and limitations under the License.                                          ~
-//                                                                                                                     ~
-// Maintainers:                                                                                                        ~
-//     Wim Bast, Tom Brus, Ronald Krijgsheld                                                                           ~
-// Contributors:                                                                                                       ~
-//     Arjan Kok, Carel Bast                                                                                           ~
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  (C) Copyright 2018-2026 Modeling Value Group B.V. (http://modelingvalue.org)                                         ~
+//                                                                                                                       ~
+//  Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in       ~
+//  compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0   ~
+//  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on  ~
+//  an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the   ~
+//  specific language governing permissions and limitations under the License.                                           ~
+//                                                                                                                       ~
+//  Maintainers:                                                                                                         ~
+//      Wim Bast, Tom Brus                                                                                               ~
+//                                                                                                                       ~
+//  Contributors:                                                                                                        ~
+//      Ronald Krijgsheld ✝, Arjan Kok, Carel Bast                                                                       ~
+// --------------------------------------------------------------------------------------------------------------------- ~
+//  In Memory of Ronald Krijgsheld, 1972 - 2023                                                                          ~
+//      Ronald was suddenly and unexpectedly taken from us. He was not only our long-term colleague and team member      ~
+//      but also our friend. "He will live on in many of the lines of code you see below."                               ~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 package org.modelingvalue.collections.test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -56,6 +62,14 @@ public class QualifiedSetTest {
     }
 
     @Test
+    public void testContains() {
+        QualifiedSet<String, O> qset = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("noot"));
+
+        assertEquals(2, qset.size());
+        assertFalse(qset.contains("aap"));
+    }
+
+    @Test
     public void testSetSize() {
         Set<O> set1 = Set.of(O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"));
         Set<O> set2 = Set.of(O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"), O.of("teun"));
@@ -68,10 +82,10 @@ public class QualifiedSetTest {
 
     @Test
     public void testQualifiedSet1() {
-        QualifiedSet<String, O> qset1 = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"));
-        QualifiedSet<String, O> qset2 = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"), O.of("jet"), O.of("jet"));
-        Set<String> qset1keys = qset1.map(a -> a.v).sequential().asSet();
-        Set<String> qset2keys = qset2.map(a -> a.v).sequential().asSet();
+        QualifiedSet<String, O> qset1     = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"));
+        QualifiedSet<String, O> qset2     = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"), O.of("jet"), O.of("jet"));
+        Set<String>             qset1keys = qset1.map(a -> a.v).sequential().asSet();
+        Set<String>             qset2keys = qset2.map(a -> a.v).sequential().asSet();
 
         assertEquals(5, qset1.size());
         assertEquals(5, qset2.size());
@@ -80,23 +94,21 @@ public class QualifiedSetTest {
 
         assertTrue(qset1.containsAll(qset2));
         assertTrue(qset2.containsAll(qset1));
-        //TODO: see DCL-151
-        //qset2.forEachOrdered(obj -> assertTrue("qset1 does not contain " + obj, qset1.contains(obj)));
-        //qset1.forEachOrdered(obj -> assertTrue("qset2 does not contain " + obj, qset2.contains(obj)));
+
         qset1.forEachOrdered(obj -> assertTrue(qset2keys.contains(obj.v)));
         qset2.forEachOrdered(obj -> assertTrue(qset1keys.contains(obj.v)));
     }
 
     @Test
     public void testQualifiedSet2() {
-        QualifiedSet<String, O> qset1 = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"));
-        QualifiedSet<String, O> qset2 = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"), O.of("jet"), O.of("jet"));
-        String keys1 = qset1.map(o -> o.k).sequential().reduce("", (a, b) -> a + b);
-        String keys2 = qset2.map(o -> o.k).sequential().reduce("", (a, b) -> a + b);
-        String values1 = qset1.map(o -> o.v).sequential().reduce("", (a, b) -> a + b);
-        String values2 = qset2.map(o -> o.v).sequential().reduce("", (a, b) -> a + b);
-        String expectedKeys = "kaap" + "kjet" + "kmies" + "knoot" + "kteun";
-        String expectedValues = "aap" + "jet" + "mies" + "noot" + "teun";
+        QualifiedSet<String, O> qset1          = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"));
+        QualifiedSet<String, O> qset2          = QualifiedSet.of(o -> o.k, O.of("aap"), O.of("aap"), O.of("noot"), O.of("mies"), O.of("teun"), O.of("jet"), O.of("jet"), O.of("jet"));
+        String                  keys1          = qset1.map(o -> o.k).sequential().reduce("", (a, b) -> a + b);
+        String                  keys2          = qset2.map(o -> o.k).sequential().reduce("", (a, b) -> a + b);
+        String                  values1        = qset1.map(o -> o.v).sequential().reduce("", (a, b) -> a + b);
+        String                  values2        = qset2.map(o -> o.v).sequential().reduce("", (a, b) -> a + b);
+        String                  expectedKeys   = "kaap" + "kjet" + "kmies" + "knoot" + "kteun";
+        String                  expectedValues = "aap" + "jet" + "mies" + "noot" + "teun";
 
         assertEquals(expectedKeys.length(), keys1.length());
         assertEquals(expectedKeys.length(), keys2.length());
@@ -108,10 +120,9 @@ public class QualifiedSetTest {
         assertEquals(expectedValues, values2);
     }
 
-    @SuppressWarnings("serial")
     @Test
     public void bigTest() {
-        ContextThread.createPool().invoke(new RecursiveAction() {
+        ContextThread.createPool().setWorkerThreadName("QualifiedSetTest").invoke(new RecursiveAction() {
             @Override
             protected void compute() {
                 Object ctx = new Object();
@@ -135,9 +146,9 @@ public class QualifiedSetTest {
     public void equalTest() {
         java.util.Collection<O> collection = Set.of(O.of("noot"), O.of("mies"), O.of("teun"), O.of("mies"), O.of("jet"), O.of("aap")).collect(Collectors.toSet());
 
-        SerializableFunction<O, String> f = o -> o.k;
-        QualifiedSet<String, O> qset1 = QualifiedSet.of(f, collection);
-        QualifiedSet<String, O> qset2 = QualifiedSet.of(f, collection);
+        SerializableFunction<O, String> f     = o -> o.k;
+        QualifiedSet<String, O>         qset1 = QualifiedSet.of(f, collection);
+        QualifiedSet<String, O>         qset2 = QualifiedSet.of(f, collection);
         assertEquals(qset1, qset2);
 
         QualifiedSet<String, O> qset3 = QualifiedSet.of(QualifiedSetTest::k, collection);
@@ -152,10 +163,10 @@ public class QualifiedSetTest {
 
     @Test
     public void subsetTest() {
-        int max = 500_000;
-        Set<Integer> set0 = Collection.of(IntStream.range(0, max * 2)).asSet();
-        SerializableFunction<Integer, String> f = Object::toString;
-        QualifiedSet<String, Integer> qset0 = QualifiedSet.of(f, set0.collect(Collectors.toSet()));
+        int                                   max   = 500_000;
+        Set<Integer>                          set0  = Collection.of(IntStream.range(0, max * 2)).asSet();
+        SerializableFunction<Integer, String> f     = Object::toString;
+        QualifiedSet<String, Integer>         qset0 = QualifiedSet.of(f, set0.collect(Collectors.toSet()));
 
         Set<Integer> set1 = Collection.of(IntStream.range(0, max).map(i -> i * 2)).asSet();
         Set<Integer> set2 = Collection.of(IntStream.range(0, max).map(i -> i * 2 + 1)).asSet();

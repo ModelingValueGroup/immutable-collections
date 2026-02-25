@@ -1,23 +1,29 @@
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2023 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
-//                                                                                                                     ~
-// Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
-// compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
-// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on ~
-// an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the  ~
-// specific language governing permissions and limitations under the License.                                          ~
-//                                                                                                                     ~
-// Maintainers:                                                                                                        ~
-//     Wim Bast, Tom Brus, Ronald Krijgsheld                                                                           ~
-// Contributors:                                                                                                       ~
-//     Arjan Kok, Carel Bast                                                                                           ~
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  (C) Copyright 2018-2026 Modeling Value Group B.V. (http://modelingvalue.org)                                         ~
+//                                                                                                                       ~
+//  Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in       ~
+//  compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0   ~
+//  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on  ~
+//  an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the   ~
+//  specific language governing permissions and limitations under the License.                                           ~
+//                                                                                                                       ~
+//  Maintainers:                                                                                                         ~
+//      Wim Bast, Tom Brus                                                                                               ~
+//                                                                                                                       ~
+//  Contributors:                                                                                                        ~
+//      Ronald Krijgsheld ✝, Arjan Kok, Carel Bast                                                                       ~
+// --------------------------------------------------------------------------------------------------------------------- ~
+//  In Memory of Ronald Krijgsheld, 1972 - 2023                                                                          ~
+//      Ronald was suddenly and unexpectedly taken from us. He was not only our long-term colleague and team member      ~
+//      but also our friend. "He will live on in many of the lines of code you see below."                               ~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 package org.modelingvalue.collections;
 
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.modelingvalue.collections.impl.ListImpl;
 import org.modelingvalue.collections.mutable.MutableList;
@@ -147,7 +153,37 @@ public interface List<T> extends ContainingCollection<T>, Mergeable<List<T>> {
     @Override
     List<T> clear();
 
+    @Override
+    default List<T> removeAll(Predicate<? super T> predicate) {
+        return (List<T>) ContainingCollection.super.removeAll(predicate);
+    }
+
+    @Override
+    default List<T> retainAll(Predicate<? super T> predicate) {
+        return (List<T>) ContainingCollection.super.retainAll(predicate);
+    }
+
+    @SuppressWarnings("unchecked")
+    default <R> List<R> replaceAll(Function<? super T, R> mapper) {
+        List<R> r = (List<R>) clear();
+        for (T t : this) {
+            r = r.add(mapper.apply(t));
+        }
+        return r;
+    }
+
+    @SuppressWarnings("unchecked")
+    default <R> List<R> replaceAllAll(Function<? super T, List<R>> mapper) {
+        List<R> r = (List<R>) clear();
+        for (T t : this) {
+            r = r.appendList(mapper.apply(t));
+        }
+        return r;
+    }
+
     java.util.List<T> toMutable();
+
+    java.util.List<T> toConcurrent();
 
     static <E> List<E> fromMutable(java.util.Collection<E> mutable) {
         return mutable instanceof MutableList ? ((MutableList<E>) mutable).toImmutable() : Collection.of(mutable).asList();

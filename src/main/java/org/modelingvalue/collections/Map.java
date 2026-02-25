@@ -1,17 +1,22 @@
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2023 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
-//                                                                                                                     ~
-// Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
-// compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
-// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on ~
-// an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the  ~
-// specific language governing permissions and limitations under the License.                                          ~
-//                                                                                                                     ~
-// Maintainers:                                                                                                        ~
-//     Wim Bast, Tom Brus, Ronald Krijgsheld                                                                           ~
-// Contributors:                                                                                                       ~
-//     Arjan Kok, Carel Bast                                                                                           ~
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  (C) Copyright 2018-2026 Modeling Value Group B.V. (http://modelingvalue.org)                                         ~
+//                                                                                                                       ~
+//  Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in       ~
+//  compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0   ~
+//  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on  ~
+//  an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the   ~
+//  specific language governing permissions and limitations under the License.                                           ~
+//                                                                                                                       ~
+//  Maintainers:                                                                                                         ~
+//      Wim Bast, Tom Brus                                                                                               ~
+//                                                                                                                       ~
+//  Contributors:                                                                                                        ~
+//      Ronald Krijgsheld ✝, Arjan Kok, Carel Bast                                                                       ~
+// --------------------------------------------------------------------------------------------------------------------- ~
+//  In Memory of Ronald Krijgsheld, 1972 - 2023                                                                          ~
+//      Ronald was suddenly and unexpectedly taken from us. He was not only our long-term colleague and team member      ~
+//      but also our friend. "He will live on in many of the lines of code you see below."                               ~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 package org.modelingvalue.collections;
 
@@ -40,15 +45,15 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
         }
     }
 
+    boolean containsKey(K key);
+
     V get(K key);
 
     V getOrDefault(K key, V defaultValue);
 
-    default boolean containsKey(K key) {
-        return getEntry(key) != null;
-    }
-
     Entry<K, V> getEntry(K key);
+
+    Set<Entry<K, V>> allWithEqualhash(K key);
 
     Collection<V> getAll(Set<K> keys);
 
@@ -90,6 +95,10 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
 
     <V2> Map<K, V> removeAllKey(Map<K, V2> m);
 
+    default <V2> Map<K, V> retainAllKey(Map<K, V2> m) {
+        return removeAllKey(removeAllKey(m));
+    }
+
     void deduplicate(Map<K, V> other);
 
     Collection<K> toKeys();
@@ -122,7 +131,49 @@ public interface Map<K, V> extends ContainingCollection<Entry<K, V>>, Mergeable<
 
     java.util.Map<K, V> toMutable();
 
+    java.util.Map<K, V> toConcurrent();
+
     static <S, E> Map<S, E> fromMutable(java.util.Map<S, E> mutable) {
         return mutable instanceof MutableMap ? ((MutableMap<S, E>) mutable).toImmutable() : Collection.of(mutable.entrySet()).asMap(e -> Entry.of(e.getKey(), e.getValue()));
+    }
+
+    @Override
+    default Map<K, V> removeAll(Predicate<? super Entry<K, V>> predicate) {
+        Map<K, V> r = this;
+        for (Entry<K, V> t : this) {
+            if (predicate.test(t)) {
+                r = r.removeKey(t.getKey());
+            }
+        }
+        return r;
+    }
+
+    @Override
+    default Map<K, V> retainAll(Predicate<? super Entry<K, V>> predicate) {
+        Map<K, V> r = this;
+        for (Entry<K, V> t : this) {
+            if (!predicate.test(t)) {
+                r = r.removeKey(t.getKey());
+            }
+        }
+        return r;
+    }
+
+    @SuppressWarnings("unchecked")
+    default <KR, VR> Map<KR, VR> replaceAll(Function<? super Entry<K, V>, Entry<KR, VR>> mapper) {
+        Map<KR, VR> r = (Map<KR, VR>) clear();
+        for (Entry<K, V> t : this) {
+            r = r.put(mapper.apply(t));
+        }
+        return r;
+    }
+
+    @SuppressWarnings("unchecked")
+    default <KR, VR> Map<KR, VR> replaceAllAll(Function<? super Entry<K, V>, Map<KR, VR>> mapper) {
+        Map<KR, VR> r = (Map<KR, VR>) clear();
+        for (Entry<K, V> t : this) {
+            r = r.putAll(mapper.apply(t));
+        }
+        return r;
     }
 }

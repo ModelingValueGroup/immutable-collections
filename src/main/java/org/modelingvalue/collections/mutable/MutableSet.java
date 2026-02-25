@@ -1,77 +1,71 @@
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2023 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
-//                                                                                                                     ~
-// Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
-// compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
-// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on ~
-// an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the  ~
-// specific language governing permissions and limitations under the License.                                          ~
-//                                                                                                                     ~
-// Maintainers:                                                                                                        ~
-//     Wim Bast, Tom Brus, Ronald Krijgsheld                                                                           ~
-// Contributors:                                                                                                       ~
-//     Arjan Kok, Carel Bast                                                                                           ~
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  (C) Copyright 2018-2026 Modeling Value Group B.V. (http://modelingvalue.org)                                         ~
+//                                                                                                                       ~
+//  Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in       ~
+//  compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0   ~
+//  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on  ~
+//  an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the   ~
+//  specific language governing permissions and limitations under the License.                                           ~
+//                                                                                                                       ~
+//  Maintainers:                                                                                                         ~
+//      Wim Bast, Tom Brus                                                                                               ~
+//                                                                                                                       ~
+//  Contributors:                                                                                                        ~
+//      Ronald Krijgsheld ✝, Arjan Kok, Carel Bast                                                                       ~
+// --------------------------------------------------------------------------------------------------------------------- ~
+//  In Memory of Ronald Krijgsheld, 1972 - 2023                                                                          ~
+//      Ronald was suddenly and unexpectedly taken from us. He was not only our long-term colleague and team member      ~
+//      but also our friend. "He will live on in many of the lines of code you see below."                               ~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 package org.modelingvalue.collections.mutable;
 
 import java.lang.reflect.Array;
+import java.util.AbstractSet;
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.UnaryOperator;
 
 import org.modelingvalue.collections.Set;
 
-public class MutableSet<T> implements java.util.Set<T>, Mutable<T> {
+public abstract class MutableSet<T> extends AbstractSet<T> implements Mutable<T> {
 
-    private Set<T> set;
-
-    public MutableSet(Set<T> set) {
-        this.set = set;
+    public static <T> MutableSet<T> of(Set<T> set) {
+        return new Impl<T>(set);
     }
 
-    @Override
-    public int hashCode() {
-        return set.hashCode();
+    public static <T> MutableSet<T> concurrent(Set<T> set) {
+        return new ConcurrentImpl<T>(set);
     }
 
-    @SuppressWarnings("rawtypes")
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        } else if (obj == null) {
-            return false;
-        } else if (getClass() != obj.getClass()) {
-            return false;
-        } else {
-            MutableSet other = (MutableSet) obj;
-            return set.equals(other.set);
-        }
-    }
+    public abstract Set<T> get();
+
+    public abstract boolean set(UnaryOperator<Set<T>> oper);
 
     @Override
     public Set<T> toImmutable() {
-        return set;
+        return get();
     }
 
     @Override
     public int size() {
-        return set.size();
+        return get().size();
     }
 
     @Override
     public boolean isEmpty() {
-        return set.isEmpty();
+        return get().isEmpty();
     }
 
     @Override
     public boolean contains(Object o) {
-        return set.contains(o);
+        return get().contains(o);
     }
 
     @Override
     public Iterator<T> iterator() {
         return new Iterator<T>() {
-            private final Iterator<T> it   = set.iterator();
+            private final Iterator<T> it   = get().iterator();
             private T                 last = null;
 
             @Override
@@ -87,69 +81,111 @@ public class MutableSet<T> implements java.util.Set<T>, Mutable<T> {
 
             @Override
             public void remove() {
-                set = set.remove(last);
+                set(set -> set.remove(last));
             }
         };
     }
 
     @Override
     public Object[] toArray() {
-        return set.toArray();
+        return get().toArray();
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <E> E[] toArray(E[] a) {
-        return set.toArray(i -> (E[]) Array.newInstance(a.getClass().getComponentType(), i));
+        return get().toArray(i -> (E[]) Array.newInstance(a.getClass().getComponentType(), i));
     }
 
     @Override
     public boolean containsAll(java.util.Collection<?> c) {
-        return set.containsAll(Set.fromMutable(c));
+        return get().containsAll(Set.fromMutable(c));
     }
 
     @Override
     public boolean add(T e) {
-        Set<T> pre = set;
-        set = set.add(e);
-        return pre != set;
+        return set(set -> set.add(e));
     }
 
     @Override
     public boolean remove(Object o) {
-        Set<T> pre = set;
-        set = set.remove(o);
-        return pre != set;
+        return set(set -> set.remove(o));
     }
 
     @Override
     public boolean addAll(java.util.Collection<? extends T> c) {
-        Set<T> pre = set;
-        set = set.addAll(Set.fromMutable(c));
-        return pre != set;
+        Set<? extends T> all = Set.fromMutable(c);
+        return set(set -> set.addAll(all));
     }
 
     @Override
     public boolean retainAll(java.util.Collection<?> c) {
-        Set<T> pre = set;
-        set = set.retainAll(Set.fromMutable(c));
-        return pre != set;
+        Set<?> all = Set.fromMutable(c);
+        return set(set -> set.retainAll(all));
     }
 
     @Override
     public boolean removeAll(java.util.Collection<?> c) {
-        Set<T> pre = set;
-        set = set.removeAll(Set.fromMutable(c));
-        return pre != set;
+        Set<?> all = Set.fromMutable(c);
+        return set(set -> set.removeAll(all));
     }
 
     @Override
     public void clear() {
-        set = set.clear();
+        set(Set::clear);
     }
 
     @Override
     public String toString() {
-        return set.toString();
+        return get().toString();
+    }
+
+    private static class Impl<T> extends MutableSet<T> {
+
+        private Set<T> set;
+
+        private Impl(Set<T> set) {
+            this.set = set;
+        }
+
+        @Override
+        public Set<T> get() {
+            return set;
+        }
+
+        @Override
+        public boolean set(UnaryOperator<Set<T>> oper) {
+            Set<T> pre = set;
+            set = oper.apply(pre);
+            return pre != set;
+        }
+
+    }
+
+    private static class ConcurrentImpl<T> extends MutableSet<T> {
+
+        private AtomicReference<Set<T>> ref;
+
+        private ConcurrentImpl(Set<T> set) {
+            this.ref = new AtomicReference<>(set);
+        }
+
+        @Override
+        public Set<T> get() {
+            return ref.get();
+        }
+
+        @Override
+        public boolean set(UnaryOperator<Set<T>> oper) {
+            Set<T> prev = ref.get(), next = null;
+            for (boolean haveNext = false;;) {
+                if (!haveNext)
+                    next = oper.apply(prev);
+                if (ref.weakCompareAndSetVolatile(prev, next))
+                    return prev != next;
+                haveNext = (prev == (prev = ref.get()));
+            }
+        }
+
     }
 }

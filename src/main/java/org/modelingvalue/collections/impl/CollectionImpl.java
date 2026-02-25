@@ -1,17 +1,22 @@
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2023 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
-//                                                                                                                     ~
-// Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
-// compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
-// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on ~
-// an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the  ~
-// specific language governing permissions and limitations under the License.                                          ~
-//                                                                                                                     ~
-// Maintainers:                                                                                                        ~
-//     Wim Bast, Tom Brus, Ronald Krijgsheld                                                                           ~
-// Contributors:                                                                                                       ~
-//     Arjan Kok, Carel Bast                                                                                           ~
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  (C) Copyright 2018-2026 Modeling Value Group B.V. (http://modelingvalue.org)                                         ~
+//                                                                                                                       ~
+//  Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in       ~
+//  compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0   ~
+//  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on  ~
+//  an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the   ~
+//  specific language governing permissions and limitations under the License.                                           ~
+//                                                                                                                       ~
+//  Maintainers:                                                                                                         ~
+//      Wim Bast, Tom Brus                                                                                               ~
+//                                                                                                                       ~
+//  Contributors:                                                                                                        ~
+//      Ronald Krijgsheld ✝, Arjan Kok, Carel Bast                                                                       ~
+// --------------------------------------------------------------------------------------------------------------------- ~
+//  In Memory of Ronald Krijgsheld, 1972 - 2023                                                                          ~
+//      Ronald was suddenly and unexpectedly taken from us. He was not only our long-term colleague and team member      ~
+//      but also our friend. "He will live on in many of the lines of code you see below."                               ~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 package org.modelingvalue.collections.impl;
 
@@ -20,17 +25,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.function.IntFunction;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.function.ToDoubleFunction;
-import java.util.function.ToIntFunction;
-import java.util.function.ToLongFunction;
+import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
@@ -51,10 +46,29 @@ public abstract class CollectionImpl<T> implements Collection<T> {
 
     @SuppressWarnings("rawtypes")
     private static final Predicate                  NOT_NULL             = Objects::nonNull;
+    @SuppressWarnings("rawtypes")
+    private static final Predicate                  REQUIRE_NOT_NULL     = e -> {
+                                                                             Objects.requireNonNull(e);
+                                                                             return true;
+                                                                         };
+
+    protected static boolean runParallel() {
+        if (!PARALLEL_COLLECTIONS) {
+            return false;
+        }
+        Thread thread = Thread.currentThread();
+        if (!(thread instanceof ContextThread)) {
+            return false;
+        }
+        if (SEQUENTIAL_ONLY.get()) {
+            return false;
+        }
+        return true;
+    }
 
     @Override
     public boolean isParallel() {
-        return PARALLEL_COLLECTIONS;
+        return runParallel();
     }
 
     @SuppressWarnings("unchecked")
@@ -62,9 +76,19 @@ public abstract class CollectionImpl<T> implements Collection<T> {
         return NOT_NULL;
     }
 
+    @SuppressWarnings("unchecked")
+    protected static <E> Predicate<E> requireNonNullFunction() {
+        return REQUIRE_NOT_NULL;
+    }
+
     @Override
     public Collection<T> notNull() {
         return filter(notNullFunction());
+    }
+
+    @Override
+    public Collection<T> requireNonNull() {
+        return filter(requireNonNullFunction());
     }
 
     @SuppressWarnings("unchecked")
@@ -442,8 +466,28 @@ public abstract class CollectionImpl<T> implements Collection<T> {
     }
 
     @Override
+    public Optional<T> findAny(Predicate<? super T> predicate) {
+        return baseStream().filter(predicate).findAny();
+    }
+
+    @Override
+    public Optional<T> findFirst(Predicate<? super T> predicate) {
+        return baseStream().filter(predicate).findFirst();
+    }
+
+    @Override
     public void close() {
         baseStream().close();
+    }
+
+    @Override
+    public Object[] toArray() {
+        return baseStream().toArray();
+    }
+
+    @Override
+    public <A> A[] toArray(IntFunction<A[]> generator) {
+        return baseStream().toArray(wrap(isParallel(), generator));
     }
 
     @Override
@@ -518,17 +562,6 @@ public abstract class CollectionImpl<T> implements Collection<T> {
     }
 
     @Override
-    public Object[] toArray() {
-        return baseStream().toArray();
-    }
-
-    @Override
-    public <A> A[] toArray(IntFunction<A[]> generator) {
-        //noinspection SuspiciousToArrayCall
-        return baseStream().toArray(wrap(isParallel(), generator));
-    }
-
-    @Override
     public String toString() {
         String type = getClass().getSimpleName();
         return type.substring(0, type.length() - 4) + "[" + sequential().reduce("", (s, e) -> s.length() > 0 ? (s + "," + StringUtil.toString(e)) : StringUtil.toString(e), (a, b) -> a + "," + b) + "]";
@@ -538,5 +571,4 @@ public abstract class CollectionImpl<T> implements Collection<T> {
     public <U extends Mergeable<U>> U reduce(U identity, BiFunction<U, ? super T, U> accumulator) {
         return reduce(identity, accumulator, identity::merge);
     }
-
 }

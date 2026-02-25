@@ -1,29 +1,37 @@
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2023 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
-//                                                                                                                     ~
-// Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
-// compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
-// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on ~
-// an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the  ~
-// specific language governing permissions and limitations under the License.                                          ~
-//                                                                                                                     ~
-// Maintainers:                                                                                                        ~
-//     Wim Bast, Tom Brus, Ronald Krijgsheld                                                                           ~
-// Contributors:                                                                                                       ~
-//     Arjan Kok, Carel Bast                                                                                           ~
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  (C) Copyright 2018-2026 Modeling Value Group B.V. (http://modelingvalue.org)                                         ~
+//                                                                                                                       ~
+//  Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in       ~
+//  compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0   ~
+//  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on  ~
+//  an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the   ~
+//  specific language governing permissions and limitations under the License.                                           ~
+//                                                                                                                       ~
+//  Maintainers:                                                                                                         ~
+//      Wim Bast, Tom Brus                                                                                               ~
+//                                                                                                                       ~
+//  Contributors:                                                                                                        ~
+//      Ronald Krijgsheld ✝, Arjan Kok, Carel Bast                                                                       ~
+// --------------------------------------------------------------------------------------------------------------------- ~
+//  In Memory of Ronald Krijgsheld, 1972 - 2023                                                                          ~
+//      Ronald was suddenly and unexpectedly taken from us. He was not only our long-term colleague and team member      ~
+//      but also our friend. "He will live on in many of the lines of code you see below."                               ~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 package org.modelingvalue.collections.impl;
 
 import java.io.Serializable;
 import java.lang.reflect.Array;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.Spliterator.OfInt;
 import java.util.function.BiFunction;
+import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.function.Predicate;
@@ -37,15 +45,13 @@ import org.modelingvalue.collections.StreamCollection;
 import org.modelingvalue.collections.util.*;
 
 public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements ContainingCollection<T> {
-    private static final long         serialVersionUID = 7999808719969099597L;
-    protected static final int        CHARACTERISTICS  = Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL;
-    private static final int          SPLIT_START      = Integer.getInteger("SPLIT_START", 64);
-    private static final Predicate<?> ALL_INTERNABLE   = e -> e instanceof Internable && ((Internable) e).isInternable();
+    private static final long         serialVersionUID   = 7999808719969099597L;
+    protected static final int        CHARACTERISTICS    = Spliterator.SIZED | Spliterator.SUBSIZED | Spliterator.IMMUTABLE | Spliterator.NONNULL;
+    private static final int          SPLIT_START        = Integer.getInteger("SPLIT_START", 64);
+    private static final Predicate<?> ALL_INTERNABLE     = e -> e instanceof Internable && ((Internable) e).isInternable();
+    private static final int          MAX_NO_STREAM_SIZE = Integer.getInteger("MAX_NO_STREAM_SIZE", 8);
 
     protected static boolean split(int amount) {
-        if (!PARALLEL_COLLECTIONS) {
-            return false;
-        }
         Thread thread = Thread.currentThread();
         if (!(thread instanceof ContextThread)) {
             return false;
@@ -170,7 +176,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
     }
 
     protected static IntStream getIntStream(int min, int max, boolean[] stop, int total) {
-        return StreamSupport.intStream(new IntSpliterator(min, max, stop, total), PARALLEL_COLLECTIONS && !SEQUENTIAL_ONLY.get());
+        return StreamSupport.intStream(new IntSpliterator(min, max, stop, total), CollectionImpl.runParallel());
     }
 
     private static final class IntSpliterator implements OfInt {
@@ -649,4 +655,180 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
             this.value = newSet.value;
         }
     }
+
+    @Override
+    public Collection<T> filter(Predicate<? super T> predicate) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.filter(predicate);
+        } else {
+            ContainingCollection<T> result = clear();
+            for (T t : this) {
+                if (predicate.test(t)) {
+                    result = result.add(t);
+                }
+            }
+            return result;
+        }
+    }
+
+    @Override
+    public void forEach(Consumer<? super T> action) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            super.forEach(action);
+        } else {
+            for (T t : this) {
+                action.accept(t);
+            }
+        }
+    }
+
+    @Override
+    public void forEachOrdered(Consumer<? super T> action) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            super.forEachOrdered(action);
+        } else {
+            for (T t : this) {
+                action.accept(t);
+            }
+        }
+    }
+
+    @Override
+    public boolean anyMatch(Predicate<? super T> predicate) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.anyMatch(predicate);
+        } else {
+            for (T t : this) {
+                if (predicate.test(t)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    @Override
+    public boolean allMatch(Predicate<? super T> predicate) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.allMatch(predicate);
+        } else {
+            for (T t : this) {
+                if (!predicate.test(t)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    @Override
+    public boolean noneMatch(Predicate<? super T> predicate) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.noneMatch(predicate);
+        } else {
+            for (T t : this) {
+                if (predicate.test(t)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
+    @Override
+    public T reduce(T identity, BinaryOperator<T> accumulator) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.reduce(identity, accumulator);
+        } else {
+            T r = identity;
+            for (T t : this) {
+                r = accumulator.apply(r, t);
+            }
+            return r;
+        }
+
+    }
+
+    @Override
+    public Optional<T> reduce(BinaryOperator<T> accumulator) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.reduce(accumulator);
+        } else {
+            T r = null;
+            for (T t : this) {
+                r = r == null ? t : accumulator.apply(r, t);
+            }
+            return r == null ? Optional.empty() : Optional.of(r);
+        }
+    }
+
+    @Override
+    public Optional<T> min(Comparator<? super T> comparator) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.min(comparator);
+        } else {
+            T r = null;
+            for (T t : this) {
+                r = r == null ? t : comparator.compare(r, t) > 0 ? t : r;
+            }
+            return r == null ? Optional.empty() : Optional.of(r);
+        }
+    }
+
+    @Override
+    public Optional<T> max(Comparator<? super T> comparator) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.max(comparator);
+        } else {
+            T r = null;
+            for (T t : this) {
+                r = r == null ? t : comparator.compare(r, t) < 0 ? t : r;
+            }
+            return r == null ? Optional.empty() : Optional.of(r);
+        }
+    }
+
+    @Override
+    public Optional<T> findAny(Predicate<? super T> predicate) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.findAny(predicate);
+        } else {
+            for (T t : this) {
+                if (predicate.test(t)) {
+                    return Optional.of(t);
+                }
+            }
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public Optional<T> findFirst(Predicate<? super T> predicate) {
+        if (size() > MAX_NO_STREAM_SIZE && isParallel()) {
+            return super.findFirst(predicate);
+        } else {
+            for (T t : this) {
+                if (predicate.test(t)) {
+                    return Optional.of(t);
+                }
+            }
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public long count() {
+        return size();
+    }
+
+    @Override
+    public Optional<T> findFirst() {
+        return isEmpty() ? Optional.empty() : Optional.of(get(0));
+    }
+
+    @Override
+    public Optional<T> findAny() {
+        return findFirst();
+    }
+
 }

@@ -1,23 +1,29 @@
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2023 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
-//                                                                                                                     ~
-// Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
-// compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
-// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on ~
-// an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the  ~
-// specific language governing permissions and limitations under the License.                                          ~
-//                                                                                                                     ~
-// Maintainers:                                                                                                        ~
-//     Wim Bast, Tom Brus, Ronald Krijgsheld                                                                           ~
-// Contributors:                                                                                                       ~
-//     Arjan Kok, Carel Bast                                                                                           ~
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  (C) Copyright 2018-2026 Modeling Value Group B.V. (http://modelingvalue.org)                                         ~
+//                                                                                                                       ~
+//  Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in       ~
+//  compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0   ~
+//  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on  ~
+//  an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the   ~
+//  specific language governing permissions and limitations under the License.                                           ~
+//                                                                                                                       ~
+//  Maintainers:                                                                                                         ~
+//      Wim Bast, Tom Brus                                                                                               ~
+//                                                                                                                       ~
+//  Contributors:                                                                                                        ~
+//      Ronald Krijgsheld ✝, Arjan Kok, Carel Bast                                                                       ~
+// --------------------------------------------------------------------------------------------------------------------- ~
+//  In Memory of Ronald Krijgsheld, 1972 - 2023                                                                          ~
+//      Ronald was suddenly and unexpectedly taken from us. He was not only our long-term colleague and team member      ~
+//      but also our friend. "He will live on in many of the lines of code you see below."                               ~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 package org.modelingvalue.collections;
 
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.Spliterator;
 import java.util.concurrent.ForkJoinPool;
 import java.util.function.BiFunction;
@@ -77,9 +83,15 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
 
     boolean contains(Object e);
 
+    default boolean notContains(Object e) {
+        return !contains(e);
+    }
+
     <F extends T> Collection<F> filter(Class<F> type);
 
     Collection<T> notNull();
+
+    Collection<T> requireNonNull();
 
     @Override
     Collection<T> filter(Predicate<? super T> predicate);
@@ -87,6 +99,10 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
     default Collection<T> exclude(Predicate<? super T> predicate) {
         return filter(predicate.negate());
     }
+
+    Optional<T> findAny(Predicate<? super T> predicate);
+
+    Optional<T> findFirst(Predicate<? super T> predicate);
 
     @Override
     <R> Collection<R> map(Function<? super T, ? extends R> mapper);
@@ -158,11 +174,6 @@ public interface Collection<T> extends Stream<T>, Iterable<T>, Serializable {
     @SuppressWarnings("unchecked")
     default <K, V> QualifiedSet<K, V> asQualifiedSet(SerializableFunction<V, K> qualifier) {
         return reduce(QualifiedSet.of(qualifier), (s, a) -> s.add((V) a), QualifiedSet::addAll);
-    }
-
-    @SuppressWarnings("unchecked")
-    default <K, V> QualifiedDefaultSet<K, V> asQualifiedDefaultSet(SerializableFunction<V, K> qualifier, SerializableFunction<K, V> defaultFunction) {
-        return reduce(QualifiedDefaultSet.of(qualifier, defaultFunction), (s, a) -> s.add((V) a), QualifiedDefaultSet::addAll);
     }
 
     @SuppressWarnings("rawtypes")

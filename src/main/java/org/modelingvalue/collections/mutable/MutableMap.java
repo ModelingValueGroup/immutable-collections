@@ -1,113 +1,106 @@
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2023 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
-//                                                                                                                     ~
-// Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
-// compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
-// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on ~
-// an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the  ~
-// specific language governing permissions and limitations under the License.                                          ~
-//                                                                                                                     ~
-// Maintainers:                                                                                                        ~
-//     Wim Bast, Tom Brus, Ronald Krijgsheld                                                                           ~
-// Contributors:                                                                                                       ~
-//     Arjan Kok, Carel Bast                                                                                           ~
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  (C) Copyright 2018-2026 Modeling Value Group B.V. (http://modelingvalue.org)                                         ~
+//                                                                                                                       ~
+//  Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in       ~
+//  compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0   ~
+//  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on  ~
+//  an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the   ~
+//  specific language governing permissions and limitations under the License.                                           ~
+//                                                                                                                       ~
+//  Maintainers:                                                                                                         ~
+//      Wim Bast, Tom Brus                                                                                               ~
+//                                                                                                                       ~
+//  Contributors:                                                                                                        ~
+//      Ronald Krijgsheld ✝, Arjan Kok, Carel Bast                                                                       ~
+// --------------------------------------------------------------------------------------------------------------------- ~
+//  In Memory of Ronald Krijgsheld, 1972 - 2023                                                                          ~
+//      Ronald was suddenly and unexpectedly taken from us. He was not only our long-term colleague and team member      ~
+//      but also our friend. "He will live on in many of the lines of code you see below."                               ~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 package org.modelingvalue.collections.mutable;
 
 import java.lang.reflect.Array;
+import java.util.AbstractMap;
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.Entry;
 import org.modelingvalue.collections.Map;
 
-public class MutableMap<K, V> implements java.util.Map<K, V>, Mutable<Entry<K, V>> {
+public abstract class MutableMap<K, V> extends AbstractMap<K, V> implements Mutable<Entry<K, V>> {
 
-    private Map<K, V> map;
-
-    public MutableMap(Map<K, V> map) {
-        this.map = map;
+    public static <K, V> MutableMap<K, V> of(Map<K, V> map) {
+        return new Impl<K, V>(map);
     }
 
-    @Override
-    public int hashCode() {
-        return map.hashCode();
+    public static <K, V> MutableMap<K, V> concurrent(Map<K, V> map) {
+        return new ConcurrentImpl<K, V>(map);
     }
 
-    @SuppressWarnings("rawtypes")
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        } else if (obj == null) {
-            return false;
-        } else if (getClass() != obj.getClass()) {
-            return false;
-        } else {
-            MutableMap other = (MutableMap) obj;
-            return map.equals(other.map);
-        }
-    }
+    public abstract Map<K, V> get();
+
+    public abstract boolean set(UnaryOperator<Map<K, V>> oper);
+
+    public abstract Map<K, V> getAndSet(UnaryOperator<Map<K, V>> oper);
 
     @Override
     public Map<K, V> toImmutable() {
-        return map;
+        return get();
     }
 
     @Override
     public int size() {
-        return map.size();
+        return get().size();
     }
 
     @Override
     public boolean isEmpty() {
-        return map.isEmpty();
+        return get().isEmpty();
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public boolean containsKey(Object key) {
-        return map.containsKey((K) key);
+        return get().containsKey((K) key);
     }
 
     @Override
     public boolean containsValue(Object value) {
-        return map.toValues().anyMatch(v -> Objects.equals(v, value));
+        return get().toValues().anyMatch(v -> Objects.equals(v, value));
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public V get(Object key) {
-        return map.get((K) key);
+        return get().get((K) key);
     }
 
     @Override
     public V put(K key, V value) {
-        V pre = map.get(key);
-        map = map.put(key, value);
-        return pre;
+        return getAndSet(map -> map.put(key, value)).get(key);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public V remove(Object key) {
-        V pre = map.get((K) key);
-        map = map.remove(key);
-        return pre;
+        return getAndSet(map -> map.removeKey((K) key)).get((K) key);
     }
 
     @Override
     public void putAll(java.util.Map<? extends K, ? extends V> m) {
-        map = map.putAll(Map.fromMutable(m));
+        Map<? extends K, ? extends V> all = Map.fromMutable(m);
+        set(map -> map.putAll(all));
     }
 
     @Override
     public void clear() {
-        map = map.clear();
+        set(Map::clear);
     }
 
     @Override
@@ -116,24 +109,24 @@ public class MutableMap<K, V> implements java.util.Map<K, V>, Mutable<Entry<K, V
 
             @Override
             public int size() {
-                return map.size();
+                return get().size();
             }
 
             @Override
             public boolean isEmpty() {
-                return map.isEmpty();
+                return get().isEmpty();
             }
 
             @SuppressWarnings("unchecked")
             @Override
             public boolean contains(Object o) {
-                return map.containsKey((K) o);
+                return get().containsKey((K) o);
             }
 
             @Override
             public Iterator<K> iterator() {
                 return new Iterator<K>() {
-                    private final Iterator<org.modelingvalue.collections.Entry<K, V>> it   = map.iterator();
+                    private final Iterator<org.modelingvalue.collections.Entry<K, V>> it   = get().iterator();
                     private org.modelingvalue.collections.Entry<K, V>                 last = null;
 
                     @Override
@@ -149,53 +142,48 @@ public class MutableMap<K, V> implements java.util.Map<K, V>, Mutable<Entry<K, V
 
                     @Override
                     public void remove() {
-                        map = map.remove(last);
+                        set(map -> map.remove(last));
                     }
                 };
             }
 
             @Override
             public Object[] toArray() {
-                return map.toKeys().toArray();
+                return get().toKeys().toArray();
             }
 
             @SuppressWarnings("unchecked")
             @Override
             public <T> T[] toArray(T[] a) {
-                return map.toKeys().toArray(i -> (T[]) Array.newInstance(a.getClass().getComponentType(), i));
+                return get().toKeys().toArray(i -> (T[]) Array.newInstance(a.getClass().getComponentType(), i));
             }
 
             @SuppressWarnings("unchecked")
             @Override
             public boolean containsAll(java.util.Collection<?> c) {
+                Map<K, V> map = get();
                 return Stream.of(c).map(k -> (K) k).allMatch(map::containsKey);
             }
 
             @SuppressWarnings("unchecked")
             @Override
             public boolean remove(Object o) {
-                Map<K, V> pre = map;
-                map = map.removeKey((K) o);
-                return pre != map;
+                return set(map -> map.removeKey((K) o));
             }
 
             @Override
             public boolean retainAll(java.util.Collection<?> c) {
-                Map<K, V> pre = map;
-                map = map.removeAllKey(map.toKeys().exclude(c::contains));
-                return pre != map;
+                return set(map -> map.removeAllKey(map.toKeys().exclude(c::contains)));
             }
 
             @Override
             public boolean removeAll(java.util.Collection<?> c) {
-                Map<K, V> pre = map;
-                map = map.removeAllKey(Collection.of(c));
-                return pre != map;
+                return set(map -> map.removeAllKey(Collection.of(c)));
             }
 
             @Override
             public void clear() {
-                map = map.clear();
+                set(Map::clear);
             }
 
             @Override
@@ -217,23 +205,23 @@ public class MutableMap<K, V> implements java.util.Map<K, V>, Mutable<Entry<K, V
 
             @Override
             public int size() {
-                return map.size();
+                return get().size();
             }
 
             @Override
             public boolean isEmpty() {
-                return map.isEmpty();
+                return get().isEmpty();
             }
 
             @Override
             public boolean contains(Object o) {
-                return map.toValues().anyMatch(v -> Objects.equals(v, o));
+                return get().toValues().anyMatch(v -> Objects.equals(v, o));
             }
 
             @Override
             public Iterator<V> iterator() {
                 return new Iterator<V>() {
-                    private final Iterator<org.modelingvalue.collections.Entry<K, V>> it   = map.iterator();
+                    private final Iterator<org.modelingvalue.collections.Entry<K, V>> it   = get().iterator();
                     private org.modelingvalue.collections.Entry<K, V>                 last = null;
 
                     @Override
@@ -249,57 +237,51 @@ public class MutableMap<K, V> implements java.util.Map<K, V>, Mutable<Entry<K, V
 
                     @Override
                     public void remove() {
-                        map = map.remove(last);
+                        set(map -> map.remove(last));
                     }
                 };
             }
 
             @Override
             public Object[] toArray() {
-                return map.toValues().toArray();
+                return get().toValues().toArray();
             }
 
             @SuppressWarnings("unchecked")
             @Override
             public <T> T[] toArray(T[] a) {
-                return map.toValues().toArray(i -> (T[]) Array.newInstance(a.getClass().getComponentType(), i));
+                return get().toValues().toArray(i -> (T[]) Array.newInstance(a.getClass().getComponentType(), i));
             }
 
             @Override
             @SuppressWarnings("unchecked")
             public boolean containsAll(java.util.Collection<?> c) {
+                Map<K, V> map = get();
                 return Stream.of(c).allMatch(v -> map.anyMatch(e -> Objects.equals(e.getValue(), v)));
             }
 
             @SuppressWarnings("unchecked")
             @Override
             public boolean remove(Object o) {
-                Optional<org.modelingvalue.collections.Entry<K, V>> found = map.filter(e -> Objects.equals(e.getValue(), o)).findFirst();
-                if (found.isPresent()) {
-                    map = map.remove(found.get());
-                    return true;
-                } else {
-                    return false;
-                }
+                return set(map -> {
+                    Optional<org.modelingvalue.collections.Entry<K, V>> found = map.filter(e -> Objects.equals(e.getValue(), o)).findFirst();
+                    return found.isPresent() ? map.removeKey(found.get().getKey()) : map;
+                });
             }
 
             @Override
             public boolean retainAll(java.util.Collection<?> c) {
-                Map<K, V> pre = map;
-                map = map.removeAll(map.exclude(e -> c.contains(e.getValue())));
-                return pre != map;
+                return set(map -> map.removeAll(map.exclude(e -> c.contains(e.getValue()))));
             }
 
             @Override
             public boolean removeAll(java.util.Collection<?> c) {
-                Map<K, V> pre = map;
-                map = map.removeAll(map.filter(e -> c.contains(e.getValue())));
-                return pre != map;
+                return set(map -> map.removeAll(map.filter(e -> c.contains(e.getValue()))));
             }
 
             @Override
             public void clear() {
-                map = map.clear();
+                set(Map::clear);
             }
 
             @Override
@@ -321,23 +303,23 @@ public class MutableMap<K, V> implements java.util.Map<K, V>, Mutable<Entry<K, V
 
             @Override
             public int size() {
-                return map.size();
+                return get().size();
             }
 
             @Override
             public boolean isEmpty() {
-                return map.isEmpty();
+                return get().isEmpty();
             }
 
             @Override
             public boolean contains(Object o) {
-                return map.contains(o);
+                return get().contains(o);
             }
 
             @Override
             public Iterator<java.util.Map.Entry<K, V>> iterator() {
                 return new Iterator<java.util.Map.Entry<K, V>>() {
-                    private final Iterator<org.modelingvalue.collections.Entry<K, V>> it   = map.iterator();
+                    private final Iterator<org.modelingvalue.collections.Entry<K, V>> it   = get().iterator();
                     private org.modelingvalue.collections.Entry<K, V>                 last = null;
 
                     @Override
@@ -353,20 +335,20 @@ public class MutableMap<K, V> implements java.util.Map<K, V>, Mutable<Entry<K, V
 
                     @Override
                     public void remove() {
-                        map = map.remove(last);
+                        set(map -> map.remove(last));
                     }
                 };
             }
 
             @Override
             public Object[] toArray() {
-                return map.map(null).toArray();
+                return get().map(null).toArray();
             }
 
             @SuppressWarnings("unchecked")
             @Override
             public <T> T[] toArray(T[] a) {
-                return map.map(e -> new EntryImpl(e.getKey(), e.getValue())).toArray(i -> (T[]) Array.newInstance(a.getClass().getComponentType(), i));
+                return get().map(e -> new EntryImpl(e.getKey(), e.getValue())).toArray(i -> (T[]) Array.newInstance(a.getClass().getComponentType(), i));
             }
 
             @SuppressWarnings("unchecked")
@@ -374,37 +356,33 @@ public class MutableMap<K, V> implements java.util.Map<K, V>, Mutable<Entry<K, V
             public boolean remove(Object o) {
                 if (o instanceof java.util.Map.Entry) {
                     java.util.Map.Entry<K, V> entry = (java.util.Map.Entry<K, V>) o;
-                    Map<K, V> pre = map;
-                    map = map.remove(org.modelingvalue.collections.Entry.of(entry.getKey(), entry.getValue()));
-                    return pre != map;
+                    return set(map -> map.remove(org.modelingvalue.collections.Entry.of(entry.getKey(), entry.getValue())));
                 } else {
                     return false;
                 }
+
             }
 
             @Override
             public boolean containsAll(java.util.Collection<?> c) {
+                Map<K, V> map = get();
                 return Stream.of(c).allMatch(map::contains);
             }
 
             @Override
             public boolean retainAll(java.util.Collection<?> c) {
-                Map<K, V> pre = map;
-                map = map.removeAll(map.exclude(e -> c.contains(new EntryImpl(e.getKey(), e.getValue()))));
-                return pre != map;
+                return set(map -> map.removeAll(map.exclude(e -> c.contains(new EntryImpl(e.getKey(), e.getValue())))));
             }
 
             @SuppressWarnings("rawtypes")
             @Override
             public boolean removeAll(java.util.Collection<?> c) {
-                Map<K, V> pre = map;
-                map = map.removeAll(Collection.of(c).map(e -> e instanceof java.util.Map.Entry ? org.modelingvalue.collections.Entry.of(((java.util.Map.Entry) e).getKey(), ((java.util.Map.Entry) e).getValue()) : null).notNull());
-                return pre != map;
+                return set(map -> map.removeAll(Collection.of(c).map(e -> e instanceof java.util.Map.Entry ? org.modelingvalue.collections.Entry.of(((java.util.Map.Entry) e).getKey(), ((java.util.Map.Entry) e).getValue()) : null).notNull()));
             }
 
             @Override
             public void clear() {
-                map = map.clear();
+                set(Map::clear);
             }
 
             @Override
@@ -422,7 +400,7 @@ public class MutableMap<K, V> implements java.util.Map<K, V>, Mutable<Entry<K, V
 
     @Override
     public String toString() {
-        return map.toString();
+        return get().toString();
     }
 
     private final class EntryImpl extends java.util.AbstractMap.SimpleEntry<K, V> {
@@ -434,9 +412,68 @@ public class MutableMap<K, V> implements java.util.Map<K, V>, Mutable<Entry<K, V
 
         @Override
         public V setValue(V value) {
-            V pre = super.setValue(value);
-            map = map.put(getKey(), value);
+            return getAndSet(map -> map.put(getKey(), value)).get(getKey());
+        }
+    }
+
+    private static class Impl<K, V> extends MutableMap<K, V> {
+
+        private Map<K, V> map;
+
+        private Impl(Map<K, V> map) {
+            this.map = map;
+        }
+
+        @Override
+        public Map<K, V> get() {
+            return map;
+        }
+
+        @Override
+        public boolean set(UnaryOperator<Map<K, V>> oper) {
+            Map<K, V> pre = map;
+            map = oper.apply(pre);
+            return pre != map;
+        }
+
+        @Override
+        public Map<K, V> getAndSet(UnaryOperator<Map<K, V>> oper) {
+            Map<K, V> pre = map;
+            map = oper.apply(pre);
             return pre;
         }
+
+    }
+
+    private static class ConcurrentImpl<K, V> extends MutableMap<K, V> {
+
+        private AtomicReference<Map<K, V>> ref;
+
+        public ConcurrentImpl(Map<K, V> map) {
+            this.ref = new AtomicReference<>(map);
+        }
+
+        @Override
+        public Map<K, V> get() {
+            return ref.get();
+        }
+
+        @Override
+        public boolean set(UnaryOperator<Map<K, V>> oper) {
+            Map<K, V> prev = ref.get(), next = null;
+            for (boolean haveNext = false;;) {
+                if (!haveNext)
+                    next = oper.apply(prev);
+                if (ref.weakCompareAndSetVolatile(prev, next))
+                    return prev != next;
+                haveNext = (prev == (prev = ref.get()));
+            }
+        }
+
+        @Override
+        public Map<K, V> getAndSet(UnaryOperator<Map<K, V>> oper) {
+            return ref.getAndUpdate(oper);
+        }
+
     }
 }

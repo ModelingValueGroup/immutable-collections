@@ -1,21 +1,27 @@
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2023 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
-//                                                                                                                     ~
-// Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
-// compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
-// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on ~
-// an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the  ~
-// specific language governing permissions and limitations under the License.                                          ~
-//                                                                                                                     ~
-// Maintainers:                                                                                                        ~
-//     Wim Bast, Tom Brus, Ronald Krijgsheld                                                                           ~
-// Contributors:                                                                                                       ~
-//     Arjan Kok, Carel Bast                                                                                           ~
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  (C) Copyright 2018-2026 Modeling Value Group B.V. (http://modelingvalue.org)                                         ~
+//                                                                                                                       ~
+//  Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in       ~
+//  compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0   ~
+//  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on  ~
+//  an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the   ~
+//  specific language governing permissions and limitations under the License.                                           ~
+//                                                                                                                       ~
+//  Maintainers:                                                                                                         ~
+//      Wim Bast, Tom Brus                                                                                               ~
+//                                                                                                                       ~
+//  Contributors:                                                                                                        ~
+//      Ronald Krijgsheld ✝, Arjan Kok, Carel Bast                                                                       ~
+// --------------------------------------------------------------------------------------------------------------------- ~
+//  In Memory of Ronald Krijgsheld, 1972 - 2023                                                                          ~
+//      Ronald was suddenly and unexpectedly taken from us. He was not only our long-term colleague and team member      ~
+//      but also our friend. "He will live on in many of the lines of code you see below."                               ~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 package org.modelingvalue.collections;
 
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.modelingvalue.collections.impl.SetImpl;
 import org.modelingvalue.collections.mutable.MutableSet;
@@ -31,17 +37,6 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
     @SuppressWarnings("unchecked")
     static <T> Set<T> of(T... elements) {
         return elements.length == 0 ? SetImpl.EMPTY : new SetImpl<>(elements);
-    }
-
-    @SafeVarargs
-    static <T> Set<T> notNull(T... elements) {
-        Set<T> result = Set.of();
-        for (int i = 0; i < elements.length; i++) {
-            if (elements[i] != null) {
-                result = result.add(elements[i]);
-            }
-        }
-        return result;
     }
 
     @SuppressWarnings("unchecked")
@@ -91,8 +86,42 @@ public interface Set<T> extends ContainingCollection<T>, Mergeable<Set<T>> {
 
     java.util.Set<T> toMutable();
 
+    java.util.Set<T> toConcurrent();
+
     static <E> Set<E> fromMutable(java.util.Collection<E> mutable) {
         return mutable instanceof MutableSet ? ((MutableSet<E>) mutable).toImmutable() : Collection.of(mutable).asSet();
     }
 
+    @Override
+    default Set<T> removeAll(Predicate<? super T> predicate) {
+        return (Set<T>) ContainingCollection.super.removeAll(predicate);
+    }
+
+    @Override
+    default Set<T> retainAll(Predicate<? super T> predicate) {
+        return (Set<T>) ContainingCollection.super.retainAll(predicate);
+    }
+
+    @SuppressWarnings("unchecked")
+    default <R> Set<R> replaceAll(Function<? super T, R> mapper) {
+        Set<R> r = (Set<R>) clear();
+        for (T t : this) {
+            R e = mapper.apply(t);
+            if (e != null) {
+                r = r.add(e);
+            }
+        }
+        return r;
+    }
+
+    @SuppressWarnings("unchecked")
+    default <R> Set<R> replaceAllAll(Function<? super T, Set<R>> mapper) {
+        Set<R> r = (Set<R>) clear();
+        for (T t : this) {
+            r = r.addAll(mapper.apply(t));
+        }
+        return r;
+    }
+
+    T get(T e);
 }

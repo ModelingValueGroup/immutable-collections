@@ -1,20 +1,26 @@
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-// (C) Copyright 2018-2023 Modeling Value Group B.V. (http://modelingvalue.org)                                        ~
-//                                                                                                                     ~
-// Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in      ~
-// compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0  ~
-// Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on ~
-// an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the  ~
-// specific language governing permissions and limitations under the License.                                          ~
-//                                                                                                                     ~
-// Maintainers:                                                                                                        ~
-//     Wim Bast, Tom Brus, Ronald Krijgsheld                                                                           ~
-// Contributors:                                                                                                       ~
-//     Arjan Kok, Carel Bast                                                                                           ~
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//  (C) Copyright 2018-2026 Modeling Value Group B.V. (http://modelingvalue.org)                                         ~
+//                                                                                                                       ~
+//  Licensed under the GNU Lesser General Public License v3.0 (the 'License'). You may not use this file except in       ~
+//  compliance with the License. You may obtain a copy of the License at: https://choosealicense.com/licenses/lgpl-3.0   ~
+//  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on  ~
+//  an 'AS IS' BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the   ~
+//  specific language governing permissions and limitations under the License.                                           ~
+//                                                                                                                       ~
+//  Maintainers:                                                                                                         ~
+//      Wim Bast, Tom Brus                                                                                               ~
+//                                                                                                                       ~
+//  Contributors:                                                                                                        ~
+//      Ronald Krijgsheld ✝, Arjan Kok, Carel Bast                                                                       ~
+// --------------------------------------------------------------------------------------------------------------------- ~
+//  In Memory of Ronald Krijgsheld, 1972 - 2023                                                                          ~
+//      Ronald was suddenly and unexpectedly taken from us. He was not only our long-term colleague and team member      ~
+//      but also our friend. "He will live on in many of the lines of code you see below."                               ~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 package org.modelingvalue.collections.impl;
 
+import java.io.Serial;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Spliterator;
@@ -25,6 +31,7 @@ import java.util.function.Function;
 
 import org.modelingvalue.collections.Collection;
 import org.modelingvalue.collections.ContainingCollection;
+import org.modelingvalue.collections.Set;
 import org.modelingvalue.collections.StreamCollection;
 import org.modelingvalue.collections.util.Age;
 import org.modelingvalue.collections.util.Concurrent;
@@ -35,9 +42,12 @@ import org.modelingvalue.collections.util.StringUtil;
 @SuppressWarnings("unused")
 public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
 
+    @Serial
     private static final long                      serialVersionUID             = 3453919290764033219L;
 
-    private static final int                       EQUAL_HASHCODE_WARNING_LEVEL = Integer.getInteger("EQUAL_HASHCODE_WARNING_LEVEL", 16);
+    private static Object[]                        EMPTY_ARRAY                  = new Object[0];
+
+    public static final int                        EQUAL_HASHCODE_WARNING_LEVEL = Integer.getInteger("EQUAL_HASHCODE_WARNING_LEVEL", 16);
 
     @SuppressWarnings("rawtypes")
     private static final BiFunction                RETURN_2                     = (v1, v2) -> v1.equals(v2) ? v1 : v2;
@@ -64,7 +74,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     private static final int[]                     PART_SHIFTS                  = new int[NR_OF_PARTS];
 
     private static final int                       COMPARE_MAX                  = Integer.getInteger("COMPARE_MAX", ContextThread.POOL_SIZE * 2);
-    private static final HashMultiValue            DUMMY                        = new HashMultiValue(new Object[0], 0, 0, (byte) 1, 0, (byte) 0, 0);
+    private static final HashMultiValue            DUMMY                        = new HashMultiValue(EMPTY_ARRAY, 0, 0, (byte) 1, 0, (byte) 0, 0);
     private static Object[][]                      SINGLES                      = new Object[COMPARE_MAX][COMPARE_MAX];
 
     private static final Concurrent<CompareStates> COMPARE_STATES               = Concurrent.of(CompareStates::new);
@@ -138,7 +148,6 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         public int characteristics() {
             return DISTINCT_CHARACTERISTICS;
         }
-
     }
 
     private static final class HashMultiValue extends MultiValue {
@@ -156,7 +165,7 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
 
         @Override
         public int hashCode() {
-            return super.hashCode() + size + index + level + depth;
+            return Objects.hash(super.hashCode(), size, index, level, depth);
         }
 
         @Override
@@ -355,14 +364,50 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
+    protected static <T> int index(Object v, Function key, Object find) {
+        if (v == null) {
+            return -1;
+        } else {
+            int id = find.hashCode(), it, i, index = 0;
+            byte level = -1;
+            while (v instanceof HashMultiValue mv) {
+                if (mv.level == level + 1 || (id & INDEX_MASKS[mv.level - 1]) == mv.index) {
+                    if (mv.level == NR_OF_PARTS) {
+                        for (i = 0; i < mv.values.length; i++) {
+                            v = mv.values[i];
+                            if (key.apply(v).equals(find)) {
+                                return index + i;
+                            }
+                        }
+                        return -1;
+                    } else {
+                        it = getIt(mv.mask, (id & PART_MASKS[mv.level]) >>> PART_SHIFTS[mv.level]);
+                        if (it >= 0) {
+                            for (i = 0; i < it; i++) {
+                                index += size(mv.values[i]);
+                            }
+                            level = mv.level;
+                            v = mv.values[it];
+                        } else {
+                            return -1;
+                        }
+                    }
+                } else {
+                    return -1;
+                }
+            }
+            return key.apply(v).equals(find) ? index : -1;
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
     protected static <T> T get(Object v, Function key, Object find) {
         if (v == null) {
             return null;
         } else {
             int id = find.hashCode(), it;
             byte level = -1;
-            while (v instanceof HashMultiValue) {
-                HashMultiValue mv = (HashMultiValue) v;
+            while (v instanceof HashMultiValue mv) {
                 if (mv.level == level + 1 || (id & INDEX_MASKS[mv.level - 1]) == mv.index) {
                     if (mv.level == NR_OF_PARTS) {
                         for (it = 0; it < mv.values.length; it++) {
@@ -386,6 +431,34 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
                 }
             }
             return key.apply(v).equals(find) ? (T) v : null;
+        }
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    protected static <T> Set<T> allWithEqualhash(Object v, Function key, Object find) {
+        if (v == null) {
+            return Set.of();
+        } else {
+            int id = find.hashCode(), it;
+            byte level = -1;
+            while (v instanceof HashMultiValue mv) {
+                if (mv.level == level + 1 || (id & INDEX_MASKS[mv.level - 1]) == mv.index) {
+                    if (mv.level == NR_OF_PARTS) {
+                        return Set.of((T[]) mv.values);
+                    } else {
+                        it = getIt(mv.mask, (id & PART_MASKS[mv.level]) >>> PART_SHIFTS[mv.level]);
+                        if (it >= 0) {
+                            level = mv.level;
+                            v = mv.values[it];
+                        } else {
+                            return Set.of();
+                        }
+                    }
+                } else {
+                    return Set.of();
+                }
+            }
+            return key.apply(v).hashCode() == id ? Set.of((T) v) : Set.of();
         }
     }
 
@@ -697,8 +770,8 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         return set(value, key1, identity(), added, key2, identity(), RETURN_1);
     }
 
-    protected static <T1, T2> Object put(Object value, Function<T1, Object> key1, Object added, Function<T2, Object> key2) {
-        return set(value, key1, identity(), added, key2, identity(), RETURN_2);
+    protected static <T1, T2> Object put(Object value, Function<T1, Object> key1, Object putted, Function<T2, Object> key2) {
+        return set(value, key1, identity(), putted, key2, identity(), RETURN_2);
     }
 
     protected static <T1, T2> Object remove(Object value, Function<T1, Object> key1, Object removed, Function<T2, Object> key2) {
@@ -801,11 +874,6 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     }
 
     @Override
-    public boolean contains(Object e) {
-        return get(value, key(), e) != null;
-    }
-
-    @Override
     public ContainingCollection<T> addUnique(T e) {
         return add(e);
     }
@@ -850,7 +918,6 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
         public CompareStates() {
             super(x -> new CompareState(), (cs, x, l) -> cs.open(l), CompareState::close, CompareState::isOpen);
         }
-
     }
 
     @SuppressWarnings("rawtypes")
@@ -1056,7 +1123,6 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
                 }
             }
             return result;
-
         }
 
         private int equalKeys(int len, byte dep) {
@@ -1094,5 +1160,4 @@ public abstract class HashCollectionImpl<T> extends TreeCollectionImpl<T> {
     public ContainingCollection<T> replaceFirst(Object pre, T post) {
         return replace(pre, post);
     }
-
 }
