@@ -22,6 +22,9 @@ rootProject.name = "immutable-collections"
 
 include("generator")
 
-plugins {
-    id("com.gradle.enterprise") version ("3.5")
+pluginManagement {
+    repositories {
+        maven { url = uri("https://modelingvaluegroup.github.io/gradlePlugins/") }
+        gradlePluginPortal()
+    }
 }
