@@ -265,6 +265,11 @@ public abstract class MutableList<T> extends AbstractList<T> implements Mutable<
             return pre;
         }
 
+        @Override
+        public MutableList<T> subList(int fromIndex, int toIndex) {
+            return of(get().sublist(toIndex, toIndex));
+        }
+
     }
 
     private static class ConcurrentImpl<T> extends MutableList<T> {
@@ -284,10 +289,12 @@ public abstract class MutableList<T> extends AbstractList<T> implements Mutable<
         public boolean set(UnaryOperator<List<T>> oper) {
             List<T> prev = ref.get(), next = null;
             for (boolean haveNext = false;;) {
-                if (!haveNext)
+                if (!haveNext) {
                     next = oper.apply(prev);
-                if (ref.weakCompareAndSetVolatile(prev, next))
+                }
+                if (ref.weakCompareAndSetVolatile(prev, next)) {
                     return prev != next;
+                }
                 haveNext = (prev == (prev = ref.get()));
             }
         }
@@ -295,6 +302,11 @@ public abstract class MutableList<T> extends AbstractList<T> implements Mutable<
         @Override
         public List<T> getAndSet(UnaryOperator<List<T>> oper) {
             return ref.getAndUpdate(oper);
+        }
+
+        @Override
+        public MutableList<T> subList(int fromIndex, int toIndex) {
+            return concurrent(get().sublist(toIndex, toIndex));
         }
 
     }
