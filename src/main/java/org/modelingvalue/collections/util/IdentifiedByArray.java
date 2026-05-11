@@ -50,7 +50,7 @@ public class IdentifiedByArray implements Internable {
             } else if (!Arrays.equals(array, other.array)) {
                 return false;
             } else {
-                if (Age.age(array) > Age.age(other.array)) {
+                if (IdentityRank.rank(array) < IdentityRank.rank(other.array)) {
                     other.array = array;
                 } else {
                     array = other.array;

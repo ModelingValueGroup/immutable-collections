@@ -137,7 +137,7 @@ public abstract class TreeCollectionImpl<T> extends CollectionImpl<T> implements
             return true;
         } else if (!equalsWithStop(value, other.value, new boolean[1])) {
             return false;
-        } else if (Age.age(value) > Age.age(other.value)) {
+        } else if (IdentityRank.rank(value) < IdentityRank.rank(other.value)) {
             other.value = value;
             return true;
         } else {

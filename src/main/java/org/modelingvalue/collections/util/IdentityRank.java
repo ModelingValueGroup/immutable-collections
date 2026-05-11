@@ -18,47 +18,15 @@
 //      but also our friend. "He will live on in many of the lines of code you see below."                               ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-package org.modelingvalue.collections.test;
+package org.modelingvalue.collections.util;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.modelingvalue.collections.util.Age.*;
+public final class IdentityRank {
 
-import java.util.function.Consumer;
-
-import org.junit.jupiter.api.Test;
-
-public class AgeTest {
-    public static final int LOOPS = 100_000_000;
-
-    @Test
-    public void ageCheck() {
-        Object[] arr = new Object[]{new Object()};
-
-        int age_arr_pre = age(arr);
-        int age_sub_pre = age(arr[0]);
-        assertAll(
-                () -> assertEquals(0, age_arr_pre, "age was " + age_arr_pre),
-                () -> assertEquals(0, age_sub_pre, "age was " + age_sub_pre)
-        );
-
-        useLotsOfMemory(i -> System.out.printf("... i=%2d    age=%2d    age=%2d\n", i, age(arr), age(arr[0])));
-
-        int age_arr_post = age(arr);
-        int age_sub_post = age(arr[0]);
-        assertAll(
-                () -> assertTrue(0 < age_arr_post, "age was " + age_arr_post),
-                () -> assertTrue(0 < age_sub_post, "age was " + age_sub_post)
-        );
+    public static int rank(Object object) {
+        return System.identityHashCode(object);
     }
 
-    private void useLotsOfMemory(Consumer<Integer> r) {
-        r.accept(0);
-        for (int j = 1; j <= 10; j++) {
-            for (int i = 0; i < LOOPS / 10; i++) {
-                @SuppressWarnings("unused")
-                int h = new Object().hashCode();
-            }
-            r.accept(j);
-        }
+    private IdentityRank() {
     }
+
 }
