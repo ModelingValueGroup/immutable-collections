@@ -18,31 +18,18 @@
 //      but also our friend. "He will live on in many of the lines of code you see below."                               ~
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-package org.modelingvalue.collections.util;
+package org.modelingvalue.collections.test;
 
-import sun.misc.Unsafe;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.modelingvalue.collections.util.IdentityRank.*;
 
-import java.lang.reflect.Field;
+import org.junit.jupiter.api.Test;
 
-public final class Age {
+public class IdentityRankTest {
 
-    private static Unsafe UNSAFE = null;
-
-    static {
-        try {
-            Field declaredField = Unsafe.class.getDeclaredField("theUnsafe");
-            declaredField.setAccessible(true);
-            UNSAFE = (Unsafe) declaredField.get(null);
-        } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
+    @Test
+    public void rankIsStable() {
+        Object o = new Object();
+        assertEquals(rank(o), rank(o));
     }
-
-    public static int age(Object object) {
-        return (UNSAFE.getByte(object, 0L) & 0x78) >> 3;
-    }
-
-    private Age() {
-    }
-
 }

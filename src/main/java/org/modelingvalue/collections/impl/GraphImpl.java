@@ -360,13 +360,13 @@ public class GraphImpl<V, E> extends CollectionImpl<Triple<V, E, V>> implements 
         if (!this.outgoing.equals(other.outgoing))
             return false;
 
-        if (Age.age(this.outgoing) > Age.age(other.outgoing)) {
+        if (IdentityRank.rank(this.outgoing) < IdentityRank.rank(other.outgoing)) {
             other.outgoing = this.outgoing;
         } else {
             this.outgoing = other.outgoing;
         }
 
-        if (Age.age(this.incoming) > Age.age(other.incoming)) {
+        if (IdentityRank.rank(this.incoming) < IdentityRank.rank(other.incoming)) {
             other.incoming = this.incoming;
         } else {
             this.incoming = other.incoming;

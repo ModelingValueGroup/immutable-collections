@@ -25,7 +25,7 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.modelingvalue.collections.Entry;
-import org.modelingvalue.collections.util.Age;
+import org.modelingvalue.collections.util.IdentityRank;
 import org.modelingvalue.collections.util.Internable;
 import org.modelingvalue.collections.util.StringUtil;
 
@@ -73,7 +73,7 @@ public final class EntryImpl<K, V> implements Entry<K, V> {
             return true;
         } else if (value == null || !value.equals(other.value)) {
             return false;
-        } else if (Age.age(value) > Age.age(other.value)) {
+        } else if (IdentityRank.rank(value) < IdentityRank.rank(other.value)) {
             other.value = value;
             return true;
         } else {

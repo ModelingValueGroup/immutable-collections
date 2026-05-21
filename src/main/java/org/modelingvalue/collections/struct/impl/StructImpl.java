@@ -26,7 +26,7 @@ import java.util.Spliterator;
 import java.util.function.Consumer;
 
 import org.modelingvalue.collections.struct.Struct;
-import org.modelingvalue.collections.util.Age;
+import org.modelingvalue.collections.util.IdentityRank;
 import org.modelingvalue.collections.util.Internable;
 import org.modelingvalue.collections.util.StringUtil;
 
@@ -63,7 +63,7 @@ public abstract class StructImpl implements Struct {
             return true;
         } else if (!Arrays.equals(data, other.data)) {
             return false;
-        } else if (Age.age(data) > Age.age(other.data)) {
+        } else if (IdentityRank.rank(data) < IdentityRank.rank(other.data)) {
             other.data = data;
             return true;
         } else {
