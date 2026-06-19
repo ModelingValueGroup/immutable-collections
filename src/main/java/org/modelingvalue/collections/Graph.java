@@ -289,6 +289,10 @@ public interface Graph<V, E> extends ContainingCollection<Triple<V, E, V>>, Merg
         return false;
     }
 
+    default boolean hasCycles(Predicate<V> nodePredicate, Predicate<Triple<V, E, V>> edgePredicate, V node) {
+        return cycleDetectionHelper(nodePredicate, edgePredicate, new HashSet<>(), new HashSet<>(), node);
+    }
+
     private boolean cycleDetectionHelper(Predicate<V> nodePredicate, Predicate<Triple<V, E, V>> edgePredicate, HashSet<V> safe, HashSet<V> visited, V curr) {
         if (safe.contains(curr))
             return false;

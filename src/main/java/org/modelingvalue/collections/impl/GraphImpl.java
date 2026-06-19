@@ -47,14 +47,16 @@ import org.modelingvalue.collections.util.*;
  * This implementation provides constant-time performance for the basic operations (putEdge,
  * removeEdge, and containsEdge).
  * </p>
- * 
+ *
  * @param <V>
  *            the type of vertices in this graph
  * @param <E>
  *            the type of edge weights in this graph
  * @implNote The graph is stored as a map where each vertex is mapped to a {@link Quadruple} that
- *           contains four maps that represents the incoming and outgoing edges for the vertex each in two different ways.
- *           (incoming - maps an edge weight to all the vertices that have an edge with that edge weight to
+ * contains four maps that represents the incoming and outgoing edges for the vertex each in two
+ * different ways, a map of each edge weight to all the vertices that have edges to/from the key
+ * vertex with that weight and a map of each vertex to all the edge weights of edges between the
+ * two vertices
  */
 public class GraphImpl<V, E> extends CollectionImpl<Triple<V, E, V>> implements Graph<V, E> {
 
