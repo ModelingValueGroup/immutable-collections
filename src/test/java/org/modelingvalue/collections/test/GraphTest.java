@@ -1635,6 +1635,27 @@ public class GraphTest {
     }
 
     @Test
+    public void cycle4() {
+        Graph<String, Integer> graph1 = Graph.of(
+                Triple.of("a", 0, "b"), Triple.of("b", 0, "c"), Triple.of("c", 0, "d"),
+                Triple.of("d", 0, "b"), Triple.of("d", 0, "e"), Triple.of("e", 0, "f"),
+                Triple.of("f", 0, "g"), Triple.of("f", 0, "h")
+        );
+
+        Predicate<String> nodePredicate = node -> true;
+        Predicate<Triple<String, Integer, String>> edgePredicate = edge -> true;
+
+        assertTrue(graph1.hasCycles(nodePredicate, edgePredicate, "a"));
+        assertTrue(graph1.hasCycles(nodePredicate, edgePredicate, "b"));
+        assertTrue(graph1.hasCycles(nodePredicate, edgePredicate, "c"));
+        assertTrue(graph1.hasCycles(nodePredicate, edgePredicate, "d"));
+        assertFalse(graph1.hasCycles(nodePredicate, edgePredicate, "e"));
+        assertFalse(graph1.hasCycles(nodePredicate, edgePredicate, "f"));
+        assertFalse(graph1.hasCycles(nodePredicate, edgePredicate, "g"));
+        assertFalse(graph1.hasCycles(nodePredicate, edgePredicate, "h"));
+    }
+
+    @Test
     public void baseStream1() {
         Graph<String, Integer> graph = Graph.of();
 
